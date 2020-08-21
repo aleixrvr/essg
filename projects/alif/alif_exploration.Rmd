@@ -1,0 +1,123 @@
+---
+title: "alif_exploration"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, root.dir=normalizePath('../../'))
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(data.table)
+library(magrittr)
+library(yaml)
+library(kableExtra)
+library(ggplot2)
+
+source('../../basic.R')
+source('../../propensity-utils.R')
+
+
+xls_path <- '../../data/ESSG extraction July 2020_2.xlsx'
+excel_sheets(xls_path)
+
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table()
+
+setnames(clinical_data, '3CO', 'CO3')
+setnames(clinical_data, '3CO number', 'CO3_number')
+setnames(clinical_data, '1st surgeon: experience in ASD surgery', 'first_surgeon')
+setnames(clinical_data, 'Levels Previously operated - Upper', 'Prev_op_up')
+setnames(clinical_data, 'Levels Previously operated - Lower', 'Prev_op_low')
+
+
+matching_vars <- read_yaml('matching_vars.yml')
+# clinical_names <- names(clinical_data)
+# for( var in matching_vars ){
+#   trobada <- which(clinical_names == var)
+#   if( length(trobada) == 0 ){
+#     trobada <- 0
+#   }
+#   "{var}: {trobada}" %>% f %>% print
+# }
+
+# clinical_names[grep('3CO', clinical_names)]
+
+clinical_data %>% 
+  .[ALIF + TLIF + PLIF > 0] %>% 
+  .[, done_alif := ifelse(ALIF > 0, TRUE, FALSE)] %>% 
+  .[, .SD, .SDcols = c('done_alif', matching_vars)]->
+  sel_data
+
+```
+
+```{r include=FALSE}
+for( sel_var_name in matching_vars ){
+  sel_var <- sel_data[[sel_var_name]]
+  if( class(sel_var) == 'character' ){
+    na_rows <- sel_var %>% is.na
+    sel_data[na_rows, c(sel_var_name):='NA']
+  }
+}
+```
+
+
+
+
+# Aggregations
+
+```{r warning=FALSE}
+sel_data %>% 
+  .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
+  .[Site=='ZUR Op', Site:='ANKZUR Op'] 
+
+sel_data %>% 
+  .[substr(Prev_op_up, 1, 1) == 'C', Prev_op_up:='C'] %>% 
+  .[substr(Prev_op_up, 1, 1) == 'L', Prev_op_up:='L'] %>% 
+  .[substr(Prev_op_up, 1, 1) == 'T', Prev_op_up:='T'] %>% 
+  .[substr(Prev_op_up, 1, 1) == 'S', Prev_op_up:='S']
+
+sel_data %>% 
+  .[substr(Prev_op_low, 1, 1) == 'C', Prev_op_low:='C'] %>% 
+  .[substr(Prev_op_low, 1, 1) == 'L', Prev_op_low:='L'] %>% 
+  .[substr(Prev_op_low, 1, 1) == 'T', Prev_op_low:='T'] %>% 
+  .[substr(Prev_op_low, 1, 1) == 'S', Prev_op_low:='S']
+
+sel_data %>% 
+  .[first_surgeon == 'Less than 2 years', first_surgeon:='2-10 years']
+
+sel_data %>% 
+  .[`ASA classification` == '4', `ASA classification`:='3']
+
+sel_data %>% 
+  .[grepl('Current', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Current'] %>% 
+  .[grepl('Ex-User', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Ex-User'] 
+```
+
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+done_alif <- sel_data$done_alif %>% as.numeric()
+explore_vars(matching_vars, sel_data, outcome=done_alif)
+```
+
+```{r include=FALSE}
+# sel_cols <- colnames(sel_data)
+# ind_excl <- which(sel_cols %in% c('LDI', 'Roussouly Type'))
+# sel_cols <- sel_cols[-ind_excl]
+# 
+# sel_data %>% 
+#   .[, .SD, .SDcols = sel_cols] %>% 
+#   na.omit ->
+#   sel_data_reg
+# 
+# log_model <- glm(done_alif~., data=sel_data_reg, family='binomial') 
+# predictions <- predict(log_model, sel_data_reg, type='response')
+# 
+# data.frame(predictions, alif=sel_data_reg$done_alif) %>% 
+#   ggplot(aes(predictions, fill=alif, color=alif)) +
+#   geom_density(alpha = 0.1) -> res_plot 
+#   
+# print(res_plot)
+```
+

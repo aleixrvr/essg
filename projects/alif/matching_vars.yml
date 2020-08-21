@@ -1,0 +1,29 @@
+- Age
+- Gender
+- Site
+- Prior Spine Surgery
+- Abdominal surgery
+# - "1st surgeon: experience in ASD surgery"
+- first_surgeon
+- ASA classification
+- Decompression
+- Osteotomy
+# - 3CO 
+- CO3
+- SPOs
+- BMI_First Visit
+- Tobacco use_First Visit
+- Osteoporosis / osteopenia
+# # - "Levels Previously operated - Lower"
+# - Prev_op_low
+# - Other previous surgeries
+- Lower GI
+- Peripheral vascular disease
+- LGap
+- Ideal LL
+- Lordosis (top of L1-S1)
+- RLL
+- LDI
+- Roussouly Type
+- Number of Interbody Fusions
+# - Intervertebral body fusion: Interbody fusion Brand and Type
