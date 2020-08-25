@@ -1,0 +1,33 @@
+---
+title: "FENESTRATED SCREWS EXPLORATION"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(echo = TRUE, root.dir=normalizePath('../../'))
+```
+
+```{r warning=FALSE, include=FALSE}
+library(data.table)
+library(magrittr)
+library(kableExtra)
+
+source('code/fenestrated/fenestrated-utils.R')
+source('code/propensity-utils.R')
+
+sel_data <- get_data()
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+fenestrated <- sel_data$fenestrated %>% as.numeric()
+explore_vars(sel_data, outcome_name='fenestrated')
+```
+
+## Propensity Scores Overlapping
+```{r echo=FALSE}
+sel_data[, fenestrated := ifelse(fenestrated == 'Yes', 1, 0)]
+run_logistic_propensity(sel_data, outcome_name='fenestrated') ->
+  res_plot
+print(res_plot)
+```
+

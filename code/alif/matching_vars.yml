@@ -2,7 +2,7 @@
 - Gender
 - Site
 - Prior Spine Surgery
-- Abdominal surgery
+# - Abdominal surgery
 # - "1st surgeon: experience in ASD surgery"
 - first_surgeon
 - ASA classification
@@ -14,16 +14,16 @@
 - BMI_First Visit
 - Tobacco use_First Visit
 - Osteoporosis / osteopenia
-# # - "Levels Previously operated - Lower"
-# - Prev_op_low
-# - Other previous surgeries
-- Lower GI
-- Peripheral vascular disease
+# - "Levels Previously operated - Lower"
+- Prev_op_low
+# - Other previous surgeries : removed
+# - Lower GI
+# - Peripheral vascular disease
 - LGap
 - Ideal LL
 - Lordosis (top of L1-S1)
 - RLL
-- LDI
-- Roussouly Type
+# - LDI : removed
+# - Roussouly Type : removed
 - Number of Interbody Fusions
-# - Intervertebral body fusion: Interbody fusion Brand and Type
+
