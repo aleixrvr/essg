@@ -1,15 +1,18 @@
 library(data.table)
 library(magrittr)
 library(ggplot2)
+library(zeallot)
 
 source('code/fenestrated/fenestrated-utils.R')
+source('code/train.R')
 
-sel_data <- get_data()
+tuneLength <- 3
+outcome <- 'fenestrated'
 
-sel_data %>% 
-  .[, fenestrated := ifelse(fenestrated == 'Yes', 1, 0)] %>% 
-  na.omit ->
-  sel_data_reg
+data_sel <- get_data()
+
+
+
 
 
 

@@ -1,67 +1,58 @@
 library(magrittr)
-library(caret)
-library(glue)
 library(logger)
 
-source('code/basic.R')
-source('code/train-utils.R')
-
-# covariates <- c()
-# outcome
-# dt
-
-
-results <- list()
-pred_formula <- '{outcome} ~ .' %>% f %>% as.formula
-
-y_values <- dt[[outcome]]
-type_model <- 'classification'
-if( class(y_values) == 'numeric' ){
-  type_model <- 'regression'
-}
+train_model <- function(dt, outcome, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic')){
+  results <- list()
+  pred_formula <- '{outcome} ~ .' %>% f %>% as.formula
+  trControl <-  caret::trainControl(method = "cv", number = k_fold)
+  method <- ifelse(class(dt[[outcome]]) == 'numeric', 'lm', 'glm')
   
-# Creating splits 
-inTrain  <-  createDataPartition(y = dt[[outcome]], p = .8, list = FALSE)
-training <-  dt[inTrain, ]
-test <-  dt[-inTrain, ]
-fitControl <-  trainControl(method = "cv", number = 5, search = 'random')
+  # Linear Model with data partition (train/test)
+  if( 'lm' %in% models){
+    results[[model_type]] <-   caret::train(
+      pred_formula, data = dt,
+      method = method,
+      trControl = trControl
+    )
+    log_info('LM -> Done')
+  }
+  
+  # Gradient Boosting Machine
+  if( 'boosting' %in% models ){
+    results[['boosting']] <-   caret::train(
+      pred_formula, data = dt, method='xgbTree', trControl = trControl, tuneLength = tuneLength, verbose = FALSE
+    )
+    log_info('Boosting -> Done \n')
+  }
+  
+  
+  # Elastic Net
+  if( 'elastic' %in% models ){
+    results[['elastic_net']] <- caret::train(
+      pred_formula, data=dt, method='glmnet', trControl = trControl, standardize = FALSE, tuneLength = tuneLength
+    )
+    log_info('Elastic Net -> Done \n ')
+  }
+  
+  return(results)  
+}
 
-# Linear Model with data partition (train/test)
-model <-  caret::train(formula, data = training, method = 'lm', trControl = fitControl)
-results[['lm']] <- list(
-  model = model,
-  accuracy = evaluate_predictions(model, test, outcome)
-)
-log_info(paste('LM         -> Done'))
- 
-# Gradient Boosting Machine
-grid <- expand.grid(
-  n.trees = c(1, 5, 10, 15, 20, 25, 30, 40, 50, 75, 100, 250, 500), 
-  shrinkage = c(0.01, 0.05, 0.1, 0.001),
-  n.minobsinnode = c(3, 5, 10,15), 
-  interaction.depth = c(1, 5, 10)
-) 
-model <-  caret::train(
-  formula, data = training, method='xgbTree', trControl = fitControl, tuneGrid = grid, verbose = FALSE
-)
-
-results[['boosting']] <- list(
-  model = model,
-  accuracy = evaluate_predictions(model, test, outcome)
-)
-
-log_info(f('Boosting          -> Done \n {dim(grid)[1]} GBMs trained'))
-
- 
-# Elastic Net
-grid <- expand.grid(lambda = c(seq(0, 100, 1.5)), alpha = c(seq(0, 0.1, length = 20)))
-model_elnet <- caret::train(
-  formula, data=training, method='glmnet', trControl = fitControl, standardize = FALSE, tuneGrid = grid
-)
-results[['elastic_net']] <- list(
-  model = model,
-  accuracy = evaluate_predictions(model, test, outcome)
-)
-
-log_info(paste('Elastic Net -> Done \n ', number_of_models, 'Elastic Nets trained'))
+select_best_model <- function(results_model){
+  
+  results_model %>% lapply(
+    . %>% .$results %>% tail(1) %>% .$Accuracy
+  ) -> results_accuracy
+  
+  results_accuracy %>% 
+    which.max %>% 
+    names ->
+    sel_model
+  
+  return(list(
+    sel_model = sel_model, 
+    params = results_model[[sel_model]]$bestTune, 
+    accuracy = results_accuracy[[sel_model]], 
+    model = results_model[[sel_model]]
+  ))
+}
 

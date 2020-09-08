@@ -32,39 +32,49 @@ clinical_data %>%
 factor_cols <- colnames(treats)[ treats %>% sapply(is.character) ]
 
 treats[, .SD, .SDcols=factor_cols] -> facts
-facts %>% lapply(uniqueN)
-facts[, surgical_approach %>% unique]
 
-melt(facts, measure.vars=factor_cols)
-facts[, c(1, 2)] -> res
+library(GGally)
+ggpairs(facts) +
+  theme(
+    axis.text.x = element_text(angle = 30, vjust = 0.5, hjust=1),
+    strip.text.x=element_text(angle=90, hjust=0.5, vjust=0.5)
+  ) 
 
-res %>% table %>% melt -> res
-
-
-factor_cols_n <- len(factor_cols)
-melted_data <- data.table()
-for( var1_pos in 1:(factor_cols_n - 1) ){
-  var1 <- factor_cols[var1_pos]
-  for( var2_pos in (var1_pos + 1):factor_cols_n  ){
-    var2 <- factor_cols[var2_pos]
-    res <- facts[, c(var1, var2), with=FALSE]
-    colnames(res) <- c('cat1', 'cat2')
-    res$var1 <- var1
-    res$var2 <- var2
-    
-    melted_data <- rbind(melted_data, res)
-  }
-}
-
-melted_data[, var1:=factor(var1, levels=factor_cols)]
-melted_data[, var2:=factor(var2, levels=factor_cols %>% rev)]
-melted_data %>% 
-  .[var1=='surgical_approach']
-
-ggplot(data=melted_data) +
-  geom_mosaic(aes(x=product(cat1, cat2)), na.rm = TRUE, color='red', size=0.3) +
-  facet_grid(var1~var2) +
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-    panel.background = element_blank())
-  
-
+ggally_crosstable(facts)
+# 
+# facts %>% lapply(uniqueN)
+# facts[, surgical_approach %>% unique]
+# 
+# melt(facts, measure.vars=factor_cols)
+# facts[, c(1, 2)] -> res
+# 
+# res %>% table %>% melt -> res
+# 
+# 
+# factor_cols_n <- len(factor_cols)
+# melted_data <- data.table()
+# for( var1_pos in 1:(factor_cols_n - 1) ){
+#   var1 <- factor_cols[var1_pos]
+#   for( var2_pos in (var1_pos + 1):factor_cols_n  ){
+#     var2 <- factor_cols[var2_pos]
+#     res <- facts[, c(var1, var2), with=FALSE]
+#     colnames(res) <- c('cat1', 'cat2')
+#     res$var1 <- var1
+#     res$var2 <- var2
+#     
+#     melted_data <- rbind(melted_data, res)
+#   }
+# }
+# 
+# melted_data[, var1:=factor(var1, levels=factor_cols)]
+# melted_data[, var2:=factor(var2, levels=factor_cols %>% rev)]
+# melted_data %>% 
+#   .[var1=='surgical_approach']
+# 
+# ggplot(data=melted_data) +
+#   geom_mosaic(aes(x=product(cat1, cat2)), na.rm = TRUE, color='red', size=0.3) +
+#   facet_grid(var1~var2) +
+#   theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+#     panel.background = element_blank())
+#   
+# 

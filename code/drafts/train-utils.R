@@ -1,9 +1,14 @@
 library(stringr)
 
-evaluate_predictions <- function(model, test, outcome){
-  real <- test[, outcome]
+evaluate_predictions <- function(model, test, outcome, type_model){
+  real <- test[[outcome]]
   prediction <- predict(model, test)
-  caret::postResample(pred = prediction, obs = real)
+  
+  if(type_model == 'classification'){
+    mean(prediction == real)
+  }else{
+    sqrt( mean( ( prediction - real )^2 ) )
+  }
 }
 
 . %>% 

@@ -1,6 +1,9 @@
 library(ggplot2)
+library(zeallot)
+library(magrittr)
 
 source('code/basic.R')
+source('code/train.R')
 
 explore_vars <- function(sel_data, outcome_name) {
   
@@ -33,20 +36,21 @@ explore_vars <- function(sel_data, outcome_name) {
   }
 }
 
-run_logistic_propensity <- function(sel_data, outcome_name){
-  sel_data %>% 
-    na.omit ->
-    sel_data_reg
+run_propensity <- function(data_sel, outcome_name, ...){
+  data_sel %>% 
+    na.omit %>% 
+    train_model(outcome = outcome_name, ...) ->
+    results_model 
   
-  log_formula <- "{outcome_name} ~ ." %>% f %>% as.formula
-  log_model <- glm(log_formula, data=sel_data_reg, family='binomial') 
-  sel_data_reg$predictions <- predict(log_model, sel_data_reg, type='response')
+  c(sel_model, params, accuracy, model) %<-% select_best_model(results_model)
   
-  outcome <- sel_data_reg[[outcome_name]]
-  sel_data_reg[, outcome:=as.factor(outcome)]
+  propensity <- predict(model, data_sel, type='prob')[, 1]
   
-  sel_data_reg %>% 
-    ggplot(aes(predictions, fill=outcome, color=outcome)) +
+  data.frame(
+    propensity,
+    outcome=data_sel %>% na.omit %>% .[[outcome_name]]
+  ) %>% 
+    ggplot(aes(propensity, fill=outcome, color=outcome)) +
     geom_density(alpha = 0.1) +
     xlim(c(0, 1)) 
 }

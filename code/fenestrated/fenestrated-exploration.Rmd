@@ -25,8 +25,7 @@ explore_vars(sel_data, outcome_name='fenestrated')
 
 ## Propensity Scores Overlapping
 ```{r echo=FALSE}
-sel_data[, fenestrated := ifelse(fenestrated == 'Yes', 1, 0)]
-run_logistic_propensity(sel_data, outcome_name='fenestrated') ->
+run_propensity(sel_data, outcome_name='fenestrated') ->
   res_plot
 print(res_plot)
 ```
