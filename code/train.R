@@ -1,15 +1,15 @@
 library(magrittr)
 library(logger)
 
-train_model <- function(dt, outcome, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic')){
+train_model <- function(dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic')){
   results <- list()
-  pred_formula <- '{outcome} ~ .' %>% f %>% as.formula
+  pred_formula <- '{outcome_name} ~ .' %>% f %>% as.formula
   trControl <-  caret::trainControl(method = "cv", number = k_fold)
-  method <- ifelse(class(dt[[outcome]]) == 'numeric', 'lm', 'glm')
+  method <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'lm', 'glm')
   
   # Linear Model with data partition (train/test)
   if( 'lm' %in% models){
-    results[[model_type]] <-   caret::train(
+    results[[method]] <-   caret::train(
       pred_formula, data = dt,
       method = method,
       trControl = trControl
@@ -40,7 +40,7 @@ train_model <- function(dt, outcome, k_fold=5, tuneLength=5, models=c('lm', 'boo
 select_best_model <- function(results_model){
   
   results_model %>% lapply(
-    . %>% .$results %>% tail(1) %>% .$Accuracy
+    . %>% .$results %>% .$Accuracy %>% max
   ) -> results_accuracy
   
   results_accuracy %>% 

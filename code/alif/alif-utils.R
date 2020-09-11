@@ -22,7 +22,7 @@ get_data <- function(){
  
   clinical_data %>% 
     .[ALIF + TLIF + PLIF > 0] %>% 
-    .[, alif := ifelse(ALIF > 0, 1, 0)] %>% 
+    .[, alif := ifelse(ALIF > 0, 'Yes', 'No')] %>% 
     .[, .SD, .SDcols = c('alif', matching_vars)] %>% 
     aggregate_data  %>% 
     clean_data(matching_vars) ->

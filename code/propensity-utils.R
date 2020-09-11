@@ -36,21 +36,26 @@ explore_vars <- function(sel_data, outcome_name) {
   }
 }
 
-run_propensity <- function(data_sel, outcome_name, ...){
-  data_sel %>% 
-    na.omit %>% 
-    train_model(outcome = outcome_name, ...) ->
+run_propensity <- function(sel_data, outcome_name, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic')){
+  sel_data %>% 
+    na.omit -> clean_data
+  
+  clean_data %>% 
+    train_model(outcome = outcome_name, k_fold, tuneLength, models) ->
     results_model 
   
-  c(sel_model, params, accuracy, model) %<-% select_best_model(results_model)
+  best_model <- select_best_model(results_model)
   
-  propensity <- predict(model, data_sel, type='prob')[, 1]
+  propensity <- predict(best_model$model, clean_data, type='prob')$Yes
+  clean_data[, propensity := propensity]
   
-  data.frame(
-    propensity,
-    outcome=data_sel %>% na.omit %>% .[[outcome_name]]
-  ) %>% 
-    ggplot(aes(propensity, fill=outcome, color=outcome)) +
+  best_model$plot <- clean_data %>% 
+    ggplot(aes_string('propensity', fill=outcome_name, color=outcome_name)) +
     geom_density(alpha = 0.1) +
-    xlim(c(0, 1)) 
+    xlim(c(0, 1))
+  
+  best_model$clean_data <- clean_data
+  
+  return(best_model)
 }
+
