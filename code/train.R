@@ -1,11 +1,14 @@
 library(magrittr)
 library(logger)
 
-train_model <- function(dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic')){
+train_model <- function(
+  dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic'), verbose=FALSE
+){
   results <- list()
-  pred_formula <- '{outcome_name} ~ .' %>% f %>% as.formula
+  pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
   trControl <-  caret::trainControl(method = "cv", number = k_fold)
-  method <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'lm', 'glm')
+  model_type <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'regression', 'classification')
+  method <- ifelse(model_type == 'regression', 'lm', 'glm')
   
   # Linear Model with data partition (train/test)
   if( 'lm' %in% models){
@@ -14,7 +17,7 @@ train_model <- function(dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm',
       method = method,
       trControl = trControl
     )
-    log_info('LM -> Done')
+    if( verbose == TRUE ) log_info('LM -> Done')
   }
   
   # Gradient Boosting Machine
@@ -22,7 +25,7 @@ train_model <- function(dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm',
     results[['boosting']] <-   caret::train(
       pred_formula, data = dt, method='xgbTree', trControl = trControl, tuneLength = tuneLength, verbose = FALSE
     )
-    log_info('Boosting -> Done \n')
+    if( verbose == TRUE ) log_info('Boosting -> Done \n')
   }
   
   
@@ -31,28 +34,52 @@ train_model <- function(dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm',
     results[['elastic_net']] <- caret::train(
       pred_formula, data=dt, method='glmnet', trControl = trControl, standardize = FALSE, tuneLength = tuneLength
     )
-    log_info('Elastic Net -> Done \n ')
+    if( verbose == TRUE ) log_info('Elastic Net -> Done \n ')
   }
   
-  return(results)  
+  best_model <- select_best_model(results, model_type)
+  return(best_model)  
 }
 
-select_best_model <- function(results_model){
+select_best_model <- function(results_model, model_type){
   
-  results_model %>% lapply(
-    . %>% .$results %>% .$Accuracy %>% max
-  ) -> results_accuracy
+  if( model_type == 'regression' ){
+    results_model %>% lapply(
+      . %>% .$results %>% .$RMSE %>% min
+    ) -> results_rmse
+    
+    results_rmse %>% 
+      which.min %>% 
+      names ->
+      sel_model
+    
+    best_model <- list(
+      sel_model = sel_model, 
+      params = results_model[[sel_model]]$bestTune, 
+      rmse = results_rmse[[sel_model]], 
+      model = results_model[[sel_model]]
+    )
+  }else{
+    results_model %>% lapply(
+      . %>% .$results %>% .$Accuracy %>% max
+    ) -> results_accuracy
+    
+    results_accuracy %>% 
+      which.max %>% 
+      names ->
+      sel_model
+    
+    best_model <- list(
+      sel_model = sel_model, 
+      params = results_model[[sel_model]]$bestTune, 
+      accuracy = results_accuracy[[sel_model]], 
+      model = results_model[[sel_model]]
+    )
+  }
   
-  results_accuracy %>% 
-    which.max %>% 
-    names ->
-    sel_model
-  
-  return(list(
-    sel_model = sel_model, 
-    params = results_model[[sel_model]]$bestTune, 
-    accuracy = results_accuracy[[sel_model]], 
-    model = results_model[[sel_model]]
-  ))
+  return(best_model)
 }
 
+run_cross_validation <- function(){
+  
+}

@@ -15,41 +15,54 @@ get_data <- function(){
     as.data.table()
   
   matching_vars <- read_yaml('code/alif/matching_vars.yml')
+  matching_vars$covariates %<>% c('Alif')
+  all_vars <- matching_vars %>% unlist
   
-  setnames(clinical_data, '3CO', 'CO3')
-  setnames(clinical_data, '1st surgeon: experience in ASD surgery', 'first_surgeon')
-  setnames(clinical_data, 'Levels Previously operated - Lower', 'Prev_op_low')
+  # setnames(clinical_data, '3CO', 'CO3')
  
   clinical_data %>% 
     .[ALIF + TLIF + PLIF > 0] %>% 
-    .[, alif := ifelse(ALIF > 0, 'Yes', 'No')] %>% 
-    .[, .SD, .SDcols = c('alif', matching_vars)] %>% 
+    .[, Alif := ifelse(ALIF > 0, 'Yes', 'No')] %>% 
+    .[, .SD, .SDcols = all_vars] %>% 
     aggregate_data  %>% 
-    clean_data(matching_vars) ->
+    clean_data(all_vars) ->
     sel_data
   
-  sel_data[, ll_lordosis_diff:=ideal_ll - lordosis_top_of_l1s1]
-  sel_data[, ideal_ll:=NULL]
-  sel_data[, lordosis_top_of_l1s1:=NULL]
+  # sel_data[, ll_lordosis_diff:=ideal_ll - lordosis_top_of_l1s1]
+  # sel_data[, ideal_ll:=NULL]
+  # sel_data[, lordosis_top_of_l1s1:=NULL]
   
-  return(sel_data)
+  ideal_ll <- sel_data[['Ideal LL']]
+  lordosis_top_of_l1s1 <- sel_data[['Lordosis (top of L1-S1)']]
+  sel_data[, `LL-Lordosis Difference`:=ideal_ll - lordosis_top_of_l1s1]
+  sel_data[, `Ideal LL`:=NULL]
+  sel_data[, `Lordosis (top of L1-S1)`:=NULL]
+  
+  matching_vars$covariates %<>% c('LL-Lordosis Difference')
+  matching_vars$covariates %!in% c('Ideal LL', 'Lordosis (top of L1-S1)') ->
+    matching_vars$covariates
+  
+  return(list(
+    sel_data,
+    matching_vars
+  ))
 }
 
 aggregate_data <- function(sel_data){
 
-  
   sel_data %>% 
     .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
     .[Site=='ZUR Op', Site:='ANKZUR Op'] 
   
   sel_data %>% 
-    .[substr(Prev_op_low, 1, 1) == 'C', Prev_op_low:='C'] %>% 
-    .[substr(Prev_op_low, 1, 1) == 'L', Prev_op_low:='L'] %>% 
-    .[substr(Prev_op_low, 1, 1) == 'T', Prev_op_low:='T'] %>% 
-    .[substr(Prev_op_low, 1, 1) == 'S', Prev_op_low:='S']
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>% 
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>% 
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>% 
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
   
   sel_data %>% 
-    .[first_surgeon == 'Less than 2 years', first_surgeon:='2-10 years']
+    .[`1st surgeon: experience in ASD surgery` == 'Less than 2 years', 
+      `1st surgeon: experience in ASD surgery`:='2-10 years']
   
   sel_data %>% 
     .[`ASA classification` == 4, `ASA classification`:=3]

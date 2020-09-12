@@ -1,29 +1,32 @@
-- Age
-- Gender
-- Site
-- Prior Spine Surgery
-# - Abdominal surgery
-# - "1st surgeon: experience in ASD surgery"
-- first_surgeon
-- ASA classification
-- Decompression
-- Osteotomy
-# - 3CO 
-- CO3
-- SPOs
-- BMI_First Visit
-- Tobacco use_First Visit
-- Osteoporosis / osteopenia
-# - "Levels Previously operated - Lower"
-- Prev_op_low
-# - Other previous surgeries : removed
-# - Lower GI
-# - Peripheral vascular disease
-- LGap
-- Ideal LL
-- Lordosis (top of L1-S1)
-- RLL
-# - LDI : removed
-# - Roussouly Type : removed
-- Number of Interbody Fusions
-
+covariates:
+  - Age
+  - Gender
+  - Site
+  - Prior Spine Surgery
+  # - Abdominal surgery
+  - "1st surgeon: experience in ASD surgery"
+  - ASA classification
+  - Decompression
+  - Osteotomy
+  - "3CO"
+  # - CO3
+  - SPOs
+  - BMI_First Visit
+  - Tobacco use_First Visit
+  - Osteoporosis / osteopenia
+  - "Levels Previously operated - Lower"
+  # - Other previous surgeries : removed
+  # - Lower GI
+  # - Peripheral vascular disease
+  - LGap
+  - Ideal LL
+  - Lordosis (top of L1-S1)
+  - RLL
+  # - LDI : removed
+  # - Roussouly Type : removed
+  - Number of Interbody Fusions
+outcomes:
+  - "1Y. ODI - Score (%)"
+  - "1Y. SRS22 - SRS Subtotal score"
+  - "1Y. SF36 - MCS"
+  - "1Y. SF36 - PCS" 

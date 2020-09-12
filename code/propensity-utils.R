@@ -28,6 +28,7 @@ explore_vars <- function(sel_data, outcome_name) {
       data.frame(outcome, sel_var) %>% 
         ggplot(aes(sel_var, outcome)) +
         ggtitle(sel_var_name) +
+        ylab(outcome_name) +
         geom_jitter(width = 0.05, height = 0.05) ->
         res_plot
       print(res_plot)
@@ -41,13 +42,11 @@ run_propensity <- function(sel_data, outcome_name, k_fold=5, tuneLength=5, model
     na.omit -> clean_data
   
   clean_data %>% 
-    train_model(outcome = outcome_name, k_fold, tuneLength, models) ->
-    results_model 
-  
-  best_model <- select_best_model(results_model)
+    train_model(outcome_name, k_fold, tuneLength, models) ->
+    best_model 
   
   propensity <- predict(best_model$model, clean_data, type='prob')$Yes
-  clean_data[, propensity := propensity]
+  clean_data[, Propensity := propensity]
   
   best_model$plot <- clean_data %>% 
     ggplot(aes_string('propensity', fill=outcome_name, color=outcome_name)) +

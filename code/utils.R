@@ -47,8 +47,8 @@ clean_names_dt <- function(sel_data){
 
 clean_data <- function(sel_data, matching_vars){
   sel_data %>% 
-    clean_na(matching_vars) %>% 
-    clean_names_dt 
+    clean_na(matching_vars) 
+    # clean_names_dt 
 }
 
 

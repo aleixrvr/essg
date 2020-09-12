@@ -4,33 +4,49 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(echo = TRUE, root.dir=normalizePath('../../'))
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../../')
+)
 ```
 
 ```{r warning=FALSE, include=FALSE}
 library(data.table)
 library(magrittr)
 library(kableExtra)
+library(zeallot)
 library(yaml)
 
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-sel_data <- get_data()
+tuneLenghtPropensity <- 25
+modelsPropensity <- c('lm', 'elastic')
+tuneLenghtATE <- 1
+modelsATE <- c('lm', 'boosting', 'elastic')
+
+c(sel_data, matching_vars) %<-% get_data()
+covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
+```
+
+### Selected Variables
+
+```{r echo=FALSE, comment=""}
+cat(matching_vars %>% as.yaml)
 ```
 
 ```{r echo=FALSE, warning=FALSE, results="asis"}
-explore_vars(sel_data, outcome_name='alif')
+explore_vars(covariates_data, outcome_name='Alif')
 ```
 
 
-## Propensity Scores Overlapping
+## Propensity Scores Common Support
 ```{r echo=FALSE, warning=FALSE}
 run_propensity(
-  sel_data, 
-  outcome_name='alif', 
-  tuneLength = 10, 
-  models = c('lm', 'boosting', 'elastic')
+  covariates_data,
+  outcome_name='Alif',
+  tuneLength = tuneLenghtPropensity,
+  models = modelsPropensity
 ) -> best_model
 ```
 
@@ -39,34 +55,102 @@ run_propensity(
 - Model Type: `r best_model$sel_model`
 - Accuracy: `r best_model$accuracy`
 - Params: `r as.yaml(best_model$params)`
- 
+
 
 ```{r echo=FALSE}
 print(best_model$plot)
 ```
 
+
+## Visual Inspection
+
 ```{r warning=FALSE, echo=FALSE}
-# best_model$clean_data %>% 
-#   colnames(.) %!in% c('alif', 'propensity') ->
-#   matching_vars
-# 
-# for(matching_var in matching_vars){
+matching_vars$covariates %!in% c('Alif', 'Propensity') ->
+  matching_covariates
+
+best_model$clean_data %>%
+  ggplot(aes_string('Propensity', 'Age', color='Alif')) +
+  geom_point(alpha = 0.2, size = 1.3) +
+  geom_smooth(method = "loess", se = FALSE) +
+  xlab("Propensity score") ->
+  res_plot
+print(res_plot)
+
+# for(matching_var in matching_covariates){
 #   if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
-#     best_model$clean_data %>% 
+#     best_model$clean_data %>%
 #       ggplot(aes_string('propensity', matching_var, color='alif')) +
 #       geom_point(alpha = 0.2, size = 1.3) +
 #       geom_smooth(method = "loess", se = FALSE) +
-#       xlab("Propensity score") -> 
+#       xlab("Propensity score") ->
 #       res_plot
+#     print(res_plot)
 #   }else{
-#     best_model$clean_data %>% 
-#       ggplot(aes_string(matching_var, 'propensity', color='alif')) +
-#       geom_boxplot() +
-#       xlab("Propensity score") -> 
-#       res_plot
+#     # best_model$clean_data %>%
+#     #   ggplot(aes_string(matching_var, 'propensity', color='alif')) +
+#     #   geom_boxplot() +
+#     #   xlab("Propensity score") ->
+#     #   res_plot
 #   }
-#   print(res_plot)
 # }
 
 ```
+
+
+# Average Treatment Effects
+
+```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
+outcomes <- matching_vars$outcomes
+
+results_outcomes <- list()
+for(outcome in outcomes){
+  sel_vars <- c(outcome, matching_vars$covariates)
+  sel_data %>%
+    .[, .SD, .SDcols=sel_vars] %>%
+    na.omit ->
+    dt
+
+  dt %>%
+    train_model(outcome, tuneLength = tuneLenghtATE, models=modelsATE) ->
+    best_model
+
+  dt_y <- copy(dt)
+  dt_y[, Alif:='Yes']
+  pred_y <- predict(best_model$model, dt_y)
+
+  dt_n <- copy(dt)
+  dt_n[, Alif:='No']
+  pred_n <- predict(best_model$model, dt_n)
+
+  ate <- mean(pred_y - pred_n)
+
+  results_outcomes[[outcome]] <- list(
+    distribution = quantile(dt[[outcome]]),
+    best_model = best_model,
+    ate=ate
+  )
+  
+}
+```
+
+```{r echo=FALSE, comment=""}
+
+for( outcome in outcomes){
+  "Outcome: {outcome}" %>% f %>% print
+  "Distribution:" %>% f %>% print
+  results_outcomes[[outcome]]$distribution %>% print
+  "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print
+  if( !is.null(lget(best_model, accuracy, NULL)) ){
+    "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print
+  }else{
+    "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print
+  }
+  "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print
+  "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print
+  "\n\n" %>% f %>% print 
+}
+ 
+```
+
+
 
