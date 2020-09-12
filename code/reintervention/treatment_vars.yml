@@ -1,3 +1,4 @@
+covariates:
 - Infection debridement 
 - Implant removal
 - Surgical Approach
@@ -19,4 +20,8 @@
 - Scar revision
 - "Total surgical time st1+st2+st3"
 - "Total blood loss (mL) st1+st2+st3"
-
+outcomes:
+  - "1Y. ODI - Score (%)"
+  - "1Y. SRS22 - SRS Subtotal score"
+  - "1Y. SF36 - MCS"
+  - "1Y. SF36 - PCS" 

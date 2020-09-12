@@ -24,6 +24,7 @@ clean_na <- function(sel_data, matching_vars){
   str_replace_all('-' %>% fixed, '') %>%
   str_replace_all('%' %>% fixed, '') %>%
   str_replace_all(':' %>% fixed, '') %>%
+  str_replace_all('+' %>% fixed, '_') %>%
   str_to_lower() %>% 
   str_replace_all(' ' %>% fixed, '_') %>% 
   str_replace_all('[ ]{2,}', '_') %>%
