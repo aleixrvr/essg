@@ -26,9 +26,16 @@ xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
 
 vars_ <- read_yaml('code/reintervention/treatment_vars.yml')
 
+rev_patients <- read_excel(xls_path, sheet = "Rev surgeries") %>% 
+  data.table %>% 
+  .[, `Code of the patient`] %>% 
+  unique
+
 read_excel(xls_path) %>% 
   as.data.table() %>% 
-  .[, .SD, .SDcols=vars_ %>% unlist] %>% 
+  .[, .SD, .SDcols=c('Code of the patient', vars_ %>% unlist)] %>% 
+  .[, `Rev Surgery` := ifelse(`Code of the patient` %chin% rev_patients, 'Yes', 'No')] %>% 
+  .[, `Code of the patient` := NULL] %>% 
   clean_names_dt %>% 
   .[, co3 := 0] %>% 
   .[schwab_type_3_number + schwab_type_4_number + schwab_type_5_number > 0, co3 := 1] %>% 
@@ -40,6 +47,9 @@ read_excel(xls_path) %>%
     pelvic_fixation := 1] %>% 
   .[, posterior_instrumented_fusion_upper_lower_levels:=NULL] ->
   data_
+
+vars_$outcomes %<>% c('rev_surgery')
+
 ```
 
 ```{r echo=FALSE, comment=""}
@@ -89,7 +99,8 @@ cont_vars_ <- list(
   `1y._odi_score_`="1y._odi_score_",
   `1y._srs22_srs_subtotal_score`="1y._srs22_srs\nsubtotal_score",
   `1y._sf36_mcs`="1y._sf36_mcs",
-  `1y._sf36_pcs`="1y._sf36_pcs"
+  `1y._sf36_pcs`="1y._sf36_pcs",
+  rev_surgery="rev_surgery"
 )
 
 data_ %>% 
