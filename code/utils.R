@@ -17,6 +17,16 @@ clean_na <- function(sel_data, matching_vars){
 }
 
 
+first_letter <- function(text){
+  starts_letter <- substr(text, 1, 1) %>% as.numeric %>% is.na
+  if( starts_letter == FALSE ){
+    text <- substr(text, 2, nchar(text)) %>% 
+      paste0('_', substr(text, 1, 1))
+  }
+  return(text)
+}
+
+
 . %>%
   str_replace_all('/' %>% fixed, '') %>%
   str_replace_all('(' %>% fixed, '') %>%
@@ -24,11 +34,13 @@ clean_na <- function(sel_data, matching_vars){
   str_replace_all('-' %>% fixed, '') %>%
   str_replace_all('%' %>% fixed, '') %>%
   str_replace_all(':' %>% fixed, '') %>%
+  str_replace_all('.' %>% fixed, '') %>%
   str_replace_all('+' %>% fixed, '_') %>%
   str_to_lower() %>% 
   str_replace_all(' ' %>% fixed, '_') %>% 
+  first_letter %>% 
   str_replace_all('[ ]{2,}', '_') %>%
-  str_replace_all('[_]{2,}', '_') ->
+  str_replace_all('[_]{2,}', '_')  ->
   clean_name
 
 

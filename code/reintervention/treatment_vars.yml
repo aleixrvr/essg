@@ -1,27 +1,29 @@
 covariates:
-- Infection debridement 
-- Implant removal
-- Surgical Approach
-- Anterior Instrumented Fusion
-- Number of Anterior Instrumented Levels
-- Posterior Instrumented Fusion
-- "Posterior Instrumented Fusion: Upper / Lower Levels"
-- Number of Posterior Instrumented Levels
-- Decompression
-- Number of decompressions
-- Interbody Fusion
-- Number of Interbody Fusions
-- Osteotomy
-- "Schwab Type 2: Number"
-- "Schwab Type 3: Number"
-- "Schwab Type 4: Number"
-- "Schwab Type 5: Number"
-- Rod change
-- Scar revision
-- "Total surgical time st1+st2+st3"
-- "Total blood loss (mL) st1+st2+st3"
+  - Infection debridement 
+  - Implant removal
+  - Surgical Approach
+  - Anterior Instrumented Fusion
+  - Number of Anterior Instrumented Levels
+  - Posterior Instrumented Fusion
+  - "Posterior Instrumented Fusion: Upper / Lower Levels"
+  - Number of Posterior Instrumented Levels
+  - Decompression
+  - Number of decompressions
+  - Interbody Fusion
+  - Number of Interbody Fusions
+  - Osteotomy
+  - "Schwab Type 2: Number"
+  - "Schwab Type 3: Number"
+  - "Schwab Type 4: Number"
+  - "Schwab Type 5: Number"
+  - Rod change
+  - Scar revision
+  - "Total surgical time st1+st2+st3"
+  - "Total blood loss (mL) st1+st2+st3"
 outcomes:
-  - "1Y. ODI - Score (%)"
-  - "1Y. SRS22 - SRS Subtotal score"
-  - "1Y. SF36 - MCS"
-  - "1Y. SF36 - PCS" 
+  - "2Y. ODI - Score (%)"
+  - "2Y. SRS22 - SRS Subtotal score"
+  - "2Y. SF36 - MCS"
+  - "2Y. SF36 - PCS" 
+contextual:
+  - Age

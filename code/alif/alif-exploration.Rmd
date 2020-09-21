@@ -20,9 +20,9 @@ library(yaml)
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 25
+tuneLenghtPropensity <- 15
 modelsPropensity <- c('lm', 'elastic')
-tuneLenghtATE <- 1
+tuneLenghtATE <- 15
 modelsATE <- c('lm', 'boosting', 'elastic')
 
 c(sel_data, matching_vars) %<-% get_data()
@@ -68,31 +68,36 @@ print(best_model$plot)
 matching_vars$covariates %!in% c('Alif', 'Propensity') ->
   matching_covariates
 
-best_model$clean_data %>%
-  ggplot(aes_string('Propensity', 'Age', color='Alif')) +
-  geom_point(alpha = 0.2, size = 1.3) +
-  geom_smooth(method = "loess", se = FALSE) +
-  xlab("Propensity score") ->
-  res_plot
-print(res_plot)
+# best_model$clean_data %>%
+#   ggplot(aes_string('Propensity', 'Age', color='Alif')) +
+#   geom_point(alpha = 0.2, size = 1.3) +
+#   geom_smooth(method = "loess", se = TRUE) +
+#   xlab("Propensity score") ->
+#   res_plot
+# print(res_plot)
 
-# for(matching_var in matching_covariates){
-#   if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
-#     best_model$clean_data %>%
-#       ggplot(aes_string('propensity', matching_var, color='alif')) +
-#       geom_point(alpha = 0.2, size = 1.3) +
-#       geom_smooth(method = "loess", se = FALSE) +
-#       xlab("Propensity score") ->
-#       res_plot
-#     print(res_plot)
-#   }else{
-#     # best_model$clean_data %>%
-#     #   ggplot(aes_string(matching_var, 'propensity', color='alif')) +
-#     #   geom_boxplot() +
-#     #   xlab("Propensity score") ->
-#     #   res_plot
-#   }
-# }
+
+
+for(matching_var in matching_covariates){
+  if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
+    dt_plot <- best_model$clean_data %>% copy
+    setnames(dt_plot, matching_var, 'var_')
+    dt_plot %>%
+      ggplot(aes(Propensity, var_, color=Alif)) +
+      geom_point(alpha = 0.2, size = 1.3) +
+      geom_smooth(method = "loess", se = TRUE) +
+      ylab(matching_var) +
+      xlab("Propensity score") ->
+      res_plot
+    print(res_plot)
+  }else{
+    # best_model$clean_data %>%
+    #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
+    #   geom_boxplot() +
+    #   xlab("Propensity score") ->
+    #   res_plot
+  }
+}
 
 ```
 

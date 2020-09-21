@@ -5,7 +5,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(
-  echo = TRUE, 
+  echo = FALSE, 
+  warning = FALSE,
   root.dir=normalizePath('../../')
 )
 ```
@@ -26,13 +27,16 @@ xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
 
 vars_ <- read_yaml('code/reintervention/treatment_vars.yml')
 
-rev_patients <- read_excel(xls_path, sheet = "Rev surgeries") %>% 
-  data.table %>% 
-  .[, `Code of the patient`] %>% 
-  unique
+rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>% 
+  data.table 
+clinical_data <- read_excel(xls_path) %>% 
+  data.table() 
 
-read_excel(xls_path) %>% 
-  as.data.table() %>% 
+rev_patient_data %>% 
+  .[, `Code of the patient`] %>% 
+  unique -> rev_patients
+
+clinical_data %>% 
   .[, .SD, .SDcols=c('Code of the patient', vars_ %>% unlist)] %>% 
   .[, `Rev Surgery` := ifelse(`Code of the patient` %chin% rev_patients, 'Yes', 'No')] %>% 
   .[, `Code of the patient` := NULL] %>% 
@@ -52,81 +56,153 @@ vars_$outcomes %<>% c('rev_surgery')
 
 ```
 
-```{r echo=FALSE, comment=""}
+```{r warning=FALSE, echo=FALSE, comment=""}
 cat(vars_ %>% as.yaml)
 ```
 
-## Treatment Combinations
-```{r echo=FALSE, fig.width=12, fig.height=8}
-factor_cols <- colnames(data_)[ data_ %>% sapply(is.character) ]
+### Percentiles & Distribution: Total Blood Loss (First Surgery)
+```{r warning=FALSE, echo=FALSE, comment=""}
+data_[, total_blood_loss_ml_st1_st2_st3] %>% na.omit %>% quantile(probs=seq(0, 1, .1)) %>% print
 
 data_ %>% 
-  .[, .SD, .SDcols=factor_cols] %>% 
-  .[, surgical_approach := surgical_approach %>% 
-    gsub('Posterior', 'p', ., fixed=TRUE) %>% 
-    gsub('Anterior', 'a', ., fixed=TRUE)
-  ] ->
-  facts
-facts[is.na(facts)] <- 'NA'
-
-facts %>% 
-  colnames %>% 
-  sapply(. %>% gsub('_', '\n', ., fixed=TRUE)) ->
-  new_names
-colnames(facts) <- new_names
-
-ggpairs(facts, 
-  upper = list(discrete='blank'),
-  diag=list(discrete='blankDiag'),
-  lower = list(discrete='ratio')
-) +
-  theme(
-    axis.text.x = element_text(angle = 30, vjust = 0.5, hjust=1),
-    strip.text.x=element_text(angle=30, hjust=0.5, vjust=0.5, size=10),
-    axis.text.y = element_text(angle=30, vjust = 0.5, hjust=1),
-    strip.text.y=element_text(angle=30, hjust=0.5, vjust=0.5, size=10)
-  ) 
+  ggplot(aes(total_blood_loss_ml_st1_st2_st3)) +
+  geom_density() +
+  ggtitle('Total Blood Loss (First Surgery)')
 ```
 
-## Response Variables
-
-```{r echo=FALSE, warning=FALSE, include=FALSE}
-cont_vars_ <- list(
-  `number_of_posterior_instrumented_levels`="number_of_posterior\ninstrumented_levels",
-  co3="co3",
-  `total_surgical_time_st1_st2_st3`="total_surgical_time\nst1_st2_st3",
-  `total_blood_loss_ml_st1_st2_st3`="total_blood_loss\nst1_st2_st3",
-  `1y._odi_score_`="1y._odi_score_",
-  `1y._srs22_srs_subtotal_score`="1y._srs22_srs\nsubtotal_score",
-  `1y._sf36_mcs`="1y._sf36_mcs",
-  `1y._sf36_pcs`="1y._sf36_pcs",
-  rev_surgery="rev_surgery"
-)
+### Percentiles & Distribution: Total Surgical Time (First Surgery)
+```{r warning=FALSE, echo=FALSE, comment=""}
+data_[, total_surgical_time_st1_st2_st3] %>% na.omit %>% quantile(probs=seq(0, 1, .1)) %>% print
 
 data_ %>% 
-  .[, .SD, .SDcols=cont_vars_ %>% names] %>% 
-  .[, co3 := as.factor(co3)]->
-  cont_data
+  ggplot(aes(total_surgical_time_st1_st2_st3)) +
+  geom_density() +
+  ggtitle('Total Surgical Time (First Surgery)')
+```
 
-for(var_name_ in cont_vars_ %>% names){
-  setnames(cont_data, var_name_, cont_vars_[[var_name_]])
+### Impact of intervention invasivness into outcomes
+
+#### 2Y. ODI - Score (%) vs Total surgical time st1+st2+st3
+
+```{r warning=FALSE, echo=FALSE}
+data_ %>% 
+  .[, .(total_surgical_time_st1_st2_st3, y_odi_score_2)] %>% 
+  na.omit %>% 
+  .[, cor(total_surgical_time_st1_st2_st3, y_odi_score_2)] ->
+  data_corr
+
+data_ %>% 
+  ggplot(aes(total_surgical_time_st1_st2_st3, y_odi_score_2)) +
+  geom_point() +
+  ggtitle("Correlation: {data_corr}" %>% f)
+```
+
+#### 2Y. ODI - Score (%) vs Total blood loss (mL) st1+st2+st3
+
+```{r warning=FALSE, echo=FALSE}
+data_ %>% 
+  .[, .(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)] %>% 
+  na.omit %>% 
+  .[, cor(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)] ->
+  data_corr
+
+data_ %>% 
+  ggplot(aes(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)) +
+  geom_point() +
+  ggtitle("Correlation: {data_corr}" %>% f)
+```
+
+
+
+#### 2Y. SF36 - PCS (%) vs Total surgical time st1+st2+st3
+
+```{r warning=FALSE, echo=FALSE}
+data_ %>% 
+  .[, .(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)] %>% 
+  na.omit %>% 
+  .[, cor(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)] ->
+  data_corr
+
+data_ %>% 
+  ggplot(aes(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)) +
+  geom_point() +
+  ggtitle("Correlation: {data_corr}" %>% f)
+```
+
+#### 2Y. SF36 - PCS vs Total blood loss (mL) st1+st2+st3
+
+```{r warning=FALSE, echo=FALSE}
+data_ %>% 
+  .[, .(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)] %>% 
+  na.omit %>% 
+  .[, cor(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)] ->
+  data_corr
+
+data_ %>% 
+  ggplot(aes(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)) +
+  geom_point() +
+  ggtitle("Correlation: {data_corr}" %>% f)
+```
+
+
+#### Total surgical time st1+st2+st3 vs Rev Surgery
+
+```{r warning=FALSE, echo=FALSE}
+ggplot(data_, aes(rev_surgery, total_surgical_time_st1_st2_st3) ) +
+  geom_boxplot()
+```
+
+#### Total blood loss (mL) st1+st2+st3 vs Rev Surgery
+
+```{r warning=FALSE, echo=FALSE}
+ggplot(data_, aes(rev_surgery, total_blood_loss_ml_st1_st2_st3) ) +
+  geom_boxplot()
+```
+
+
+### Reinterventions
+
+```{r warning=FALSE, echo=FALSE}
+rev_patient_data[, .(
+  patient_id=`Code of the patient`, 
+  stage_date=`st1. Date of Stage 1`,
+  surgical_time=`Total surgical time st1+st2+st3`,
+  blood_loss=`Total blood loss (mL)`)] ->
+  time_evolution
+
+clinical_data[
+  `Code of the patient` %chin% rev_patients, .(
+  patient_id=`Code of the patient`, 
+  stage_date=`st1. Date of Stage 1`,
+  surgical_time=`Total surgical time st1+st2+st3`,
+  blood_loss= `Total blood loss (mL) st1+st2+st3`)] %>% 
+  rbind(time_evolution) ->
+  time_evolution
+
+time_evolution %<>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, patient_id] %>% 
+  setorder(patient_id, diff_years) %>% 
+  .[, position:=1:.N, patient_id]
+
+max_position <- time_evolution[, max(position)]
+max_years <- time_evolution[, max(diff_years)]
+
+for(pos in 2:max_position){
+  total <- time_evolution %>% 
+    .[position==pos, .N]
+  title <- 'Time from initial intervention'
+  title <- '{title}\n Reintervention number: {pos}' %>% f
+  title <- '{title}\n Total reinterventions: {total}' %>% f
+    
+  time_evolution %>% 
+    .[position==pos] %>% 
+    ggplot(aes(diff_years)) +
+    geom_density() +
+    xlim(c(0, max_years)) +
+    ggtitle(title) ->
+    data_plot
+  print(data_plot)
 }
-
-cont_data %>%
-  ggpairs(
-    upper = list(continuous = "cor", combo = "facethist", discrete = "facetbar", na =
-    "na"),
-  lower = list(continuous = "points", combo = "box_no_facet", discrete = "facetbar", na =
-    "na")
-  ) +
-  theme(
-    axis.text.x = element_text(angle = 30, vjust = 0.5, hjust=1),
-    strip.text.y=element_text(angle=30, hjust=0.5, vjust=0.5, size=10)
-  ) -> 
-  response_plot
-```
-
-```{r echo=FALSE, warning=FALSE, fig.width=12, fig.height=8}
-response_plot
 ```
 
