@@ -21,7 +21,7 @@ source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 15
-modelsPropensity <- c('lm', 'elastic')
+modelsPropensity <- c('elastic')
 tuneLenghtATE <- 15
 modelsATE <- c('lm', 'boosting', 'elastic')
 
@@ -60,6 +60,22 @@ run_propensity(
 ```{r echo=FALSE}
 print(best_model$plot)
 ```
+
+## Model Coefficients
+
+```{r}
+coef(bestModel$finalModel, bestModel$results$lambda) %>% 
+  as.numeric ->
+  coefs
+
+coef(bestModel$finalModel, bestModel$results$lambda) %>% 
+  rownames -> coefs_names
+
+data.table(variable=coefs_names, coef_value=coefs) %>% 
+  setorder(-coef_value) %>% 
+  DT::datatable(options=list(pageLength = 30))
+```
+
 
 
 ## Visual Inspection
@@ -104,58 +120,58 @@ for(matching_var in matching_covariates){
 
 # Average Treatment Effects
 
-```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
-outcomes <- matching_vars$outcomes
+<!-- ```{r warning=FALSE, echo=FALSE, comment="", include=FALSE} -->
+<!-- outcomes <- matching_vars$outcomes -->
 
-results_outcomes <- list()
-for(outcome in outcomes){
-  sel_vars <- c(outcome, matching_vars$covariates)
-  sel_data %>%
-    .[, .SD, .SDcols=sel_vars] %>%
-    na.omit ->
-    dt
+<!-- results_outcomes <- list() -->
+<!-- for(outcome in outcomes){ -->
+<!--   sel_vars <- c(outcome, matching_vars$covariates) -->
+<!--   sel_data %>% -->
+<!--     .[, .SD, .SDcols=sel_vars] %>% -->
+<!--     na.omit -> -->
+<!--     dt -->
 
-  dt %>%
-    train_model(outcome, tuneLength = tuneLenghtATE, models=modelsATE) ->
-    best_model
+<!--   dt %>% -->
+<!--     train_model(outcome, tuneLength = tuneLenghtATE, models=modelsATE) -> -->
+<!--     best_model -->
 
-  dt_y <- copy(dt)
-  dt_y[, Alif:='Yes']
-  pred_y <- predict(best_model$model, dt_y)
+<!--   dt_y <- copy(dt) -->
+<!--   dt_y[, Alif:='Yes'] -->
+<!--   pred_y <- predict(best_model$model, dt_y) -->
 
-  dt_n <- copy(dt)
-  dt_n[, Alif:='No']
-  pred_n <- predict(best_model$model, dt_n)
+<!--   dt_n <- copy(dt) -->
+<!--   dt_n[, Alif:='No'] -->
+<!--   pred_n <- predict(best_model$model, dt_n) -->
 
-  ate <- mean(pred_y - pred_n)
+<!--   ate <- mean(pred_y - pred_n) -->
 
-  results_outcomes[[outcome]] <- list(
-    distribution = quantile(dt[[outcome]]),
-    best_model = best_model,
-    ate=ate
-  )
-  
-}
-```
+<!--   results_outcomes[[outcome]] <- list( -->
+<!--     distribution = quantile(dt[[outcome]]), -->
+<!--     best_model = best_model, -->
+<!--     ate=ate -->
+<!--   ) -->
 
-```{r echo=FALSE, comment=""}
+<!-- } -->
+<!-- ``` -->
 
-for( outcome in outcomes){
-  "Outcome: {outcome}" %>% f %>% print
-  "Distribution:" %>% f %>% print
-  results_outcomes[[outcome]]$distribution %>% print
-  "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print
-  if( !is.null(lget(best_model, accuracy, NULL)) ){
-    "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print
-  }else{
-    "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print
-  }
-  "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print
-  "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print
-  "\n\n" %>% f %>% print 
-}
- 
-```
+<!-- ```{r echo=FALSE, comment=""} -->
+
+<!-- for( outcome in outcomes){ -->
+<!--   "Outcome: {outcome}" %>% f %>% print -->
+<!--   "Distribution:" %>% f %>% print -->
+<!--   results_outcomes[[outcome]]$distribution %>% print -->
+<!--   "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print -->
+<!--   if( !is.null(lget(best_model, accuracy, NULL)) ){ -->
+<!--     "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print -->
+<!--   }else{ -->
+<!--     "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print -->
+<!--   } -->
+<!--   "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print -->
+<!--   "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print -->
+<!--   "\n\n" %>% f %>% print  -->
+<!-- } -->
+
+<!-- ``` -->
 
 
 

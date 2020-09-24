@@ -1,6 +1,8 @@
 ---
 title: "Reinterventions exploration"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -36,133 +38,24 @@ rev_patient_data %>%
   .[, `Code of the patient`] %>% 
   unique -> rev_patients
 
-clinical_data %>% 
-  .[, .SD, .SDcols=c('Code of the patient', vars_ %>% unlist)] %>% 
-  .[, `Rev Surgery` := ifelse(`Code of the patient` %chin% rev_patients, 'Yes', 'No')] %>% 
-  .[, `Code of the patient` := NULL] %>% 
-  clean_names_dt %>% 
-  .[, co3 := 0] %>% 
-  .[schwab_type_3_number + schwab_type_4_number + schwab_type_5_number > 0, co3 := 1] %>% 
-  .[, schwab_type_3_number := NULL] %>% 
-  .[, schwab_type_4_number := NULL] %>% 
-  .[, schwab_type_5_number := NULL] %>% 
-  .[, pelvic_fixation := 0] %>% 
-  .[grepl('Iliac', posterior_instrumented_fusion_upper_lower_levels, fixed=TRUE), 
-    pelvic_fixation := 1] %>% 
-  .[, posterior_instrumented_fusion_upper_lower_levels:=NULL] ->
-  data_
+# clinical_data %>% 
+#   .[, .SD, .SDcols=c('Code of the patient', vars_ %>% unlist)] %>% 
+#   .[, `Rev Surgery` := ifelse(`Code of the patient` %chin% rev_patients, 'Yes', 'No')] %>% 
+#   .[, `Code of the patient` := NULL] %>% 
+#   clean_names_dt %>% 
+#   .[, co3 := 0] %>% 
+#   .[schwab_type_3_number + schwab_type_4_number + schwab_type_5_number > 0, co3 := 1] %>% 
+#   .[, schwab_type_3_number := NULL] %>% 
+#   .[, schwab_type_4_number := NULL] %>% 
+#   .[, schwab_type_5_number := NULL] %>% 
+#   .[, pelvic_fixation := 0] %>% 
+#   .[grepl('Iliac', posterior_instrumented_fusion_upper_lower_levels, fixed=TRUE), 
+#     pelvic_fixation := 1] %>% 
+#   .[, posterior_instrumented_fusion_upper_lower_levels:=NULL] ->
+#   data_
+# 
+# vars_$outcomes %<>% c('rev_surgery')
 
-vars_$outcomes %<>% c('rev_surgery')
-
-```
-
-```{r warning=FALSE, echo=FALSE, comment=""}
-cat(vars_ %>% as.yaml)
-```
-
-### Percentiles & Distribution: Total Blood Loss (First Surgery)
-```{r warning=FALSE, echo=FALSE, comment=""}
-data_[, total_blood_loss_ml_st1_st2_st3] %>% na.omit %>% quantile(probs=seq(0, 1, .1)) %>% print
-
-data_ %>% 
-  ggplot(aes(total_blood_loss_ml_st1_st2_st3)) +
-  geom_density() +
-  ggtitle('Total Blood Loss (First Surgery)')
-```
-
-### Percentiles & Distribution: Total Surgical Time (First Surgery)
-```{r warning=FALSE, echo=FALSE, comment=""}
-data_[, total_surgical_time_st1_st2_st3] %>% na.omit %>% quantile(probs=seq(0, 1, .1)) %>% print
-
-data_ %>% 
-  ggplot(aes(total_surgical_time_st1_st2_st3)) +
-  geom_density() +
-  ggtitle('Total Surgical Time (First Surgery)')
-```
-
-### Impact of intervention invasivness into outcomes
-
-#### 2Y. ODI - Score (%) vs Total surgical time st1+st2+st3
-
-```{r warning=FALSE, echo=FALSE}
-data_ %>% 
-  .[, .(total_surgical_time_st1_st2_st3, y_odi_score_2)] %>% 
-  na.omit %>% 
-  .[, cor(total_surgical_time_st1_st2_st3, y_odi_score_2)] ->
-  data_corr
-
-data_ %>% 
-  ggplot(aes(total_surgical_time_st1_st2_st3, y_odi_score_2)) +
-  geom_point() +
-  ggtitle("Correlation: {data_corr}" %>% f)
-```
-
-#### 2Y. ODI - Score (%) vs Total blood loss (mL) st1+st2+st3
-
-```{r warning=FALSE, echo=FALSE}
-data_ %>% 
-  .[, .(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)] %>% 
-  na.omit %>% 
-  .[, cor(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)] ->
-  data_corr
-
-data_ %>% 
-  ggplot(aes(total_blood_loss_ml_st1_st2_st3, y_odi_score_2)) +
-  geom_point() +
-  ggtitle("Correlation: {data_corr}" %>% f)
-```
-
-
-
-#### 2Y. SF36 - PCS (%) vs Total surgical time st1+st2+st3
-
-```{r warning=FALSE, echo=FALSE}
-data_ %>% 
-  .[, .(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)] %>% 
-  na.omit %>% 
-  .[, cor(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)] ->
-  data_corr
-
-data_ %>% 
-  ggplot(aes(total_surgical_time_st1_st2_st3, y_sf36_pcs_2)) +
-  geom_point() +
-  ggtitle("Correlation: {data_corr}" %>% f)
-```
-
-#### 2Y. SF36 - PCS vs Total blood loss (mL) st1+st2+st3
-
-```{r warning=FALSE, echo=FALSE}
-data_ %>% 
-  .[, .(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)] %>% 
-  na.omit %>% 
-  .[, cor(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)] ->
-  data_corr
-
-data_ %>% 
-  ggplot(aes(total_blood_loss_ml_st1_st2_st3, y_sf36_pcs_2)) +
-  geom_point() +
-  ggtitle("Correlation: {data_corr}" %>% f)
-```
-
-
-#### Total surgical time st1+st2+st3 vs Rev Surgery
-
-```{r warning=FALSE, echo=FALSE}
-ggplot(data_, aes(rev_surgery, total_surgical_time_st1_st2_st3) ) +
-  geom_boxplot()
-```
-
-#### Total blood loss (mL) st1+st2+st3 vs Rev Surgery
-
-```{r warning=FALSE, echo=FALSE}
-ggplot(data_, aes(rev_surgery, total_blood_loss_ml_st1_st2_st3) ) +
-  geom_boxplot()
-```
-
-
-### Reinterventions
-
-```{r warning=FALSE, echo=FALSE}
 rev_patient_data[, .(
   patient_id=`Code of the patient`, 
   stage_date=`st1. Date of Stage 1`,
@@ -183,26 +76,86 @@ time_evolution %<>%
   .[!is.na(stage_date)] %>% 
   .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, patient_id] %>% 
   setorder(patient_id, diff_years) %>% 
-  .[, position:=1:.N, patient_id]
+  .[, reintervention:=factor(1:.N), patient_id]
 
-max_position <- time_evolution[, max(position)]
-max_years <- time_evolution[, max(diff_years)]
-
-for(pos in 2:max_position){
-  total <- time_evolution %>% 
-    .[position==pos, .N]
-  title <- 'Time from initial intervention'
-  title <- '{title}\n Reintervention number: {pos}' %>% f
-  title <- '{title}\n Total reinterventions: {total}' %>% f
-    
-  time_evolution %>% 
-    .[position==pos] %>% 
-    ggplot(aes(diff_years)) +
-    geom_density() +
-    xlim(c(0, max_years)) +
-    ggtitle(title) ->
-    data_plot
-  print(data_plot)
-}
+max_reinterventions <- time_evolution[, max(reintervention %>% as.character %>% as.numeric)]
 ```
 
+```{r warning=FALSE, echo=FALSE, comment=""}
+# cat(vars_ %>% as.yaml)
+```
+
+
+# Time of Reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+
+max_years <- time_evolution[, max(diff_years)]
+
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>% 
+  ggplot(aes(diff_years,  fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_years)) +
+  ggtitle('Time of reinterventions') ->
+  data_plot
+print(data_plot)
+```
+
+# Total blood loss of reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+max_blood_loss <- time_evolution[, blood_loss %>% na.omit %>% max]
+
+title <- 'Total blood loss distribution'
+
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(blood_loss)) +
+  geom_density() +
+  xlim(c(0, max_blood_loss)) +
+  ggtitle(title) ->
+  data_plot
+print(data_plot)
+```
+
+# Blood loss of reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(blood_loss, fill=reintervention, color=reintervention))+
+  geom_density(alpha = 0.1) +
+  xlim(c(0, max_blood_loss)) +
+  ggtitle('Total blood loss distribution') ->
+  data_plot
+print(data_plot)
+```
+
+
+# Total surgical time of reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+max_surgical_time <- time_evolution[, surgical_time %>% na.omit %>% max]
+
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(surgical_time)) +
+  geom_density() +
+  xlim(c(0, max_surgical_time)) +
+  ggtitle('Total surgical time distribution') ->
+  data_plot
+print(data_plot)
+```
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_surgical_time)) +
+  ggtitle('Total surgical time distribution') ->
+  data_plot
+print(data_plot)
+```

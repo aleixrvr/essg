@@ -1,0 +1,71 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r include=FALSE, warning=FALSE}
+library(magrittr)
+library(data.table)
+library(ggplot2)
+library(zeallot)
+library(readxl)
+library(yaml)
+
+source('code/basic.R')
+source('code/utils.R')
+
+
+xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
+# excel_sheets(xls_path)
+
+vars_ <- read_yaml('code/nonop/treatment_vars.yml')
+
+clinical_data <- read_excel(xls_path) %>% 
+  data.table() 
+
+followup_data <- clinical_data %>% 
+  clean_names_dt %>% 
+  .[study == 'NonOp']
+
+provide_stats <- function(dt, var_){
+  
+  if( class(dt[, var_ %>% get]) == 'numeric' ){
+    dt_plot <- dt %>% 
+      ggplot(aes_string(var_, fill='opnonop_categoric', color='opnonop_categoric')) +
+      geom_density(alpha=0.1) +
+      ggtitle('{var_} distribution' %>% f) 
+    dt_stats <- dt[, 
+      .(mean=mean(get(var_), na.rm=TRUE), sd=sd(get(var_), na.rm=TRUE)),
+      opnonop_categoric] 
+  }else{
+    dt_plot <- NULL
+    dt_stats <- dt[, table(opnonop_categoric, get(var_)) %>% prop.table %>% round(3)]*100
+  }
+  
+  return(list(dt_plot, dt_stats))
+}
+
+```
+
+
+```{r comment='', echo=FALSE, warning=FALSE}
+for(var_ in clean_names(vars_$covariates)){
+  c(dt_plot, dt_stats) %<-% provide_stats(followup_data, var_)
+  
+  print('Variable: {var_}' %>% f)
+  if(!is.null(dt_plot)) plot(dt_plot)
+  print(dt_stats)
+  cat('\n\n')
+}
+```
+

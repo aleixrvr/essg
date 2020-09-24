@@ -1,7 +1,7 @@
 covariates:
   - Age
   - Gender
-  - Site
+  # - Site
   - Prior Spine Surgery
   # - Abdominal surgery
   - "1st surgeon: experience in ASD surgery"

@@ -50,9 +50,9 @@ get_data <- function(){
 
 aggregate_data <- function(sel_data){
 
-  sel_data %>% 
-    .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
-    .[Site=='ZUR Op', Site:='ANKZUR Op'] 
+  # sel_data %>% 
+  #   .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
+  #   .[Site=='ZUR Op', Site:='ANKZUR Op'] 
   
   sel_data %>% 
     .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>% 
