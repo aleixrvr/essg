@@ -1,0 +1,298 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(GGally)
+
+source('code/basic.R')
+source('code/utils.R')
+
+xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
+# excel_sheets(xls_path)
+
+vars_ <- read_yaml('code/reintervention/treatment_vars.yml')
+
+rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>% 
+  data.table 
+clinical_data <- read_excel(xls_path) %>% 
+  data.table() 
+complications <- read_excel(xls_path, sheet = "Complications") %>% 
+  data.table 
+
+rev_patient_data %>% 
+  .[, `Number of Schwab Type 3` := `Number of Schwab Type 3` %>%  as.numeric] %>% 
+  .[, `Number of Schwab Type 4` := `Number of Schwab Type 4` %>%  as.numeric] %>% 
+  .[, `Number of Schwab Type 5` := `Number of Schwab Type 5` %>%  as.numeric] %>% 
+  .[, co3 := 0] %>% 
+  .[`Number of Schwab Type 3` + `Number of Schwab Type 4` + `Number of Schwab Type 5` > 0, co3 := 1] %>% 
+  .[, .(
+    patient_id=`Code of the patient`, 
+    stage_date=`st1. Date of Stage 1`,
+    surgical_time=`Total surgical time st1+st2+st3`,
+    blood_loss=`Total blood loss (mL)`,
+    hospitalization_time=`Hospitalization time`,
+    sicu_transferred=`Patient transferred to SICU post op`,
+    sicu_los=`SICU length of stay`,
+    co3,
+    `Infection debridement`,
+    `Implant removal`,
+    `Anterior Instrumented Fusion`,
+    `Number of Anterior Instrumented Levels`,
+    `Posterior Instrumented Fusion`,
+    `Number of Posterior Instrumented Levels`,
+    `Decompression`,
+    `Number of decompressions`,
+    `Interbody Fusion`,
+    `Number of Interbody Fusions`,
+    `Osteotomy`,
+    `Rod change`,
+    `Scar revision`
+  )] %>% 
+  .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric]->
+  time_evolution
+
+clinical_data %>% 
+  .[, co3 := 0] %>% 
+  .[`Schwab Type 3: Number` + `Schwab Type 4: Number` + `Schwab Type 5: Number` > 0, co3 := 1] %>% 
+  .[, .(
+    patient_id=`Code of the patient`, 
+    stage_date=`st1. Date of Stage 1`,
+    surgical_time=`Total surgical time st1+st2+st3`,
+    blood_loss= `Total blood loss (mL) st1+st2+st3`,
+    hospitalization_time=`Hospitalization time`,
+    sicu_transferred=`Patient transferred to SICU post op`,
+    sicu_los=`SICU length of stay`,
+    co3,
+    `Infection debridement`,
+    `Implant removal`,
+    `Anterior Instrumented Fusion`,
+    `Number of Anterior Instrumented Levels`,
+    `Posterior Instrumented Fusion`,
+    `Number of Posterior Instrumented Levels`,
+    `Decompression`,
+    `Number of decompressions`,
+    `Interbody Fusion`,
+    `Number of Interbody Fusions`,
+    `Osteotomy`,
+    `Rod change`,
+    `Scar revision`
+  )] %>% 
+  rbind(time_evolution) ->
+  time_evolution
+
+time_evolution %<>% 
+  .[is.na(sicu_los) & is.na(sicu_transferred), sicu_transferred:='No'] %>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, patient_id] %>% 
+  setorder(patient_id, diff_years) %>% 
+  .[, reintervention:=factor(1:.N), patient_id]
+```
+
+```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
+plot_evolution <- function(dt, value_title=''){
+  dt %>% 
+    .[, .(
+      prop=mean(condition),
+      N=.N),
+      reintervention] %>% 
+    .[, ci:=1.96*sqrt(prop*(1-prop)/N)] ->
+    res
+  res %>% 
+    .[, ymin:=max(prop-ci, 0), 1:nrow(res)] %>% 
+    .[, ymax:=min(prop+ci, 1), 1:nrow(res)] %>% 
+    ggplot(aes(reintervention, y=prop, group=1)) +
+    geom_line() +
+    geom_ribbon(
+      aes(ymin=ymin, ymax=ymax), 
+      linetype=2, alpha=0.1) +
+    ggtitle('Proportion of {value_title}' %>% f) +
+    ylab('%') +
+    ylim(c(-0.001, 1.001)) +
+    xlab('Reintervention') ->
+  res_plot
+
+  return(res_plot)
+}
+```
+
+
+# Hospitalization Time
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+time_evolution %>% 
+  ggplot(aes(reintervention, hospitalization_time)) +
+  geom_boxplot() +
+  ylim(c(0, 250))
+
+time_evolution[, 
+  quantile(hospitalization_time, na.rm=TRUE) %>% as.list, 
+  reintervention]
+```
+
+# Proportion of reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+
+total_patients <- time_evolution[, uniqueN(patient_id)]
+
+time_evolution %>% 
+  .[, .(N=.N/total_patients), reintervention] %>% 
+  ggplot(aes(reintervention, N, group=1)) +
+  geom_line() +
+  geom_text(aes(label=round(N*100, 1))) +
+  ggtitle('Proportion of patients, total {total_patients}' %>% f) +
+  ylab('%') +
+  xlab('Reintervention')
+```
+
+# Proportion of SICU transfers
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+time_evolution %>% 
+  .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
+  plot_evolution('transferred to SICU')
+```
+
+
+# Evolution of surgeries
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+
+
+time_evolution %>% 
+  .[, .(condition=co3==1, reintervention)] %>% 
+  plot_evolution('3CO')
+
+time_evolution %>% 
+  .[, .(condition=(`Implant removal` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Implant removal')
+
+time_evolution %>% 
+  .[, .(condition=(`Infection debridement` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Infection Debridement')
+
+time_evolution %>% 
+  .[, .(condition=(`Anterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Anterior Instrumented Fusion')
+
+time_evolution %>% 
+  .[, .(condition=(`Posterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Posterior Instrumented Fusion')
+
+time_evolution %>% 
+  .[, .(condition=(`Decompression` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Decompression')
+
+time_evolution %>% 
+  .[, .(condition=(`Interbody Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Interbody Fusion')
+
+time_evolution %>% 
+  .[, .(condition=(`Osteotomy` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Osteotomy')
+
+time_evolution %>% 
+  .[, .(condition=(`Rod change` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Rod change')
+
+time_evolution %>% 
+  .[, .(condition=(`Scar revision` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Scar revision')
+```
+
+# Complications
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+complications %>% 
+  .[, .(
+    category=`Category of the complication`,
+    impact=`Complication Impact`,
+    days_since_surgery=`Days since surgery`,
+    patient_id=`Code of the patient`,
+    reoperation=`Reoperation Due to Complication`
+  )] %>% 
+  .[impact=='Major Complication'] %>% 
+  .[reoperation=='Yes'] %>% 
+  setorder(patient_id, days_since_surgery) %>% 
+  .[, reintervention:=factor(1:.N), patient_id] %>% 
+  .[, .N , .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, N, group=category, color=category)) +
+  geom_line()
+```
+
+```{r include=FALSE}
+complications[
+  `Complication Impact`=='Major Complication', 
+  .(patient_id=`Code of the patient`, 
+    category=`Category of the complication`, 
+    surgery=`Complication associated to surgery`,
+    days=`Days since surgery`)] %>% 
+  setorder(patient_id, days) %>% 
+  .[, reintervention:=factor(1:.N), patient_id] ->
+  complications_
+
+rev_patient_data[, 
+  .(patient_id=`Code of the patient`, 
+    surgery=`Surgery number`, 
+    hospitalization_time=`Hospitalization time`)] %>% 
+  .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric] ->
+  rev_patient_data_
+
+complications_ %>% 
+  merge(rev_patient_data_, by=c('patient_id', 'surgery')) ->
+  category_los
+```
+
+```{r echo=FALSE}
+category_los[, 
+  .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, category)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    category), 1:nrow(res_)] %>% 
+  .[category!='Central neurologic complications'] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=category, color=category, fill=category)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(category~.) +
+  ylab('Hospitalization time')
+
+```
+
+```{r echo=FALSE}
+category_los[, 
+  reintervention_total:=.N, 
+  .(reintervention)] %>% 
+  .[, .(prop=100*.N/reintervention_total), .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, prop, color=category, group=category)) +
+  geom_line() +
+  ylab('%') +
+  ggtitle('Proportion of categories')
+```
+

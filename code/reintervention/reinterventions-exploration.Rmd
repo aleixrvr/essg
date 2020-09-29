@@ -159,3 +159,23 @@ time_evolution %>%
   data_plot
 print(data_plot)
 ```
+
+
+```{r}
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(diff_years, blood_loss, color=reintervention)) +
+  geom_point() 
+
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(diff_years, surgical_time, color=reintervention)) +
+  geom_point() 
+
+
+time_evolution %>% 
+  .[reintervention %in% 2:max_reinterventions] %>%
+  ggplot(aes(reintervention, blood_loss)) +
+  geom_boxplot() 
+```
+

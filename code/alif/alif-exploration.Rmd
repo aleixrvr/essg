@@ -63,17 +63,23 @@ print(best_model$plot)
 
 ## Model Coefficients
 
-```{r}
-coef(bestModel$finalModel, bestModel$results$lambda) %>% 
-  as.numeric ->
-  coefs
+```{r echo=FALSE, fig.height=7}
+coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
 
-coef(bestModel$finalModel, bestModel$results$lambda) %>% 
-  rownames -> coefs_names
+coefs <- as.numeric(coef_results)
+coefs_names <- rownames(coef_results)
 
-data.table(variable=coefs_names, coef_value=coefs) %>% 
-  setorder(-coef_value) %>% 
-  DT::datatable(options=list(pageLength = 30))
+res <- data.table(variable=coefs_names, coef_value=coefs %>% round(3)) %>% 
+  setorder(-coef_value)
+
+variables <- res[, variable]
+res[, variable := factor(variable, levels=variables)]
+
+ggplot(res, aes(variable, coef_value)) +
+  geom_col() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
+# res %>% 
+#   DT::datatable(options=list(pageLength = 30))
 ```
 
 

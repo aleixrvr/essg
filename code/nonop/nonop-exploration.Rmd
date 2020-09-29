@@ -1,5 +1,5 @@
 ---
-title: "Reinterventions exploration"
+title: "Non-op exploration"
 output:
   pdf_document: default
   html_document: default
@@ -43,7 +43,8 @@ provide_stats <- function(dt, var_){
     dt_plot <- dt %>% 
       ggplot(aes_string(var_, fill='opnonop_categoric', color='opnonop_categoric')) +
       geom_density(alpha=0.1) +
-      ggtitle('{var_} distribution' %>% f) 
+      ggtitle('{var_} distribution' %>% f) +
+      facet_grid(prior_spine_surgery~.)
     dt_stats <- dt[, 
       .(mean=mean(get(var_), na.rm=TRUE), sd=sd(get(var_), na.rm=TRUE)),
       opnonop_categoric] 
