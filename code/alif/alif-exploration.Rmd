@@ -16,14 +16,16 @@ library(magrittr)
 library(kableExtra)
 library(zeallot)
 library(yaml)
+library(boot)
 
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 15
+tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
 tuneLenghtATE <- 15
 modelsATE <- c('lm', 'boosting', 'elastic')
+replicas_boot <- 50L
 
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
@@ -52,6 +54,7 @@ run_propensity(
 
 #### Model Stats
 
+- Alif proportion: `r covariates_data[, mean(Alif=='Yes') %>% round(3)]`
 - Model Type: `r best_model$sel_model`
 - Accuracy: `r best_model$accuracy`
 - Params: `r as.yaml(best_model$params)`
@@ -63,23 +66,133 @@ print(best_model$plot)
 
 ## Model Coefficients
 
-```{r echo=FALSE, fig.height=7}
+Bootstraping replicas: `r replicas_boot`
+
+```{r echo=FALSE, fig.height=9, fig.width=10}
+names_1 <- best_model$model$finalModel$xNames
+names_0 <- best_model$model$trainingData %>% colnames
+names_0 <- names_0[!(names_0 =='.outcome')]
+df <- best_model$model$trainingData
+
+
+df_names_0 <- data.table(variable=names_0, var_len=names_0 %>% nchar) %>% 
+  setorder(var_len)
+
+df_names_1 <- data.frame(variable=names_1, original='', stringsAsFactors = FALSE)
+
+all_names <- data.frame()
+for( var_ in df_names_0$variable){
+  
+  var_expression <- var_
+  is_large <- any(grepl(f('`{var_}`'), df_names_1$variable) )
+  if( is_large == TRUE ){
+    is_large <- TRUE
+    var_expression <- f('`{var_}`')
+  }
+  is_continuous <- FALSE
+  if( any(var_expression == df_names_1$variable) ){
+    is_continuous <- TRUE
+  }
+  
+  if( is_continuous == TRUE ){
+    all_names %<>% rbind(
+      data.frame(variable=var_expression, original_name=var_)
+    )  
+  }else{
+    all_values <- paste0(var_expression, table(df[[var_]]) %>% names)
+    all_names %<>% rbind(
+      data.frame(variable=all_values, original_name=var_)
+    )  
+  }
+}
+
+
+data_ <- covariates_data %>% 
+  na.omit
+
+bootSamples <- boot(data_, function(data, idx) {
+  bootstrapData <- data[idx, ]
+
+  bootstrapMod <- train(Alif ~ ., 
+    data = bootstrapData, 
+    method = "glmnet", 
+    trControl = trainControl(method = "none"),
+    tuneGrid = best_model$model$bestTune)
+  
+  as.vector(coef(bootstrapMod$finalModel, best_model$model$bestTune$lambda))
+}, replicas_boot)
+
+
 coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
-
-coefs <- as.numeric(coef_results)
 coefs_names <- rownames(coef_results)
+coef_results <- data.table(variable=coefs_names, bootSamples$t %>% t) %>% 
+  melt(id.vars='variable', variable.name = "sample")
 
-res <- data.table(variable=coefs_names, coef_value=coefs %>% round(3)) %>% 
-  setorder(-coef_value)
+all_names %>% 
+  as.data.table %>% 
+  merge(coef_results, by='variable', all=TRUE) %>% 
+  .[, group:='difference'] %>% 
+  .[is.na(value), group:='base'] %>% 
+  .[is.na(value), value:=0] ->
+  all_coefs
 
-variables <- res[, variable]
-res[, variable := factor(variable, levels=variables)]
+all_coefs[, .(m=mean(value)), .(variable)] %>% 
+  setorder(-m) %>% 
+  .[, variable] ->
+  variable_factors
 
-ggplot(res, aes(variable, coef_value)) +
-  geom_col() +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1))
-# res %>% 
-#   DT::datatable(options=list(pageLength = 30))
+all_coefs[, variable := factor(variable, levels=variable_factors)] 
+
+
+all_coefs %>% 
+  .[!is.na(original_name)] %>% 
+  ggplot(aes(variable, value, color=group), size=1) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  facet_grid(.~original_name, scales='free_x', space = "free_x") +
+  theme( 
+    panel.border = element_rect(color = "black", fill = NA, size = .4),
+    axis.text=element_text(size=14))
+
+
+# std_err <- bootSamples$t %>% apply(2, sd)
+# 
+# coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
+# 
+# coefs <- as.numeric(coef_results)
+# coefs_names <- rownames(coef_results)
+# 
+# coef_results <- data.table(variable=coefs_names, coef_value=coefs %>% round(3), std_err) %>% 
+#   setorder(-coef_value)
+# 
+# intercept_std <- coef_results[variable=='(Intercept)', std_err]
+# 
+# all_names %>% 
+#   as.data.table %>% 
+#   merge(coef_results, by='variable', all=TRUE) ->
+#   all_coefs
+# 
+# all_coefs %<>% 
+#   .[is.na(coef_value), std_err:=intercept_std] %>% 
+#   .[is.na(coef_value), coef_value:=0] %>% 
+#   setorder(-coef_value)
+# 
+# variables <- all_coefs[, variable]
+# all_coefs[, variable := factor(variable, levels=variables)]
+# all_coefs[, ci_up:=coef_value + 1.96*std_err]
+# all_coefs[, ci_low:=coef_value - 1.96*std_err]
+# 
+# 
+# all_coefs %>% 
+#   .[!is.na(original_name)] %>% 
+#   ggplot(aes(variable, coef_value)) +
+#   geom_col() +
+#   geom_errorbar(aes(ymin = ci_low, ymax = ci_up, width=0.3), linetype = "dashed") +
+#   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+#   facet_grid(.~original_name, scales='free_x', space = "free_x") +
+#   theme( 
+#     panel.border = element_rect(color = "black", fill = NA, size = .2),
+#     axis.text=element_text(size=20))
 ```
 
 
@@ -126,58 +239,59 @@ for(matching_var in matching_covariates){
 
 # Average Treatment Effects
 
-<!-- ```{r warning=FALSE, echo=FALSE, comment="", include=FALSE} -->
-<!-- outcomes <- matching_vars$outcomes -->
+```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
+outcomes <- matching_vars$outcomes
 
-<!-- results_outcomes <- list() -->
-<!-- for(outcome in outcomes){ -->
-<!--   sel_vars <- c(outcome, matching_vars$covariates) -->
-<!--   sel_data %>% -->
-<!--     .[, .SD, .SDcols=sel_vars] %>% -->
-<!--     na.omit -> -->
-<!--     dt -->
+predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+results_outcomes <- list()
+for(outcome in outcomes){
+  sel_vars <- c(outcome, predictive_variates)
+  sel_data %>%
+    .[, .SD, .SDcols=sel_vars] %>%
+    na.omit ->
+    dt
 
-<!--   dt %>% -->
-<!--     train_model(outcome, tuneLength = tuneLenghtATE, models=modelsATE) -> -->
-<!--     best_model -->
+  dt %>%
+    train_model(outcome, tuneLength = tuneLenghtATE, models=modelsATE) ->
+    best_model
 
-<!--   dt_y <- copy(dt) -->
-<!--   dt_y[, Alif:='Yes'] -->
-<!--   pred_y <- predict(best_model$model, dt_y) -->
+  dt_y <- copy(dt)
+  dt_y[, Alif:='Yes']
+  pred_y <- predict(best_model$model, dt_y)
 
-<!--   dt_n <- copy(dt) -->
-<!--   dt_n[, Alif:='No'] -->
-<!--   pred_n <- predict(best_model$model, dt_n) -->
+  dt_n <- copy(dt)
+  dt_n[, Alif:='No']
+  pred_n <- predict(best_model$model, dt_n)
 
-<!--   ate <- mean(pred_y - pred_n) -->
+  ate <- mean(pred_y - pred_n)
 
-<!--   results_outcomes[[outcome]] <- list( -->
-<!--     distribution = quantile(dt[[outcome]]), -->
-<!--     best_model = best_model, -->
-<!--     ate=ate -->
-<!--   ) -->
+  results_outcomes[[outcome]] <- list(
+    distribution = quantile(dt[[outcome]]),
+    best_model = best_model,
+    ate=ate
+  )
 
-<!-- } -->
-<!-- ``` -->
+}
+```
 
-<!-- ```{r echo=FALSE, comment=""} -->
+```{r echo=FALSE, comment=""}
 
-<!-- for( outcome in outcomes){ -->
-<!--   "Outcome: {outcome}" %>% f %>% print -->
-<!--   "Distribution:" %>% f %>% print -->
-<!--   results_outcomes[[outcome]]$distribution %>% print -->
-<!--   "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print -->
-<!--   if( !is.null(lget(best_model, accuracy, NULL)) ){ -->
-<!--     "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print -->
-<!--   }else{ -->
-<!--     "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print -->
-<!--   } -->
-<!--   "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print -->
-<!--   "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print -->
-<!--   "\n\n" %>% f %>% print  -->
-<!-- } -->
+for( outcome in outcomes){
+  "Outcome: {outcome}" %>% f %>% print
+  "Distribution:" %>% f %>% print
+  results_outcomes[[outcome]]$distribution %>% print
+  "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print
+  if( !is.null(lget(best_model, accuracy, NULL)) ){
+    "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print
+  }else{
+    "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print
+  }
+  "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print
+  "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print
+  "\n\n" %>% f %>% print
+}
 
-<!-- ``` -->
+```
 
 
 

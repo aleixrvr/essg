@@ -28,10 +28,6 @@ get_data <- function(){
     clean_data(all_vars) ->
     sel_data
   
-  # sel_data[, ll_lordosis_diff:=ideal_ll - lordosis_top_of_l1s1]
-  # sel_data[, ideal_ll:=NULL]
-  # sel_data[, lordosis_top_of_l1s1:=NULL]
-  
   ideal_ll <- sel_data[['Ideal LL']]
   lordosis_top_of_l1s1 <- sel_data[['Lordosis (top of L1-S1)']]
   sel_data[, `LL-Lordosis Difference`:=ideal_ll - lordosis_top_of_l1s1]
@@ -54,11 +50,11 @@ aggregate_data <- function(sel_data){
   #   .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
   #   .[Site=='ZUR Op', Site:='ANKZUR Op'] 
   
-  # sel_data %>% 
-  #   .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>% 
-  #   .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>% 
-  #   .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>% 
-  #   .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
+  sel_data %>%
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>%
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>%
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>%
+    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
   
   sel_data %>% 
     .[`1st surgeon: experience in ASD surgery` == 'Less than 2 years', 
