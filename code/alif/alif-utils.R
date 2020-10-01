@@ -16,7 +16,9 @@ get_data <- function(){
   
   matching_vars <- read_yaml('code/alif/matching_vars.yml')
   matching_vars$covariates %<>% c('Alif')
-  all_vars <- matching_vars %>% unlist
+  outcomes_ql_index <- matching_vars$outcomes_ql %>% get_base_outcome(first_visit=TRUE)
+  outcome_radiology_index <- matching_vars$outcomes_radiology %>% get_base_outcome(first_visit=FALSE)
+  all_vars <- c(matching_vars %>% unlist, outcomes_ql_index, outcome_radiology_index) %>% unique
   
   # setnames(clinical_data, '3CO', 'CO3')
  
@@ -31,8 +33,8 @@ get_data <- function(){
   ideal_ll <- sel_data[['Ideal LL']]
   lordosis_top_of_l1s1 <- sel_data[['Lordosis (top of L1-S1)']]
   sel_data[, `LL-Lordosis Difference`:=ideal_ll - lordosis_top_of_l1s1]
-  sel_data[, `Ideal LL`:=NULL]
-  sel_data[, `Lordosis (top of L1-S1)`:=NULL]
+  # sel_data[, `Ideal LL`:=NULL]
+  # sel_data[, `Lordosis (top of L1-S1)`:=NULL]
   
   matching_vars$covariates %<>% c('LL-Lordosis Difference')
   matching_vars$covariates %!in% c('Ideal LL', 'Lordosis (top of L1-S1)') ->

@@ -1,3 +1,5 @@
+base:
+  - Code of the patient
 covariates:
   - Age
   - Gender
@@ -25,11 +27,26 @@ covariates:
   # - LDI : removed
   # - Roussouly Type : removed
   - Number of Interbody Fusions
-outcomes:
+outcomes_ql:
   - "2Y. ODI - Score (%)"
   - "2Y. SRS22 - SRS Subtotal score"
   - "2Y. SF36 - MCS"
   - "2Y. SF36 - PCS" 
+outcomes_radiology:
+  - "6W. Major curve Cobb angle"
+  - "1Y. Major curve Cobb angle"
+  - "6W. T1 Sagittal Tilt"
+  - "1Y. T1 Sagittal Tilt"
+  - "6W. Sagittal Balance"
+  - "1Y. Sagittal Balance"
+  - "6W. Global Tilt"
+  - "1Y. Global Tilt"
+  - "6W. Lordosis (top of L1-S1)"
+  - "1Y. Lordosis (top of L1-S1)"
+  - "6W. LGap"
+  - "1Y. LGap"
+  - "6W. Pelvic Tilt"
+  - "1Y. Pelvic Tilt"
 predictive:
   - "Weight (kgs)_First Visit"
   - "Height (cm)_First Visit"

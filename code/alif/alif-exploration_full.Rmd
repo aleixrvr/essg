@@ -261,28 +261,28 @@ for(outcome in outcomes){
 }
 ```
 
-<!-- # Average Treatment Effects - Radiology -->
+# Average Treatment Effects - Radiology
 
-<!-- ```{r ate_radio, warning=FALSE, echo=FALSE, comment=""} -->
-<!-- outcomes <- matching_vars$outcomes_radiology -->
+```{r ate_radio, warning=FALSE, echo=FALSE, comment=""}
+outcomes <- matching_vars$outcomes_radiology
 
-<!-- predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique -->
-<!-- results_outcomes <- list() -->
-<!-- for(outcome in outcomes){ -->
-<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
-<!--   results_outcomes[[outcome]] <- calc_ate( -->
-<!--     sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, -->
-<!--     tuneLenghtATE, modelsATE, incremental=TRUE, is_classification -->
-<!--   ) -->
-<!-- } -->
-<!-- ``` -->
+predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+results_outcomes <- list()
+for(outcome in outcomes){
+  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
+  results_outcomes[[outcome]] <- calc_ate(
+    sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
+    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
+  )
+}
+```
 
-<!-- ```{r echo=FALSe, warning=FALSE, comment=""} -->
-<!-- for(outcome in outcomes){ -->
-<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
-<!--   print_ates(outcome, results_outcomes, is_classification) -->
-<!-- } -->
-<!-- ``` -->
+```{r echo=FALSe, warning=FALSE, comment=""}
+for(outcome in outcomes){
+  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
+  print_ates(outcome, results_outcomes, is_classification)
+}
+```
 
 # Average Treatment Effects - Complications
 

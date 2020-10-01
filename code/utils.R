@@ -64,6 +64,12 @@ clean_data <- function(sel_data, matching_vars){
     # clean_names_dt 
 }
 
+remove_constant_cols <- function(dt){
+  cols <- colnames(dt)
+  unique_val <- cols[dt[, sapply(.SD, uniqueN)] == 1]
+  cols_ <- cols %!in% unique_val
+  dt[, .SD, .SDcols=cols_]
+}
 
 check_matching_names <- function(sel_data, matching_vars){
   sel_data_names <- names(sel_data)
@@ -76,4 +82,12 @@ check_matching_names <- function(sel_data, matching_vars){
   }
 
   # sel_data[grep('3CO', clinical_names)]
+}
+
+get_base_outcome <- function(outcome, first_visit=FALSE){
+  base_outcome <- substr(outcome, 5, nchar(outcome))
+  if( first_visit == TRUE ){
+    base_outcome <- "{base_outcome}_First Visit" %>% f
+  }
+  return(base_outcome)
 }

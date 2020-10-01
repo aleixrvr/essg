@@ -1,5 +1,6 @@
 covariates:
   - Age
+covariates_increment:
   - "NRS back - Back pain - Average"
   - "NRS back - Leg pain - Average"
   - "SRS22 - SRS Total score_First Visit"
@@ -7,7 +8,7 @@ covariates:
   - "SF36 - MCS_First Visit"
   - "SF36 - PCS_First Visit"
   - Major curve Cobb angle
-  #- SVA no trobat
+  - Sagittal Balance
   - T1 Sagittal Tilt
   - Global Tilt
   - Lordosis (top of L1-S1)

@@ -34,7 +34,7 @@ clinical_data <- read_excel(xls_path) %>%
   data.table() 
 
 followup_data <- clinical_data %>% 
-  clean_names_dt %>% 
+  clean_names_dt %>%
   .[study == 'NonOp']
 
 provide_stats <- function(dt, var_){
@@ -56,11 +56,16 @@ provide_stats <- function(dt, var_){
   return(list(dt_plot, dt_stats))
 }
 
+detect_increment <- function(row_data){
+  max_pos <- row_data %>% t %>% as.vector %>% is.na %>% `!` %>% which %>% max
+  row_data[[1]] - row_data[[max_pos]]
+}
 ```
 
 
 ```{r comment='', echo=FALSE, warning=FALSE}
-for(var_ in clean_names(vars_$covariates)){
+for(var_ in clean_names(vars_$covariates_increment)){
+  data_ <- cbind(followup_data[, .(opnonop_categoric)])
   c(dt_plot, dt_stats) %<-% provide_stats(followup_data, var_)
   
   print('Variable: {var_}' %>% f)
