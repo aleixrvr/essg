@@ -1,5 +1,6 @@
 covariates:
   - Age
+  - Prior Spine Surgery
 covariates_increment:
   - "NRS back - Back pain - Average"
   - "NRS back - Leg pain - Average"
@@ -14,4 +15,4 @@ covariates_increment:
   - Lordosis (top of L1-S1)
   - LGap
   - Pelvic Tilt
-  - Prior Spine Surgery
+  

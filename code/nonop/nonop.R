@@ -9,4 +9,4 @@ detect_increment <- function(row_data){
 
 outcome_time <- cols[grepl(outcome, cols)]
 data_ <- followup_data[, .SD, .SDcols=outcome_time]
-data_[, .SD %>% detect_increment, 1:nrow(data_)]
+data_[, .(increment=.SD %>% detect_increment), 1:nrow(data_)]

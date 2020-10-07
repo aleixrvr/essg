@@ -35,15 +35,22 @@ clinical_data <- read_excel(xls_path) %>%
 
 followup_data <- clinical_data %>% 
   clean_names_dt %>%
-  .[study == 'NonOp']
+  .[study == 'NonOp'] %>% 
+  .[, opnonop_categoric:='No'] %>% 
+  .[!is.na(opnonop), opnonop_categoric:='Yes'] %>% 
+  .[, age_cat := ifelse(age>40, 'not_so_young', 'young')] %>% 
+  .[, age_cat := factor(age_cat, levels=c('young', 'not_so_young'))]
+
 
 provide_stats <- function(dt, var_){
   
+  var_simple <- str_replace_all(var_, '_first_visit' %>% fixed, '')
   if( class(dt[, var_ %>% get]) == 'numeric' ){
     dt_plot <- dt %>% 
       ggplot(aes_string(var_, fill='opnonop_categoric', color='opnonop_categoric')) +
       geom_density(alpha=0.1) +
-      ggtitle('{var_} distribution' %>% f) +
+      ggtitle('{var_simple} increment distribution' %>% f) +
+      theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1)) +
       facet_grid(prior_spine_surgery~.)
     dt_stats <- dt[, 
       .(mean=mean(get(var_), na.rm=TRUE), sd=sd(get(var_), na.rm=TRUE)),
@@ -56,19 +63,42 @@ provide_stats <- function(dt, var_){
   return(list(dt_plot, dt_stats))
 }
 
+calc_increment <- function(followup_data, var_){
+  cols <- followup_data %>% colnames
+  var_simple <- str_replace_all(var_, '_first_visit' %>% fixed, '')
+  outcome_time <- cols[grepl(var_simple, cols)]
+  data_ <- followup_data[, .SD, .SDcols=outcome_time]
+  data_[, .(increment=.SD %>% detect_increment), 1:nrow(data_)] %>% 
+    .[, increment]
+}
+
 detect_increment <- function(row_data){
-  max_pos <- row_data %>% t %>% as.vector %>% is.na %>% `!` %>% which %>% max
-  row_data[[1]] - row_data[[max_pos]]
+  if( all(is.na(row_data)) == TRUE ){
+    inc <- 0
+  }else{
+    max_pos <- row_data %>% t %>% as.vector %>% is.na %>% `!` %>% which %>% max
+    inc <-row_data[[max_pos]] - row_data[[1]]
+  }
+  return(inc)
 }
 ```
 
 
 ```{r comment='', echo=FALSE, warning=FALSE}
+print('Distribution')
+followup_data %>% 
+  .[, table(prior_spine_surgery, age_cat) ]  %>% 
+  .[, c(2, 1)] -> res_table
+res_table %>% print
+res_table %>% prop.table %>% round(3)*100 %>% print
+
 for(var_ in clean_names(vars_$covariates_increment)){
-  data_ <- cbind(followup_data[, .(opnonop_categoric)])
-  c(dt_plot, dt_stats) %<-% provide_stats(followup_data, var_)
+  data_ <- followup_data[, .(opnonop_categoric, age_cat, prior_spine_surgery)]
+  increment <- calc_increment(followup_data, var_)
+  data_[, c(var_):=increment]
+  c(dt_plot, dt_stats) %<-% provide_stats(data_, var_)
   
-  print('Variable: {var_}' %>% f)
+  print('Increment Variable: {var_}' %>% f)
   if(!is.null(dt_plot)) plot(dt_plot)
   print(dt_stats)
   cat('\n\n')

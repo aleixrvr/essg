@@ -296,3 +296,31 @@ category_los[,
   ggtitle('Proportion of categories')
 ```
 
+
+```{r echo=FALSE}
+time_evolution %>% 
+  ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  ggtitle('Blood Loss') +
+  xlim(c(0, 3000 ))+
+  facet_grid(reintervention~.)
+
+time_evolution %>% 
+  ggplot(aes(reintervention, blood_loss)) +
+  geom_boxplot() +
+  ggtitle('Blood Loss')
+
+
+time_evolution %>% 
+  ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  ggtitle('Surgical Time') +
+  xlim(c(0, 1000 ))+
+  facet_grid(reintervention~.)
+
+time_evolution %>% 
+  ggplot(aes(reintervention, surgical_time)) +
+  geom_boxplot() +
+  ggtitle('Blood Loss')
+```
+

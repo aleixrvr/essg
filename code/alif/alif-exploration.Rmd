@@ -23,7 +23,7 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 10
+tuneLenghtATE <- 5
 modelsATE <- c('elastic', 'boosting')
 replicas_boot <- 50L
 
@@ -241,7 +241,7 @@ for(matching_var in matching_covariates){
 
 # Average Treatment Effects - Quality Life
 
-```{r ate_ql, warning=FALSE, echo=FALSE, comment=""}
+```{r ate_ql, warning=FALSE, echo=FALSE, comment="", include=FALSE}
 outcomes <- matching_vars$outcomes_ql
 
 predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
@@ -254,39 +254,39 @@ for(outcome in outcomes){
 }
 ```
 
-```{r echo=FALSe, warning=FALSE, comment=""}
+```{r echo=FALSE, warning=FALSE, comment=""}
 for(outcome in outcomes){
   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
   print_ates(outcome, results_outcomes, is_classification)
 }
 ```
 
-<!-- # Average Treatment Effects - Radiology -->
+# Average Treatment Effects - Radiology
 
-<!-- ```{r ate_radio, warning=FALSE, echo=FALSE, comment=""} -->
-<!-- outcomes <- matching_vars$outcomes_radiology -->
+```{r ate_radio, warning=FALSE, echo=FALSE, comment="", include=FALSE}
+outcomes <- matching_vars$outcomes_radiology
 
-<!-- predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique -->
-<!-- results_outcomes <- list() -->
-<!-- for(outcome in outcomes){ -->
-<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
-<!--   results_outcomes[[outcome]] <- calc_ate( -->
-<!--     sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, -->
-<!--     tuneLenghtATE, modelsATE, incremental=TRUE, is_classification -->
-<!--   ) -->
-<!-- } -->
-<!-- ``` -->
+predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+results_outcomes <- list()
+for(outcome in outcomes){
+  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
+  results_outcomes[[outcome]] <- calc_ate(
+    sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
+    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
+  )
+}
+```
 
-<!-- ```{r echo=FALSe, warning=FALSE, comment=""} -->
-<!-- for(outcome in outcomes){ -->
-<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
-<!--   print_ates(outcome, results_outcomes, is_classification) -->
-<!-- } -->
-<!-- ``` -->
+```{r echo=FALSE, warning=FALSE, comment=""}
+for(outcome in outcomes){
+  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
+  print_ates(outcome, results_outcomes, is_classification)
+}
+```
 
 # Average Treatment Effects - Complications
 
-```{r ate_complication, warning=FALSE, echo=FALSE, comment=""}
+```{r ate_complication, warning=FALSE, echo=FALSE, comment="", include=FALSE}
 xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
 # excel_sheets(xls_path)
 
@@ -310,7 +310,7 @@ results_outcomes[[outcome]] <- calc_ate(
 )
 ```
 
-```{r echo=FALSe, warning=FALSE, comment=""}
+```{r echo=FALSE, warning=FALSE, comment=""}
 print_ates(outcome, results_outcomes, is_classification)
 ```
 
