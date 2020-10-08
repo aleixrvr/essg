@@ -2,7 +2,7 @@ library(readxl)
 library(data.table)
 library(magrittr)
 library(yaml)
-
+library(stringr)
 
 source('code/basic.R')
 source('code/utils.R')
@@ -40,6 +40,13 @@ get_data <- function(){
   matching_vars$covariates %!in% c('Ideal LL', 'Lordosis (top of L1-S1)') ->
     matching_vars$covariates
   
+  matching_vars$expanded <- c(
+    matching_vars$covariates, 
+    matching_vars$predictive,
+    outcomes_ql_index,
+    outcome_radiology_index
+  ) %>% unique
+  
   return(list(
     sel_data,
     matching_vars
@@ -68,6 +75,18 @@ aggregate_data <- function(sel_data){
   sel_data %>% 
     .[grepl('Current', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Current'] %>% 
     .[grepl('Ex-User', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Ex-User'] 
+  
+  fusion_names <- function(posterior_name){
+    if(is.na(posterior_name)) return(posterior_name)
+    
+    posterior_name %>% str_split('-') %>% .[[1]] %>% 
+      str_replace_all('[:digit:]', '') %>% 
+      unique %>% 
+      paste(collapse = '-')
+  }
+  
+  var_name <- 'Posterior Instrumented Fusion: Upper / Lower Levels'
+  sel_data[, c(var_name):=fusion_names(get(var_name)), 1:nrow(sel_data)]
   
   return(sel_data)
 }

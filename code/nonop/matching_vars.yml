@@ -1,0 +1,47 @@
+covariates:
+# deformity:
+  - Sagittal Balance
+  - Cobb PT curve (Degree)
+  - Major curve Cobb angle
+  - Global Tilt
+  - RPV
+  - RSA
+  - LDI
+  - RLL
+# HRQOL:
+  - "ODI - Score (%)_First Visit"
+  - "SRS22 - Function_First Visit" 
+  - "SRS22 - Pain_First Visit"
+  - "SRS22 -SI_First Visit"
+  - "SRS22 - MH_First Visit"
+  - "SRS22 - SRS Subtotal score_First Visit"
+  - "SF36 - MCS_First Visit"
+  - "SF36 - PCS_First Visit" 
+  - "NRS back - Back pain - Average"
+  - "NRS back - Leg pain - Average"
+# Frailty:
+  - Age
+  - "BMI_First Visit"
+  - Bowel incontinence
+  - Bladder incontinence
+  - Loss of balance
+  - Leg weakness
+  # - Diabetes with end organ damage # constant
+  - Diabetes without complications
+  - Any non-metastatic solid tumor
+  - Metastatic solid tumor
+  # - Malignant lymphoma # constant
+  # - Leukemya # not found
+  - Cardiac
+  - Hypertension
+  - Renal
+  - Mild liver disease
+  # - Moderate or severe liver disease # constant
+  - Chronic pulmonary disease
+  - Mild vascular
+  - Peripheral vascular disease
+  - Osteoporosis / osteopenia
+  - "Depression / anxiety"
+  # - Dementia # constant
+  - Psychiatric / Behavioral
+  - "Occupation_First Visit"

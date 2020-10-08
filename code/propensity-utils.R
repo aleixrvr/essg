@@ -135,3 +135,146 @@ print_ates <- function(outcome, results_outcomes, is_classification){
   "\n\n" %>% f %>% print
   return(invisible())
 }
+
+plot_coefs <- function(treatment_name, covariates_data, best_model, replicas_boot){
+  names_1 <- best_model$model$finalModel$xNames
+  names_0 <- best_model$model$trainingData %>% colnames
+  names_0 <- names_0[!(names_0 =='.outcome')]
+  df <- best_model$model$trainingData
+  
+  
+  df_names_0 <- data.table(variable=names_0, var_len=names_0 %>% nchar) %>% 
+    setorder(var_len)
+  
+  df_names_1 <- data.frame(variable=names_1, original='', stringsAsFactors = FALSE)
+  
+  all_names <- data.frame()
+  for( var_ in df_names_0$variable){
+    
+    var_expression <- var_
+    is_large <- any(grepl(f('`{var_}`'), df_names_1$variable, fixed = TRUE) )
+    if( is_large == TRUE ){
+      is_large <- TRUE
+      var_expression <- f('`{var_}`')
+    }
+    is_continuous <- FALSE
+    if( any(var_expression == df_names_1$variable) ){
+      is_continuous <- TRUE
+    }
+    
+    if( is_continuous == TRUE ){
+      all_names %<>% rbind(
+        data.frame(variable=var_expression, original_name=var_)
+      )  
+    }else{
+      all_values <- paste0(var_expression, table(df[[var_]]) %>% names)
+      all_names %<>% rbind(
+        data.frame(variable=all_values, original_name=var_)
+      )  
+    }
+  }
+  
+  
+  data_ <- covariates_data %>% 
+    na.omit
+  
+  train_formula <- "{treatment_name} ~ ." %>% f %>% as.formula
+  data_matrix <- model.matrix(train_formula, data_) %>% as.data.frame()
+  data_matrix[[treatment_name]] <- data_[[treatment_name]]
+  
+  bootSamples <- boot(data_matrix, function(data, idx) {
+    bootstrapData <- data[idx, ]
+    
+    train_formula <- "{treatment_name} ~ ." %>% f %>% as.formula
+    bootstrapMod <- train(train_formula, 
+      data = bootstrapData, 
+      method = "glmnet", 
+      trControl = trainControl(method = "none"),
+      tuneGrid = best_model$model$bestTune)
+    as.vector(coef(bootstrapMod$finalModel, best_model$model$bestTune$lambda))
+  }, replicas_boot)
+  
+  
+  coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
+  coefs_names <- rownames(coef_results)
+  coef_results <- data.table(variable=coefs_names, bootSamples$t %>% t) %>% 
+    melt(id.vars='variable', variable.name = "sample")
+  
+  all_names %>% 
+    as.data.table %>% 
+    merge(coef_results, by='variable', all=TRUE) %>% 
+    .[, group:='difference'] %>% 
+    .[is.na(value), group:='base'] %>% 
+    .[is.na(value), value:=0] ->
+    all_coefs
+  
+  # remove_original <- function(variable, original_name){
+  #   variable <- gsub('`', '', variable, fixed=TRUE)
+  #   if( !is.na(original_name) & variable != original_name ){
+  #     variable <- gsub(original_name, '', variable, fixed=TRUE) 
+  #   }
+  #   variable
+  # }
+  
+  # all_coefs[, variable:=remove_original(variable, original_name), 1:nrow(all_coefs)]
+  
+  all_coefs[, .(m=mean(value)), .(variable)] %>% 
+    setorder(-m) %>% 
+    .[, variable] ->
+    variable_factors
+  
+  all_coefs %<>% 
+    .[, variable := factor(variable, levels=variable_factors)] %>% 
+    .[, original_name:=gsub(' ', '\n', original_name, fixed=TRUE), 1:nrow(all_coefs)]
+  
+  all_coefs %>% 
+    .[!is.na(original_name)] %>% 
+    ggplot(aes(variable, value, color=group), size=1) +
+    geom_point() +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+    facet_grid(.~original_name, scales='free_x', space = "free_x") +
+    theme( 
+      panel.border = element_rect(color = "black", fill = NA, size = .4),
+      strip.text.x = element_text(angle = 90),
+      axis.text=element_text(size=10))
+  
+  
+  # std_err <- bootSamples$t %>% apply(2, sd)
+  # 
+  # coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
+  # 
+  # coefs <- as.numeric(coef_results)
+  # coefs_names <- rownames(coef_results)
+  # 
+  # coef_results <- data.table(variable=coefs_names, coef_value=coefs %>% round(3), std_err) %>% 
+  #   setorder(-coef_value)
+  # 
+  # intercept_std <- coef_results[variable=='(Intercept)', std_err]
+  # 
+  # all_names %>% 
+  #   as.data.table %>% 
+  #   merge(coef_results, by='variable', all=TRUE) ->
+  #   all_coefs
+  # 
+  # all_coefs %<>% 
+  #   .[is.na(coef_value), std_err:=intercept_std] %>% 
+  #   .[is.na(coef_value), coef_value:=0] %>% 
+  #   setorder(-coef_value)
+  # 
+  # variables <- all_coefs[, variable]
+  # all_coefs[, variable := factor(variable, levels=variables)]
+  # all_coefs[, ci_up:=coef_value + 1.96*std_err]
+  # all_coefs[, ci_low:=coef_value - 1.96*std_err]
+  # 
+  # 
+  # all_coefs %>% 
+  #   .[!is.na(original_name)] %>% 
+  #   ggplot(aes(variable, coef_value)) +
+  #   geom_col() +
+  #   geom_errorbar(aes(ymin = ci_low, ymax = ci_up, width=0.3), linetype = "dashed") +
+  #   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
+  #   facet_grid(.~original_name, scales='free_x', space = "free_x") +
+  #   theme( 
+  #     panel.border = element_rect(color = "black", fill = NA, size = .2),
+  #     axis.text=element_text(size=20))
+}

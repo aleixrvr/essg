@@ -102,7 +102,7 @@ time_evolution %<>%
   .[!is.na(stage_date)] %>% 
   .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, patient_id] %>% 
   setorder(patient_id, diff_years) %>% 
-  .[, reintervention:=factor(1:.N), patient_id]
+  .[, reintervention:=factor(0:(.N-1)), patient_id]
 ```
 
 ```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
@@ -217,85 +217,6 @@ time_evolution %>%
   plot_evolution('Scar revision')
 ```
 
-# Complications
-
-```{r warning=FALSE, echo=FALSE, fig.height=4}
-complications %>% 
-  .[, .(
-    category=`Category of the complication`,
-    impact=`Complication Impact`,
-    days_since_surgery=`Days since surgery`,
-    patient_id=`Code of the patient`,
-    reoperation=`Reoperation Due to Complication`
-  )] %>% 
-  .[impact=='Major Complication'] %>% 
-  .[reoperation=='Yes'] %>% 
-  setorder(patient_id, days_since_surgery) %>% 
-  .[, reintervention:=factor(1:.N), patient_id] %>% 
-  .[, .N , .(reintervention, category)] %>% 
-  ggplot(aes(reintervention, N, group=category, color=category)) +
-  geom_line()
-```
-
-```{r include=FALSE}
-complications[
-  `Complication Impact`=='Major Complication', 
-  .(patient_id=`Code of the patient`, 
-    category=`Category of the complication`, 
-    surgery=`Complication associated to surgery`,
-    days=`Days since surgery`)] %>% 
-  setorder(patient_id, days) %>% 
-  .[, reintervention:=factor(1:.N), patient_id] ->
-  complications_
-
-rev_patient_data[, 
-  .(patient_id=`Code of the patient`, 
-    surgery=`Surgery number`, 
-    hospitalization_time=`Hospitalization time`)] %>% 
-  .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric] ->
-  rev_patient_data_
-
-complications_ %>% 
-  merge(rev_patient_data_, by=c('patient_id', 'surgery')) ->
-  category_los
-```
-
-```{r echo=FALSE}
-category_los[, 
-  .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
-    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
-  .(reintervention, category)] %>% 
-  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
-  res_
-
-res_[,
-  .(hospitalization_time, 
-    h_up=hospitalization_time + 1.96*hosp_t_sd,
-    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
-    reintervention,
-    category), 1:nrow(res_)] %>% 
-  .[category!='Central neurologic complications'] %>% 
-  ggplot(aes(reintervention, hospitalization_time, group=category, color=category, fill=category)) +
-  geom_line() +
-  geom_ribbon(
-    aes(ymin=h_down, ymax=h_up), 
-    linetype=2, alpha=0.1) +
-  facet_grid(category~.) +
-  ylab('Hospitalization time')
-
-```
-
-```{r echo=FALSE}
-category_los[, 
-  reintervention_total:=.N, 
-  .(reintervention)] %>% 
-  .[, .(prop=100*.N/reintervention_total), .(reintervention, category)] %>% 
-  ggplot(aes(reintervention, prop, color=category, group=category)) +
-  geom_line() +
-  ylab('%') +
-  ggtitle('Proportion of categories')
-```
-
 
 ```{r echo=FALSE}
 time_evolution %>% 
@@ -324,3 +245,221 @@ time_evolution %>%
   ggtitle('Blood Loss')
 ```
 
+
+
+# Complications
+
+```{r echo=TRUE}
+complications %>% 
+  .[`Complication Type`=='Primary'] %>%
+  .[`Reoperation Due to Complication`=='Yes'] ->
+  complications_
+```
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+calc_reintervention <- function(days_since_surgery){
+  days_since_surgery %>% 
+      unique %>% 
+      sort %>% 
+      data.table(days=., position=1:length(.)) %>% 
+      merge(data.table(days=days_since_surgery)) %>% 
+      .[, position]
+}
+
+complications_ %>% 
+  .[, .(
+    category=`Category of the complication`,
+    days_since_surgery=`Days since surgery`,
+    patient_id=`Code of the patient`,
+    date=`Date of Reoperation`
+  )] %>% 
+  na.omit %>% 
+  setorder(patient_id, days_since_surgery) %>% 
+  .[, .(
+    category, date, days_since_surgery,
+    reintervention=calc_reintervention(days_since_surgery)), 
+    patient_id] ->
+  complications_
+
+complications_ %>% 
+  .[, .N , .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, N, group=category, color=category)) +
+  geom_line()
+```
+
+
+```{r include=FALSE}
+rev_patient_data[, 
+  .(patient_id=`Code of the patient`, 
+    hospitalization_time=`Hospitalization time`, 
+    date=`st1. Date of Stage 1`)] %>% 
+  .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric] ->
+  rev_patient_data_
+
+clinical_data[, .(prior_spine_surgery=`Prior Spine Surgery`),
+  .(patient_id=`Code of the patient`)] ->
+  prior_surgery
+
+complications_ %>% 
+  merge(rev_patient_data_, by=c('patient_id', 'date')) %>% 
+  merge(prior_surgery, by='patient_id') ->
+  category_los
+```
+
+```{r echo=FALSE}
+category_los[, 
+  .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, category)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    category), 1:nrow(res_)] %>% 
+  .[, category := gsub(' ', '\n', category , fixed=TRUE)] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=category, color=category, fill=category)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(category~.) +
+  ylab('Days') +
+  ggtitle('Hospitalization time')
+```
+
+```{r echo=FALSE}
+category_los %>% .[] %>% 
+  # .[, has_mechanical:='Mechanical complications' %in% category,
+  .[, is_only_mechanical:=all('Mechanical complications' == category),
+    .(patient_id, reintervention)] %>% 
+  .[, .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, is_only_mechanical)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    is_only_mechanical), 1:nrow(res_)] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=is_only_mechanical, color=is_only_mechanical, fill=is_only_mechanical)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(is_only_mechanical~.) +
+  ylab('Days') +
+  ggtitle('Hospitalization time for ONLY mechanical interventions')
+```
+
+```{r echo=FALSE}
+category_los %>% .[] %>% 
+  # .[, has_mechanical:='Mechanical complications' %in% category,
+  .[, is_only_mechanical:=all('Mechanical complications' == category),
+    .(patient_id, reintervention, prior_spine_surgery)] %>% 
+  .[, .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, is_only_mechanical, prior_spine_surgery)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    prior_spine_surgery, 
+    is_only_mechanical), 1:nrow(res_)] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=prior_spine_surgery, color=prior_spine_surgery, fill=prior_spine_surgery)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(is_only_mechanical~.) +
+  ylab('Days') +
+  ggtitle('Hospitalization time for ONLY mechanical interventions \n with prior spine surgery - differences in means')
+```
+
+
+```{r echo=FALSE}
+complication_types <- complications_[, category %>% unique]
+lapply(complication_types, function(comp){
+  complications_ %>% 
+    .[, .(has_category=comp %in% category, category), 
+      .(patient_id, reintervention)] %>% 
+    .[has_category==TRUE, table(category) %>% as.data.frame, reintervention] %>% 
+    data.frame(base_category=comp)
+}) %>% 
+  do.call(rbind, .) %>% 
+  as.data.table %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(reintervention, Freq, group=category, color=category)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(base_category~.) +
+  ggtitle('Complication Category Overlap')
+  
+  
+```
+
+```{r echo=FALSE, warning=FALSE}
+complications_[, 
+  reintervention_total:=.N, 
+  .(reintervention)] %>% 
+  .[, .(prop=100*.N/reintervention_total), .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, prop, color=category, group=category)) +
+  geom_line() +
+  ylab('%') +
+  ggtitle('Proportion of categories')
+```
+
+
+
+```{r echo=FALSE, warning=FALSE}
+max_reint <- complications_[, max(reintervention)]
+complication_types <- complications_[, category %>% unique]
+reints <- 1:(max_reint-1)
+
+lapply(complication_types, function(compl1){
+  lapply(complication_types, function(compl2){
+    sapply(reints, function(reint){
+      comps_ <- complications_[]
+      patient_selection <- complications_[reintervention==reint, .(has_category=compl1 %in% category), .(patient_id)][has_category==TRUE, patient_id]
+      base <- complications_[ patient_id %in% patient_selection] 
+      denom <- base[reintervention==reint, uniqueN(patient_id)]
+      numer <- base[reintervention==(reint + 1) & category==compl2, .N]
+      prop <- numer/denom
+      c(proportion=prop, ci=1.96*sqrt(prop*(1-prop)/denom))
+    }) %>% 
+      t %>% 
+    data.frame(., reintervention=reints, complication_next=compl2) 
+  }) %>% 
+    do.call(rbind, .) %>% 
+    data.frame(., complication_reintervention=compl1)
+}) %>% 
+  do.call(rbind, .) %>% 
+  data.table  %>% 
+  .[, complication_reintervention := gsub(' ', '\n', complication_reintervention , fixed=TRUE)] ->
+  res
+
+res %>% 
+    .[, ymin:=max(proportion-ci, 0), 1:nrow(res)] %>% 
+    .[, ymax:=min(proportion+ci, 1), 1:nrow(res)] %>% 
+  ggplot(aes(
+    reintervention, proportion, 
+    group=complication_next, color=complication_next)
+  ) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(aes(ymin=ymin, ymax=ymax), linetype=2, alpha=0.1) +
+  facet_grid(complication_reintervention ~. ) +
+  ggtitle('Proportion of complications in next reintervention')
+
+```

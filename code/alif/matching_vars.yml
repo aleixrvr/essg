@@ -3,7 +3,7 @@ base:
 covariates:
   - Age
   - Gender
-  # - Site
+  - Site
   - Prior Spine Surgery
   # - Abdominal surgery
   - "1st surgeon: experience in ASD surgery"
@@ -27,6 +27,7 @@ covariates:
   # - LDI : removed
   # - Roussouly Type : removed
   - Number of Interbody Fusions
+  - "Posterior Instrumented Fusion: Upper / Lower Levels"
 outcomes_ql:
   - "2Y. ODI - Score (%)"
   - "2Y. SRS22 - SRS Subtotal score"
@@ -77,7 +78,5 @@ predictive:
   - "SRS22 - SRS Total score_First Visit"
   - "SF36 - PCS_First Visit"
   - "SF36 - MCS_First Visit"
-  - "Anterior Instrumented Fusion"
-  - "Posterior Instrumented Fusion"
   - "Major curve Cobb angle" 
   

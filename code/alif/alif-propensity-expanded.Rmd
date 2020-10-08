@@ -1,0 +1,197 @@
+---
+title: "ALIF EXPLORATION LARGE"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(data.table)
+library(magrittr)
+library(kableExtra)
+library(zeallot)
+library(yaml)
+library(boot)
+
+source('code/alif/alif-utils.R')
+source('code/propensity-utils.R')
+
+tuneLenghtPropensity <- 25
+modelsPropensity <- c('elastic')
+tuneLenghtATE <- 5
+modelsATE <- c('elastic', 'boosting')
+replicas_boot <- 50L
+
+c(sel_data, matching_vars) %<-% get_data()
+covariates_data <- sel_data[, .SD, .SDcols=matching_vars$expanded]
+treatment_name <- 'Alif'
+```
+
+### Selected Variables
+
+```{r echo=FALSE, comment=""}
+cat(matching_vars %>% as.yaml)
+```
+
+```{r echo=FALSE, warning=FALSE, results="asis"}
+explore_vars(covariates_data, treatment_name=treatment_name)
+```
+
+
+## Propensity Scores Common Support
+```{r echo=FALSE, warning=FALSE}
+run_propensity(
+  covariates_data,
+  treatment_name=treatment_name,
+  tuneLength = tuneLenghtPropensity,
+  models = modelsPropensity
+) -> best_model
+```
+
+#### Model Stats
+
+- Treatment proportion: `r mean(covariates_data[[treatment_name]] == 'Yes') %>% round(3)`
+- Model Type: `r best_model$sel_model`
+- Accuracy: `r best_model$accuracy`
+- Params: `r as.yaml(best_model$params)`
+
+
+```{r echo=FALSE}
+print(best_model$plot)
+```
+
+## Model Coefficients
+
+Bootstraping replicas: `r replicas_boot`
+
+```{r echo=FALSE, fig.height=9, fig.width=10}
+plot_coefs(treatment_name, covariates_data, best_model, replicas_boot) %>% 
+  print
+```
+
+
+
+## Visual Inspection
+
+```{r warning=FALSE, echo=FALSE}
+matching_vars$covariates %!in% c(treatment_name, 'Propensity') ->
+  matching_covariates
+
+# best_model$clean_data %>%
+#   ggplot(aes_string('Propensity', 'Age', color='Alif')) +
+#   geom_point(alpha = 0.2, size = 1.3) +
+#   geom_smooth(method = "loess", se = TRUE) +
+#   xlab("Propensity score") ->
+#   res_plot
+# print(res_plot)
+
+
+
+for(matching_var in matching_covariates){
+  if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
+    best_model$clean_data %>% 
+      copy %>% 
+      setnames(matching_var, 'var_') %>% 
+      setnames(treatment_name, 'Treatment') %>% 
+      ggplot(aes(Propensity, var_, color=Treatment)) +
+      geom_point(alpha = 0.2, size = 1.3) +
+      geom_smooth(method = "loess", se = TRUE) +
+      ylab(matching_var) +
+      xlab("Propensity score") ->
+      res_plot
+    print(res_plot)
+  }else{
+    # best_model$clean_data %>%
+    #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
+    #   geom_boxplot() +
+    #   xlab("Propensity score") ->
+    #   res_plot
+  }
+}
+
+```
+
+
+<!-- # Average Treatment Effects - Quality Life -->
+
+<!-- ```{r ate_ql, warning=FALSE, echo=FALSE, comment="", include=FALSE} -->
+<!-- outcomes <- matching_vars$outcomes_ql -->
+
+<!-- predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique -->
+<!-- results_outcomes <- list() -->
+<!-- for(outcome in outcomes){ -->
+<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
+<!--   results_outcomes[[outcome]] <- calc_ate( -->
+<!--     sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=TRUE, tuneLenghtATE, modelsATE, incremental=TRUE, is_classification -->
+<!--   ) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, comment=""} -->
+<!-- for(outcome in outcomes){ -->
+<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
+<!--   print_ates(outcome, results_outcomes, is_classification) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- # Average Treatment Effects - Radiology -->
+
+<!-- ```{r ate_radio, warning=FALSE, echo=FALSE, comment="", include=FALSE} -->
+<!-- outcomes <- matching_vars$outcomes_radiology -->
+
+<!-- predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique -->
+<!-- results_outcomes <- list() -->
+<!-- for(outcome in outcomes){ -->
+<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
+<!--   results_outcomes[[outcome]] <- calc_ate( -->
+<!--     sel_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, -->
+<!--     tuneLenghtATE, modelsATE, incremental=TRUE, is_classification -->
+<!--   ) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, comment=""} -->
+<!-- for(outcome in outcomes){ -->
+<!--   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor') -->
+<!--   print_ates(outcome, results_outcomes, is_classification) -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- # Average Treatment Effects - Complications -->
+
+<!-- ```{r ate_complication, warning=FALSE, echo=FALSE, comment="", include=FALSE} -->
+<!-- xls_path <- 'data/ESSG extraction July 2020_2.xlsx' -->
+<!-- # excel_sheets(xls_path) -->
+
+<!-- patients_complications <- read_excel(xls_path, sheet='Complications') %>%  -->
+<!--   as.data.table %>%  -->
+<!--   .[`Complication Impact` == 'Major Complication'] %>%  -->
+<!--   .[, `Code of the patient`] -->
+
+<!-- data_ <- sel_data %>%  -->
+<!--   copy %>%  -->
+<!--   .[, complication:='No'] %>%  -->
+<!--   .[`Code of the patient` %in% patients_complications, complication:='Yes'] -->
+
+<!-- outcome <- 'complication' -->
+<!-- results_outcomes <- list() -->
+<!-- is_classification <- TRUE -->
+<!-- predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique -->
+<!-- results_outcomes[[outcome]] <- calc_ate( -->
+<!--     data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, -->
+<!--     tuneLenghtATE, modelsATE, incremental=FALSE, is_classification -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, comment=""} -->
+<!-- print_ates(outcome, results_outcomes, is_classification) -->
+<!-- ``` -->
+
+
+
+
