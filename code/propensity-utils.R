@@ -42,12 +42,16 @@ run_propensity <- function(sel_data, treatment_name, k_fold=5, tuneLength=5, mod
   sel_data %>% 
     na.omit -> clean_data
   
+  patient_ids <- clean_data$patient_id
+  clean_data[, patient_id:=NULL]
+  
   clean_data %>% 
     train_model(treatment_name, k_fold, tuneLength, models) ->
     best_model 
   
   propensity <- predict(best_model$model, clean_data, type='prob')$Yes
   clean_data[, Propensity := propensity]
+  clean_data[, patient_id:=patient_ids]
   
   best_model$plot <- clean_data %>% 
     ggplot(aes_string('propensity', fill=treatment_name, color=treatment_name)) +
@@ -60,7 +64,7 @@ run_propensity <- function(sel_data, treatment_name, k_fold=5, tuneLength=5, mod
 }
 
 calc_ate <- function(
-  data_, outcome, treatment_name, predictive_variates, first_visit=FALSE, 
+  ate_data, outcome, treatment_name, predictive_variates, first_visit=FALSE, 
   tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
 ){
   if( incremental == TRUE ){
@@ -70,7 +74,7 @@ calc_ate <- function(
   }
   
   sel_vars <- c(outcome, base_outcome, predictive_variates) %>% unique
-  data_ %>%
+  ate_data %>%
     .[, .SD, .SDcols=sel_vars] %>%
     na.omit %>% 
     remove_constant_cols ->
@@ -110,11 +114,11 @@ calc_ate <- function(
   if( is_classification == TRUE ){
     distribution <- c(Proportion=mean(dt[['diff_outcome']]=='Yes'))
   }else{
-    distribution  <-  quantile(dt[['diff_outcome']], na.rm=TRUE)
+    distribution <- quantile(dt[['diff_outcome']], na.rm=TRUE)
   }
   
   return(list(
-    distribution,
+    distribution=distribution,
     best_model = best_model,
     ate=ate
   ))
