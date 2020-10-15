@@ -242,7 +242,7 @@ time_evolution %>%
 time_evolution %>% 
   ggplot(aes(reintervention, surgical_time)) +
   geom_boxplot() +
-  ggtitle('Blood Loss')
+  ggtitle('Surgical Time')
 ```
 
 
@@ -295,7 +295,8 @@ rev_patient_data[,
     hospitalization_time=`Hospitalization time`, 
     blood_loss=`Total blood loss (mL)`,
     surgical_time=`Total surgical time st1+st2+st3`,
-    date=`st1. Date of Stage 1`)] %>% 
+    date=`st1. Date of Stage 1`,
+    sicu_transferred=`Patient transferred to SICU post op`)] %>% 
   .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric] ->
   rev_patient_data_
 
@@ -464,3 +465,342 @@ res %>%
   ggtitle('Proportion of complications in next reintervention')
 
 ```
+
+
+```{r echo=FALSE, include=FALSE}
+max_reint <- category_los[, max(reintervention)]
+complication_types <- category_los[, category %>% unique]
+reints <- 1:(max_reint-1)
+
+lapply(reints, function(reint){
+  lapply(complication_types, function(compl1){
+    patients_ <- complications_ %>% 
+      .[reintervention==reint] %>% 
+      .[category==compl1] %>% 
+      .[, patient_id] %>% 
+      unique
+    category_los %>% 
+      .[reintervention==(reint+1) & patient_id %in% patients_] %>% 
+      .[, .(reintervention_base=reint, 
+        days_since_surgery,
+        blood_loss,
+        surgical_time,
+        category,
+        hospitalization_time, 
+        base_category=compl1)]
+  }) %>% 
+    do.call(rbind, .) 
+}) %>% 
+  do.call(rbind, .) ->
+  results
+```
+
+## Comparation with next reintervention
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, blood_loss, color=category)) +
+  geom_point() +
+  ggtitle('Blood Loss') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, surgical_time, color=category)) +
+  geom_point() +
+  ggtitle('Surgical Time') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, hospitalization_time, color=category)) +
+  geom_point() +
+  ggtitle('Hospitalization Time') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+# By Complication type & Reintervention
+
+### Blood Loss
+```{r echo=FALSE}
+max_val <- category_los[, quantile(blood_loss, 0.96, na.rm=TRUE)]
+# for( compl in complication_types){
+#     category_los[category==compl, .(
+#       reintervention, 
+#       blood_loss
+#     )] %>% 
+#     na.omit %>% 
+#     .[, reintervention:=factor(reintervention)] %>% 
+#     ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
+#     geom_density(alpha=0.1) +
+#     xlim(c(0, max_val)) +
+#     ggtitle('Blood Loss, complication {compl}' %>% f) +
+#     facet_grid(reintervention~.) ->
+#     data_plot
+#   print(data_plot)
+# }
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>%
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Blood Loss' %>% f) +
+  facet_grid(reintervention~category) 
+```
+
+###
+```{r echo=FALSE}
+max_val <- category_los[, quantile(surgical_time, 0.96, na.rm=TRUE)]
+# for( compl in complication_types){
+#     category_los[category==compl] %>% 
+#     .[, reintervention:=factor(reintervention)] %>% 
+#     ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+#     geom_density(alpha=0.1) +
+#     xlim(c(0, max_val)) +
+#     ggtitle('Surgical Time, complication {compl}' %>% f) +
+#     facet_grid(reintervention~.) ->
+#     data_plot
+#   print(data_plot)
+# }
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>% 
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Surgical Time' %>% f) +
+  facet_grid(reintervention~category) 
+```
+
+```{r echo=FALSE}
+max_val <- category_los[, quantile(hospitalization_time, 0.96, na.rm=TRUE)]
+# for( compl in complication_types){
+#   reints_val <- category_los[category==compl, .N, reintervention][N>1, reintervention]
+#   category_los[category==compl] %>% 
+#     .[reintervention %in% reints_val] %>% 
+#     .[, reintervention:=factor(reintervention)] %>% 
+#     ggplot(aes(hospitalization_time, fill=reintervention, color=reintervention)) +
+#     geom_density(alpha=0.1) +
+#     xlim(c(0, max_val)) +
+#     ggtitle('Hospitalization Time, complication {compl}' %>% f) +
+#     facet_grid(reintervention~., drop = TRUE) ->
+#     data_plot
+#   print(data_plot)
+# }
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>%
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(hospitalization_time, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Surgical Time' %>% f) +
+  facet_grid(reintervention~category) 
+```
+
+
+# Quality life increment for reinterventions
+
+```{r echo=FALSE, include=FALSE}
+lapply(1:6, function(y_){
+  odi <- "{y_}Y. ODI - Score (%)" %>% f
+  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
+  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
+  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
+  mcs <- "{y_}Y. SF36 - MCS" %>% f
+  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
+  pcs <- "{y_}Y. SF36 - PCS" %>% f
+  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
+  
+  clinical_data[, .(
+    odi=get(odi) - get(odi_base), 
+    srss=get(srss) - get(srss_base), 
+    mcs=get(mcs) - get(mcs_base), 
+    pcs=get(pcs) - get(pcs_base),
+    patient_id=`Code of the patient`)] ->
+    patient_quality
+  
+  time_evolution %>% 
+    .[diff_years < y_, ] %>% 
+    .[, .(last_operation= max(diff_years)), .(patient_id)] %>% 
+    .[, last_operation := as.numeric(last_operation)] %>% 
+    merge(patient_quality, by='patient_id') %>% 
+    .[, outcome_year:=y_] ->
+    res
+  
+  get_lm_info <- function(data_, name){
+    "{name}~last_operation" %>% f %>% as.formula() %>% 
+    lm(data=data_) %>% summary %>% .$coefficients %>% 
+      .[2, c(1, 2)] %>% round(1) -> lm_info
+    
+    "{lm_info[1]}\n({lm_info[2]})" %>% f
+  }
+  
+  res %>% 
+    .[, odi_info:=get_lm_info(.SD, 'odi')] %>% 
+    .[, srss_info:=get_lm_info(.SD, 'srss')] %>% 
+    .[, mcs_info:=get_lm_info(.SD, 'mcs')] %>% 
+    .[, pcs_info:=get_lm_info(.SD, 'pcs')]
+  
+  return(res)
+}) %>% 
+  do.call(rbind, .) -> 
+  res
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+info.labs <- res[, .(info=unique(odi_info)), .(outcome_year)]
+outcome_year.labs <- info.labs[, info]
+names(outcome_year.labs) <- info.labs[, outcome_year]
+
+res %>% 
+  ggplot(aes(last_operation, odi)) +
+  geom_point() +
+  geom_jitter(width=0.005) +
+  ggtitle('ODI Score increment') +
+  geom_smooth(method='lm') +
+  facet_grid(outcome_year~., 
+    labeller=labeller(outcome_year=outcome_year.labs))
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+info.labs <- res[, .(info=unique(srss_info)), .(outcome_year)]
+outcome_year.labs <- info.labs[, info]
+names(outcome_year.labs) <- info.labs[, outcome_year]
+
+res %>% 
+  ggplot(aes(last_operation, srss)) +
+  geom_point() +
+  geom_jitter(width=0.005) +
+  geom_smooth(method='lm') +
+  ggtitle('SRS22 Subtotal increment') +
+  facet_grid(outcome_year~., 
+    labeller=labeller(outcome_year=outcome_year.labs))
+```
+
+
+```{r echo=FALSE, warning=FALSE}
+info.labs <- res[, .(info=unique(mcs_info)), .(outcome_year)]
+outcome_year.labs <- info.labs[, info]
+names(outcome_year.labs) <- info.labs[, outcome_year]
+
+res %>% 
+  ggplot(aes(last_operation, mcs)) +
+  geom_point() +
+  geom_jitter(width=0.005) +
+  geom_smooth(method='lm') +
+  ggtitle('SF36 - MCS increment') +
+  facet_grid(outcome_year~., 
+    labeller=labeller(outcome_year=outcome_year.labs))
+```
+
+```{r echo=FALSE, warning=FALSE}
+info.labs <- res[, .(info=unique(pcs_info)), .(outcome_year)]
+outcome_year.labs <- info.labs[, info]
+names(outcome_year.labs) <- info.labs[, outcome_year]
+
+res %>% 
+  ggplot(aes(last_operation, pcs)) +
+  geom_point() +
+  geom_jitter(width=0.005) +
+  geom_smooth(method='lm') +
+  ggtitle('SF36 - MCS increment') +
+  facet_grid(outcome_year~., 
+    labeller=labeller(outcome_year=outcome_year.labs))
+```
+
+### Had Intervention
+
+For each outcome year, whether the pacient had an intervention before the questionaire
+```{r echo=FALSE, warning=FALSE}
+res %>% 
+  ggplot(aes(last_operation, pcs)) +
+  geom_point() +
+  geom_jitter(width=0.005) +
+  geom_smooth(method='lm') +
+  ggtitle('SF36 - PCS increment') +
+  facet_grid(outcome_year~.)
+```
+
+```{r echo=FALSE, warning=FALSE}
+lapply(1:6, function(y_){
+  odi <- "{y_}Y. ODI - Score (%)" %>% f
+  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
+  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
+  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
+  mcs <- "{y_}Y. SF36 - MCS" %>% f
+  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
+  pcs <- "{y_}Y. SF36 - PCS" %>% f
+  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
+  
+  clinical_data[, .(
+    odi=get(odi) - get(odi_base), 
+    srss=get(srss) - get(srss_base), 
+    mcs=get(mcs) - get(mcs_base), 
+    pcs=get(pcs) - get(pcs_base),
+    patient_id=`Code of the patient`)] ->
+    patient_quality
+  
+  time_evolution %>% 
+    .[diff_years < y_, ] %>% 
+    .[, reint_num:=as.numeric(as.character(reintervention))] %>% 
+    .[, had_reintervention := max(reint_num) > 0, patient_id] %>% 
+    merge(patient_quality, by='patient_id') %>% 
+    .[, outcome_year:=factor(y_)] ->
+    res
+  
+  return(res)
+}) %>% 
+  do.call(rbind, .) -> 
+  res
+```
+
+
+```{r echo=FALSE}
+res %>% 
+  ggplot(aes(outcome_year, odi, fill=had_reintervention)) +
+  geom_boxplot(position = "dodge2") +
+  ggtitle('ODI Score increment')
+```
+
+
+```{r echo=FALSE}
+res %>% 
+  ggplot(aes(outcome_year, srss, fill=had_reintervention)) +
+  geom_boxplot(position = "dodge2") +
+  ggtitle('SRS22 Subtotal increment')
+```
+
+
+```{r echo=FALSE}
+res %>% 
+  ggplot(aes(outcome_year, mcs, fill=had_reintervention)) +
+  geom_boxplot(position = "dodge2") +
+  ggtitle('SF36 - MCS increment')
+```
+
+
+```{r echo=FALSE}
+res %>% 
+  ggplot(aes(outcome_year, pcs, fill=had_reintervention)) +
+  geom_boxplot(position = "dodge2") +
+  ggtitle('SF36 - PCS increment') 
+```
+
+

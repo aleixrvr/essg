@@ -8,7 +8,7 @@ source('code/basic.R')
 source('code/utils.R')
 
 get_data <- function(){
-  xls_path <- 'data/ESSG extraction July 2020_2.xlsx'
+  xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   # excel_sheets(xls_path)
   
   clinical_data <- read_excel(xls_path) %>% 
