@@ -33,7 +33,7 @@ rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>%
   data.table 
 clinical_data <- read_excel(xls_path) %>% 
   data.table() 
-complications <- read_excel(xls_path, sheet = "Complicacions revisades") %>% 
+complications <- read_excel(xls_path, sheet = "Complications") %>% 
   data.table 
 
 rev_patient_data %>% 

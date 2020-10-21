@@ -1,5 +1,6 @@
 library(ggplot2)
 library(zeallot)
+library(boot)
 library(magrittr)
 
 source('code/basic.R')
@@ -109,7 +110,15 @@ calc_ate <- function(
     pred_n <- predict(best_model$model, dt_n)
   }
   
+  ate_res <- NULL
   ate <- mean(pred_y - pred_n)
+  if( 'Propensity' %in% colnames(dt)){
+    ate_dt <- dt %>% 
+      copy %>% 
+      setnames('diff_outcome', 'outcome')
+    ate_dt$pred_y <- pred_y 
+    ate_dt$pred_n <- pred_n
+  }
   
   if( is_classification == TRUE ){
     distribution <- c(Proportion=mean(dt[['diff_outcome']]=='Yes'))
@@ -120,23 +129,81 @@ calc_ate <- function(
   return(list(
     distribution=distribution,
     best_model = best_model,
-    ate=ate
+    ate=ate,
+    ate_dt=ate_dt
   ))
 }
 
-print_ates <- function(outcome, results_outcomes, is_classification){
+print_ates <- function(treatment_name, outcome, results, is_classification){
   "Outcome: {outcome}" %>% f %>% print
   "Distribution:" %>% f %>% print
-  results_outcomes[[outcome]]$distribution %>% print
-  "Model Type: {results_outcomes[[outcome]]$best_model$sel_model} \n" %>% f %>% print
+  results$distribution %>% print
+  "Model Type: {results$best_model$sel_model} \n" %>% f %>% print
   if( is_classification == TRUE ){
-    "Accuracy: {results_outcomes[[outcome]]$best_model$accuracy} \n" %>% f %>% print
+    "Accuracy: {results$best_model$accuracy} \n" %>% f %>% print
   }else{
-    "RMSE: {results_outcomes[[outcome]]$best_model$rmse} \n" %>% f %>% print
+    "RMSE: {results$best_model$rmse} \n" %>% f %>% print
   }
-  "Params: {as.yaml(results_outcomes[[outcome]]$best_model$params)}" %>% f %>% print
-  "ATE (Yes-No): {results_outcomes[[outcome]]$ate} \n" %>% f %>% print
-  "\n\n" %>% f %>% print
+  "Params: {as.yaml(results$best_model$params)}" %>% f %>% print
+  "ATE (Yes-No): {results$ate} \n" %>% f %>% print
+  
+  dt_ <- results$ate_dt %>% 
+    copy %>% 
+    .[, outcome_binary:=ifelse(outcome=='Yes', 1, 0)] %>% 
+    setnames(treatment_name, 'treatment')
+  if( !is.null(dt_) ){
+    
+    if( is_classification == TRUE ){
+      results$ate_dt %>% .[,
+        .(outcome=mean(outcome=='Yes')), 
+        .(treatment=get(treatment_name))] %>% 
+        setnames('outcome', outcome) %>% 
+        setnames('treatment', treatment_name) ->
+        table_treatement
+      
+      dt_ %>% 
+        ggplot(aes(Propensity, outcome_binary, color=treatment)) +
+        # geom_point() +
+        geom_jitter(width =0, height=0.07) +
+        geom_smooth() +
+        ylim(c(-0.2,1.2)) +
+        geom_abline(intercept = 0, slope = 0) +
+        geom_abline(intercept = 1, slope = 0) +
+        ylab(outcome) ->
+        data_plot
+    }else{
+      results$ate_dt %>% .[,
+        .(outcome=mean(outcome)), 
+        .(treatment=get(treatment_name))] %>% 
+        setnames('outcome', outcome) %>% 
+        setnames('treatment', treatment_name) ->
+        table_treatement
+      
+      dt_ %>% 
+        ggplot(aes(Propensity, outcome, color=treatment)) +
+        geom_point() +
+        geom_smooth() ->
+        data_plot
+    }
+    ind_yes <- which(table_treatement[, 1] == 'Yes')
+    ind_no <- (1:2)[-ind_yes]
+    diff_treatment <- table_treatement[ind_yes, 2] - table_treatement[ind_no, 2]
+    diff_treatment %<>% as.data.frame() %>% .[1, 1] %>% round(3)
+    
+    "Observational differences in treatment {diff_treatment} (Yes-No) \n\n" %>% f %>%  print
+    
+    print(table_treatement)
+    print(data_plot)
+    
+    dt_ %>% 
+      .[, mean_ate_rolling:=cumsum(pred_y - pred_n)/1:nrow(dt_)] %>% 
+      ggplot(aes(Propensity, mean_ate_rolling, group=1)) +
+      geom_line() +
+      ggtitle("Mean accumulative by propensity of outcome {outcome}" %>% f) ->
+      data_plot
+    print(data_plot)
+  }
+  
   return(invisible())
 }
 

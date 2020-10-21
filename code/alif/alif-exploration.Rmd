@@ -23,13 +23,14 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 2
+tuneLenghtATE <- 10
 modelsATE <- c('elastic', 'boosting')
 replicas_boot <- 50L
 
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
 treatment_name <- 'Alif'
+exploration <- FALSE
 ```
 
 ### Selected Variables
@@ -39,7 +40,7 @@ cat(matching_vars %>% as.yaml)
 ```
 
 ```{r echo=FALSE, warning=FALSE, results="asis"}
-explore_vars(covariates_data, treatment_name=treatment_name)
+if( exploration == TRUE ) explore_vars(covariates_data, treatment_name=treatment_name)
 ```
 
 
@@ -82,41 +83,33 @@ plot_coefs(treatment_name, covariates_data, best_model, replicas_boot) %>%
 ## Visual Inspection
 
 ```{r warning=FALSE, echo=FALSE}
-matching_vars$covariates %!in% c(treatment_name, 'Propensity') ->
-  matching_covariates
 
-# best_model$clean_data %>%
-#   ggplot(aes_string('Propensity', 'Age', color='Alif')) +
-#   geom_point(alpha = 0.2, size = 1.3) +
-#   geom_smooth(method = "loess", se = TRUE) +
-#   xlab("Propensity score") ->
-#   res_plot
-# print(res_plot)
-
-
-
-for(matching_var in matching_covariates){
-  if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
-    best_model$clean_data %>% 
-      copy %>% 
-      setnames(matching_var, 'var_') %>% 
-      setnames(treatment_name, 'Treatment') %>% 
-      ggplot(aes(Propensity, var_, color=Treatment)) +
-      geom_point(alpha = 0.2, size = 1.3) +
-      geom_smooth(method = "loess", se = TRUE) +
-      ylab(matching_var) +
-      xlab("Propensity score") ->
-      res_plot
-    print(res_plot)
-  }else{
-    # best_model$clean_data %>%
-    #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
-    #   geom_boxplot() +
-    #   xlab("Propensity score") ->
-    #   res_plot
+if( exploration== TRUE){
+  matching_vars$covariates %!in% c(treatment_name, 'Propensity') ->
+    matching_covariates
+  
+  for(matching_var in matching_covariates){
+    if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
+      best_model$clean_data %>% 
+        copy %>% 
+        setnames(matching_var, 'var_') %>% 
+        setnames(treatment_name, 'Treatment') %>% 
+        ggplot(aes(Propensity, var_, color=Treatment)) +
+        geom_point(alpha = 0.2, size = 1.3) +
+        geom_smooth(method = "loess", se = TRUE) +
+        ylab(matching_var) +
+        xlab("Propensity score") ->
+        res_plot
+      print(res_plot)
+    }else{
+      # best_model$clean_data %>%
+      #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
+      #   geom_boxplot() +
+      #   xlab("Propensity score") ->
+      #   res_plot
+    }
   }
 }
-
 ```
 
 
@@ -175,7 +168,7 @@ for(outcome in outcomes){
 ```{r echo=FALSE, warning=FALSE, comment=""}
 for(outcome in outcomes){
   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
-  print_ates(outcome, results_outcomes, is_classification)
+  print_ates(outcome, results_outcomes[[outcome]], is_classification)
 }
 ```
 
@@ -185,7 +178,7 @@ for(outcome in outcomes){
 xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
 # excel_sheets(xls_path)
 
-patients_complications <- read_excel(xls_path, sheet='Complicacions revisades') %>%
+patients_complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
   .[`Complication Type`=='Primary'] %>%
   .[`Reoperation Due to Complication`=='Yes'] %>%
@@ -199,7 +192,9 @@ data_ <- sel_data %>%
 outcome <- 'complication'
 results_outcomes <- list()
 is_classification <- TRUE
-predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+predictive_variates <- c(
+  matching_vars$covariates, matching_vars$predictive, 'Propensity'
+) %>% unique
 results_outcomes[[outcome]] <- calc_ate(
     data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
     tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
@@ -207,12 +202,12 @@ results_outcomes[[outcome]] <- calc_ate(
 ```
 
 ```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(outcome, results_outcomes, is_classification)
+print_ates(outcome, results_outcomes[[outcome]], is_classification)
 ```
 
 # Average Treatment Effects - Nombre Revisions
 
-```{r ate_complication, warning=FALSE, echo=FALSE, comment="", include=FALSE}
+```{r ate_reintervention, warning=FALSE, echo=FALSE, comment="", include=FALSE}
 xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
 # excel_sheets(xls_path)
 
@@ -223,12 +218,15 @@ rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>%
 data_ <- sel_data %>%
   copy %>%
   merge(rev_patient_data, by="Code of the patient", all.x=TRUE, all.y=FALSE) %>% 
-  .[is.na(reinterventions), reinterventions:=0]
+  .[is.na(reinterventions), reinterventions:=0] %>% 
+  .[, `Code of the patient`:=NULL]
 
 outcome <- 'reinterventions'
 results_outcomes <- list()
-is_classification <- TRUE
-predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+is_classification <- FALSE
+predictive_variates <- c(
+  matching_vars$covariates, matching_vars$predictive, 'Propensity'
+) %>% unique
 results_outcomes[[outcome]] <- calc_ate(
     data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
     tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
@@ -236,5 +234,5 @@ results_outcomes[[outcome]] <- calc_ate(
 ```
 
 ```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(outcome, results_outcomes, is_classification)
+print_ates(outcome, results_outcomes[[outcome]], is_classification)
 ```

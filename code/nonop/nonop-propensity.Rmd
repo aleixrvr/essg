@@ -25,7 +25,7 @@ tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
 tuneLenghtATE <- 5
 # modelsATE <- c('elastic', 'boosting')
-replicas_boot <- 50L
+replicas_boot <- 100L
 
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]

@@ -7,14 +7,19 @@ library(stringr)
 source('code/basic.R')
 source('code/utils.R')
 
-get_data <- function(){
+get_data <- function(evaluation=FALSE){
   xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   # excel_sheets(xls_path)
   
   clinical_data <- read_excel(xls_path) %>% 
     as.data.table()
   
-  matching_vars <- read_yaml('code/alif/matching_vars.yml')
+  if(evaluation==TRUE){
+    matching_vars <- read_yaml('code/alif/matching_vars_evaluation.yml')
+  }else{
+    matching_vars <- read_yaml('code/alif/matching_vars.yml')  
+  }
+  
   matching_vars$covariates %<>% c('Alif')
   outcomes_ql_index <- matching_vars$outcomes_ql %>% get_base_outcome(first_visit=TRUE)
   outcome_radiology_index <- matching_vars$outcomes_radiology %>% get_base_outcome(first_visit=FALSE)
@@ -24,6 +29,7 @@ get_data <- function(){
  
   clinical_data %>% 
     .[ALIF + TLIF + PLIF > 0] %>% 
+    .[`Posterior Instrumented Fusion`!='No'] %>% 
     .[, Alif := ifelse(ALIF > 0, 'Yes', 'No')] %>% 
     .[, .SD, .SDcols = all_vars] %>% 
     aggregate_data  %>% 
@@ -76,14 +82,23 @@ aggregate_data <- function(sel_data){
     .[grepl('Current', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Current'] %>% 
     .[grepl('Ex-User', `Tobacco use_First Visit`), `Tobacco use_First Visit` := 'Ex-User'] 
   
+  # fusion_names <- function(posterior_name){
+  #   if(is.na(posterior_name)) return(posterior_name)
+  #   
+  #   posterior_name %>% str_split('-') %>% .[[1]] %>% 
+  #     str_replace_all('[:digit:]', '') %>% 
+  #     unique %>% 
+  #     paste(collapse = '-')
+  # }
   fusion_names <- function(posterior_name){
     if(is.na(posterior_name)) return(posterior_name)
     
-    posterior_name %>% str_split('-') %>% .[[1]] %>% 
-      str_replace_all('[:digit:]', '') %>% 
-      unique %>% 
-      paste(collapse = '-')
+    posterior_name %>% str_split('-') %>% .[[1]] %>% .[len(.)] %>% 
+      str_replace_all('[:digit:]', '') -> endpoint
+    
+    ifelse(endpoint %in% c('Iliac', 'S'), 'Iliac+S', endpoint)
   }
+  
   
   var_name <- 'Posterior Instrumented Fusion: Upper / Lower Levels'
   sel_data[, c(var_name):=fusion_names(get(var_name)), 1:nrow(sel_data)]

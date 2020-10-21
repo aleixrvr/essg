@@ -16,28 +16,121 @@ library(yaml)
 source('code/fenestrated/fenestrated-utils.R')
 source('code/propensity-utils.R')
 
-sel_data <- get_data()
+tuneLenghtPropensity <- 25
+modelsPropensity <- c('elastic')
+tuneLenghtATE <- 15
+modelsATE <- c('elastic', 'boosting')
+replicas_boot <- 50L
+
+c(sel_data, matching_vars) %<-% get_data()
+covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
+treatment_name <- 'fenestrated'
+exploration <- TRUE
+```
+
+### Selected Variables
+
+```{r echo=FALSE, comment=""}
+cat(matching_vars %>% as.yaml)
 ```
 
 ```{r echo=FALSE, warning=FALSE, results="asis"}
-explore_vars(sel_data, outcome_name='fenestrated')
+if( exploration == TRUE ) explore_vars(covariates_data, treatment_name=treatment_name)
 ```
 
-## Propensity Scores Overlapping
-```{r echo=FALSE}
-run_propensity(sel_data, outcome_name='fenestrated') ->
-  best_model
+
+## Propensity Scores Common Support
+```{r echo=FALSE, warning=FALSE}
+prop_data <- copy(covariates_data)
+prop_data[['patient_id']] <- sel_data[, `Code of the patient`]
+run_propensity(
+  prop_data,
+  treatment_name=treatment_name,
+  tuneLength = tuneLenghtPropensity,
+  models = modelsPropensity
+) -> best_model
+
 ```
 
 #### Model Stats
 
+- Treatment proportion: `r mean(covariates_data[[treatment_name]] == 'Yes') %>% round(3)`
 - Model Type: `r best_model$sel_model`
 - Accuracy: `r best_model$accuracy`
 - Params: `r as.yaml(best_model$params)`
- 
+
 
 ```{r echo=FALSE}
 print(best_model$plot)
 ```
 
+## Model Coefficients
 
+Bootstraping replicas: `r replicas_boot`
+
+```{r echo=FALSE, fig.height=9, fig.width=10}
+plot_coefs(treatment_name, covariates_data, best_model, replicas_boot) %>% 
+  print
+```
+
+
+
+## Visual Inspection
+
+```{r warning=FALSE, echo=FALSE}
+
+if( exploration== TRUE){
+  matching_vars$covariates %!in% c(treatment_name, 'Propensity') ->
+    matching_covariates
+  
+  for(matching_var in matching_covariates){
+    if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
+      best_model$clean_data %>% 
+        copy %>% 
+        setnames(matching_var, 'var_') %>% 
+        setnames(treatment_name, 'Treatment') %>% 
+        ggplot(aes(Propensity, var_, color=Treatment)) +
+        geom_point(alpha = 0.2, size = 1.3) +
+        geom_smooth(method = "loess", se = TRUE) +
+        ylab(matching_var) +
+        xlab("Propensity score") ->
+        res_plot
+      print(res_plot)
+    }else{
+      # best_model$clean_data %>%
+      #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
+      #   geom_boxplot() +
+      #   xlab("Propensity score") ->
+      #   res_plot
+    }
+  }
+}
+```
+
+
+```{r echo=FALSE}
+propensities <- best_model$clean_data %>% 
+  .[, .(patient_id, Propensity)] %>% 
+  setnames("patient_id", "Code of the patient")
+
+sel_data %>% 
+  merge(propensities, by='Code of the patient', all.x=TRUE) ->
+  ate_data
+```
+
+
+# Average Treatment Effects - Complications
+
+```{r ate_complications, warning=FALSE, echo=FALSE, comment=""}
+
+# predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+
+predictive_variates <- c(treatment_name, 'Propensity')
+outcome = 'major_complication'
+is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
+results <- calc_ate(
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+)
+
+print_ates(treatment_name, outcome, results, is_classification)
+```
