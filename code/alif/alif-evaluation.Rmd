@@ -23,8 +23,8 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 15
-modelsATE <- c('elastic', 'boosting')
+tuneLenghtATE <- 1
+modelsATE <- c('boosting')
 replicas_boot <- 50L
 
 c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
@@ -183,8 +183,9 @@ rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>%
 data_ <- ate_data %>%
   copy %>%
   merge(rev_patient_data, by="Code of the patient", all.x=TRUE, all.y=FALSE) %>% 
-  .[is.na(reinterventions), reinterventions:=0] %>% 
-  .[, `Code of the patient`:=NULL]
+  .[is.na(reinterventions), reinterventions:=0]
+  # .[reinterventions > 0] %>% 
+  # .[, `Code of the patient`:=NULL]
 
 outcome <- 'reinterventions'
 is_classification <- FALSE

@@ -12,7 +12,8 @@ get_data <- function(){
   matching_vars <- read_yaml('code/fenestrated/matching_vars.yml')
   
   fread('data/Fenestrated screws/Complications tots.csv') %>% 
-    .[`Complication Impact`=='Major Complication', `Code of the patient`] %>% 
+    # .[`Complication Impact`=='Major Complication', `Code of the patient`] %>% 
+    .[, `Code of the patient`] %>% 
     unique ->
     patients_complications
   
@@ -20,6 +21,9 @@ get_data <- function(){
     setnames('3CO', 'CO3') %>% 
     .[, fenestrated:=`Fenestrated screws with or without cement`] %>% 
     .[, `Fenestrated screws with or without cement`:=NULL] %>% 
+    .[`ASA classification` > 1] %>% 
+    .[`ASA classification` < 4] %>% 
+    .[Age > 50] %>% 
     .[, major_complication:='No'] %>% 
     .[`Code of the patient` %in% patients_complications, major_complication :='Yes'] %>% 
     .[, 
@@ -27,6 +31,7 @@ get_data <- function(){
         str_replace_all(',' %>% fixed, '.') %>% 
         as.numeric
     ] %>% 
+    .[`Global Tilt`< 90] %>% 
     clean_data(matching_vars$covariates) ->
     sel_data
   

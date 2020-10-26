@@ -91,23 +91,31 @@ calc_ate <- function(
   }
   
   dt %>%
+    .[get(treatment_name) == 'Yes'] %>% 
+    .[, c(treatment_name):= NULL] %>%
     train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
-    best_model
+    best_model_yes
+  
+  dt %>%
+    .[get(treatment_name) == 'No'] %>% 
+    .[, c(treatment_name):= NULL] %>% 
+    train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
+    best_model_no
   
   dt_y <- copy(dt)
   dt_y[[treatment_name]] ='Yes'
   if( is_classification == TRUE ){
-    pred_y <- predict(best_model$model, dt_y, type='prob')$Yes
+    pred_y <- predict(best_model_yes$model, dt_y, type='prob')$Yes
   }else{
-    pred_y <- predict(best_model$model, dt_y)
+    pred_y <- predict(best_model_yes$model, dt_y)
   }
   
   dt_n <- copy(dt)
   dt_n[[treatment_name]] ='No'
   if( is_classification == TRUE ){
-    pred_n <- predict(best_model$model, dt_n, type='prob')$Yes
+    pred_n <- predict(best_model_no$model, dt_n, type='prob')$Yes
   }else{
-    pred_n <- predict(best_model$model, dt_n)
+    pred_n <- predict(best_model_no$model, dt_n)
   }
   
   ate_res <- NULL
@@ -128,7 +136,8 @@ calc_ate <- function(
   
   return(list(
     distribution=distribution,
-    best_model = best_model,
+    best_model_yes = best_model_yes,
+    best_model_no = best_model_no,
     ate=ate,
     ate_dt=ate_dt
   ))
@@ -182,7 +191,7 @@ print_ates <- function(treatment_name, outcome, results, is_classification){
       dt_ %>% 
         ggplot(aes(Propensity, outcome, color=treatment)) +
         geom_point() +
-        geom_smooth() ->
+        geom_smooth(method='lm') ->
         data_plot
     }
     ind_yes <- which(table_treatement[, 1] == 'Yes')
@@ -196,7 +205,9 @@ print_ates <- function(treatment_name, outcome, results, is_classification){
     print(data_plot)
     
     dt_ %>% 
-      .[, mean_ate_rolling:=cumsum(pred_y - pred_n)/1:nrow(dt_)] %>% 
+      setorder(-Propensity) %>% 
+      .[, individual_ate:=pred_y - pred_n] %>% 
+      .[, mean_ate_rolling:=cumsum(individual_ate)/(1:nrow(dt_))] %>% 
       ggplot(aes(Propensity, mean_ate_rolling, group=1)) +
       geom_line() +
       ggtitle("Mean accumulative by propensity of outcome {outcome}" %>% f) ->

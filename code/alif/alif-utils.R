@@ -71,9 +71,11 @@ aggregate_data <- function(sel_data){
     .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>%
     .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
   
-  sel_data %>% 
-    .[`1st surgeon: experience in ASD surgery` == 'Less than 2 years', 
-      `1st surgeon: experience in ASD surgery`:='2-10 years']
+  if( "1st surgeon: experience in ASD surgery" %in% colnames(sel_data)){
+    sel_data %>% 
+      .[`1st surgeon: experience in ASD surgery` == 'Less than 2 years', 
+        `1st surgeon: experience in ASD surgery`:='2-10 years']
+  }
   
   sel_data %>% 
     .[`ASA classification` == 4, `ASA classification`:=3]

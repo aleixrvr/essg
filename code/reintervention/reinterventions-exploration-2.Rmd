@@ -46,7 +46,7 @@ rev_patient_data %>%
     patient_id=`Code of the patient`, 
     stage_date=`st1. Date of Stage 1`,
     surgical_time=`Total surgical time st1+st2+st3`,
-    blood_loss=`Total blood loss (mL)`,
+    blood_loss=`Total blood loss (mL) st1+st2+st3`,
     hospitalization_time=`Hospitalization time`,
     sicu_transferred=`Patient transferred to SICU post op`,
     sicu_los=`SICU length of stay`,
@@ -254,10 +254,7 @@ complications %>%
   .[`Complication Type`=='Primary'] %>%
   .[`Reoperation Due to Complication`=='Yes'] ->
   complications_
-```
 
-
-```{r warning=FALSE, echo=FALSE, fig.height=4}
 calc_reintervention <- function(days_since_surgery){
   days_since_surgery %>% 
       unique %>% 
@@ -281,7 +278,10 @@ complications_ %>%
     reintervention=calc_reintervention(days_since_surgery)), 
     patient_id] ->
   complications_
+```
 
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
 complications_ %>% 
   .[, .N , .(reintervention, category)] %>% 
   ggplot(aes(reintervention, N, group=category, color=category)) +
@@ -293,7 +293,7 @@ complications_ %>%
 rev_patient_data[, 
   .(patient_id=`Code of the patient`, 
     hospitalization_time=`Hospitalization time`, 
-    blood_loss=`Total blood loss (mL)`,
+    blood_loss=`Total blood loss (mL) st1+st2+st3`,
     surgical_time=`Total surgical time st1+st2+st3`,
     date=`st1. Date of Stage 1`,
     sicu_transferred=`Patient transferred to SICU post op`)] %>% 
@@ -803,4 +803,79 @@ res %>%
   ggtitle('SF36 - PCS increment') 
 ```
 
+
+# Had intervention evolution
+
+```{r echo=FALSE}
+lapply(1:6, function(y_){
+  odi <- "{y_}Y. ODI - Score (%)" %>% f
+  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
+  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
+  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
+  mcs <- "{y_}Y. SF36 - MCS" %>% f
+  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
+  pcs <- "{y_}Y. SF36 - PCS" %>% f
+  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
+  
+  clinical_data[, .(
+    odi=get(odi) - get(odi_base), 
+    srss=get(srss) - get(srss_base), 
+    mcs=get(mcs) - get(mcs_base), 
+    pcs=get(pcs) - get(pcs_base),
+    patient_id=`Code of the patient`)] ->
+    patient_quality
+  
+  time_evolution %>% 
+    .[diff_years < y_, ] %>% 
+    .[, sel_year:=y_] %>% 
+    .[, reint_num:=as.numeric(as.character(reintervention))] %>% 
+    .[, had_reintervention := max(reint_num) > 0, patient_id] %>% 
+    merge(patient_quality, by='patient_id') %>% 
+    .[, outcome_year:=factor(y_)] ->
+    res
+  
+  return(res)
+}) %>% 
+  do.call(rbind, .) -> 
+  res
+```
+
+Black lines are the mean value of the score
+
+```{r echo=FALSE}
+mean_val <- res[, mean(odi %>% na.omit)]
+ggplot(res, aes(sel_year, odi, color=had_reintervention)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  geom_abline(slope=0, intercept = mean_val, color='black') +
+  ggtitle('ODI Score increment')
+```
+
+
+```{r echo=FALSE}
+mean_val <- res[, mean(srss %>% na.omit)]
+ggplot(res, aes(sel_year, srss, color=had_reintervention)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  geom_abline(slope=0, intercept = mean_val, color='black') +
+  ggtitle('SRS22 Subtotal increment')
+```
+
+```{r echo=FALSE}
+mean_val <- res[, mean(mcs %>% na.omit)]
+ggplot(res, aes(sel_year, mcs, color=had_reintervention)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  geom_abline(slope=0, intercept = mean_val, color='black') +
+  ggtitle('SF36 - MCS increment')
+```
+
+```{r echo=FALSE}
+mean_val <- res[, mean(pcs %>% na.omit)]
+ggplot(res, aes(sel_year, pcs, color=had_reintervention)) +
+  geom_point() +
+  geom_smooth(method='lm') +
+  geom_abline(slope=0, intercept = mean_val, color='black') +
+  ggtitle('SF36 - PCS increment')
+```
 
