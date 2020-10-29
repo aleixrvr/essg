@@ -1,8 +1,6 @@
 ---
 title: "Reinterventions exploration"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -49,11 +47,14 @@ time_evolution[,
 
 total_patients <- time_evolution[, uniqueN(patient_id)]
 
-time_evolution %>% 
-  .[, .(N=.N/total_patients), reintervention] %>% 
-  ggplot(aes(reintervention, N, group=1)) +
+table_info <- time_evolution[, .(proportion=round(.N/total_patients, 3)), reintervention] 
+
+print(table_info)
+
+table_info %>% 
+  ggplot(aes(reintervention, proportion, group=1)) +
   geom_line() +
-  geom_text(aes(label=round(N*100, 1))) +
+  geom_text(aes(label=round(proportion*100, 1))) +
   ggtitle('Proportion of patients, total {total_patients}' %>% f) +
   ylab('%') +
   xlab('Reintervention')
@@ -62,6 +63,17 @@ time_evolution %>%
 # Proportion of SICU transfers
 
 ```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+
+time_evolution %>% 
+  .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
+  .[, .(
+    prop=mean(condition) %>% round(3),
+    N=.N),
+    reintervention] %>% 
+  .[, sd:=sqrt(prop*(1-prop)/N) %>% round(3)] ->
+  table_info
+print(table_info)
+
 time_evolution %>% 
   .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
   plot_evolution('transferred to SICU')

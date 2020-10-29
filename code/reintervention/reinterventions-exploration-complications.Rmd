@@ -1,8 +1,6 @@
 ---
 title: "Reinterventions exploration"
-output:
-  pdf_document: default
-  html_document: default
+output: html_document
 ---
 
 ```{r setup, include=FALSE}
@@ -36,7 +34,8 @@ c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 
 ```{r warning=FALSE, echo=FALSE, fig.height=4}
 complications %>% 
-  .[, .N , .(reintervention, category)] %>% 
+  .[, .N , .(reintervention, category)] %T>%
+  print %>% 
   ggplot(aes(reintervention, N, group=category, color=category)) +
   geom_line()
 ```

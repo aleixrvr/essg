@@ -137,6 +137,7 @@ get_time_evolution <- function(clinical_data, rev_patient_data){
     .[is.na(sicu_los) & is.na(sicu_transferred), sicu_transferred:='No'] %>% 
     .[!is.na(stage_date)] %>% 
     .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, patient_id] %>% 
+    .[, diff_years:=as.numeric(diff_years)] %>% 
     setorder(patient_id, diff_years) %>% 
     .[, reintervention:=factor(0:(.N-1)), patient_id]
   
@@ -176,4 +177,24 @@ plot_evolution <- function(dt, value_title=''){
     res_plot
   
   return(res_plot)
+}
+
+estimate_impacts <- function(res, outcome, impact_var, controlling_vars_){
+  reg_formula <- "{outcome} ~ ." %>% f %>% formula
+  coef_res <- data.frame()
+  for( y_ in 1:6 ){
+    res[outcome_year==y_] %>% 
+      .[, .SD, .SDcols=c(outcome, impact_var, controlling_vars_)] %>% 
+      lm(reg_formula, data=.) %>% summary %>% coefficients() ->
+      lm_res
+    
+    ind <- which(row.names(lm_res) == impact_var)
+    stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] %>% round(3)
+    colnames(stat_res) <- c('Estimate', 'StdError', 'p_value')
+    row.names(stat_res) <- NULL
+    stat_res$outcome_year <- y_
+    coef_res %<>% rbind(stat_res)
+  }
+  
+  coef_res
 }
