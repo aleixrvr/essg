@@ -1,0 +1,332 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+
+source('code/basic.R')
+source('code/utils.R')
+source('code/reintervention/reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+
+```
+
+
+# Complications
+
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+complications %>% 
+  .[, .N , .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, N, group=category, color=category)) +
+  geom_line()
+```
+
+
+```{r echo=FALSE}
+category_los[, 
+  .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, category)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    category), 1:nrow(res_)] %>% 
+  .[, category := gsub(' ', '\n', category , fixed=TRUE)] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=category, color=category, fill=category)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(category~.) +
+  ylab('Days') +
+  ggtitle('Hospitalization time')
+```
+
+```{r echo=FALSE}
+category_los %>% .[] %>% 
+  # .[, has_mechanical:='Mechanical complications' %in% category,
+  .[, is_only_mechanical:=all('Mechanical complications' == category),
+    .(patient_id, reintervention)] %>% 
+  .[, .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE), 
+    hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)), 
+  .(reintervention, is_only_mechanical)] %>% 
+  .[is.na(hosp_t_sd), hosp_t_sd:=0] ->
+  res_
+
+res_[,
+  .(hospitalization_time, 
+    h_up=hospitalization_time + 1.96*hosp_t_sd,
+    h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0),
+    reintervention,
+    is_only_mechanical), 1:nrow(res_)] %>% 
+  ggplot(aes(reintervention, hospitalization_time, group=is_only_mechanical, color=is_only_mechanical, fill=is_only_mechanical)) +
+  geom_line() +
+  geom_ribbon(
+    aes(ymin=h_down, ymax=h_up), 
+    linetype=2, alpha=0.1) +
+  facet_grid(is_only_mechanical~.) +
+  ylab('Days') +
+  ggtitle('Hospitalization time for ONLY mechanical interventions')
+```
+
+<!-- ```{r echo=FALSE} -->
+<!-- category_los %>% .[] %>%  -->
+<!--   # .[, has_mechanical:='Mechanical complications' %in% category, -->
+<!--   .[, is_only_mechanical:=all('Mechanical complications' == category), -->
+<!--     .(patient_id, reintervention, prior_spine_surgery)] %>%  -->
+<!--   .[, .(hospitalization_time=mean(hospitalization_time, na.rm = TRUE),  -->
+<!--     hosp_t_sd=sd(hospitalization_time, na.rm=TRUE)),  -->
+<!--   .(reintervention, is_only_mechanical, prior_spine_surgery)] %>%  -->
+<!--   .[is.na(hosp_t_sd), hosp_t_sd:=0] -> -->
+<!--   res_ -->
+
+<!-- res_[, -->
+<!--   .(hospitalization_time,  -->
+<!--     h_up=hospitalization_time + 1.96*hosp_t_sd, -->
+<!--     h_down=max(hospitalization_time - 1.96*hosp_t_sd, 0), -->
+<!--     reintervention, -->
+<!--     prior_spine_surgery,  -->
+<!--     is_only_mechanical), 1:nrow(res_)] %>%  -->
+<!--   ggplot(aes(reintervention, hospitalization_time, group=prior_spine_surgery, color=prior_spine_surgery, fill=prior_spine_surgery)) + -->
+<!--   geom_line() + -->
+<!--   geom_ribbon( -->
+<!--     aes(ymin=h_down, ymax=h_up),  -->
+<!--     linetype=2, alpha=0.1) + -->
+<!--   facet_grid(is_only_mechanical~.) + -->
+<!--   ylab('Days') + -->
+<!--   ggtitle('Hospitalization time for ONLY mechanical interventions \n with prior spine surgery - differences in means') -->
+<!-- ``` -->
+
+
+```{r echo=FALSE}
+complication_types <- complications[, category %>% unique]
+lapply(complication_types, function(comp){
+  complications %>% 
+    .[, .(has_category=comp %in% category, category), 
+      .(patient_id, reintervention)] %>% 
+    .[has_category==TRUE, table(category) %>% as.data.frame, reintervention] %>% 
+    data.frame(base_category=comp)
+}) %>% 
+  do.call(rbind, .) %>% 
+  as.data.table %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(reintervention, Freq, group=category, color=category)) +
+  geom_line() +
+  geom_point() +
+  facet_grid(base_category~.) +
+  ggtitle('Complication Category Overlap')
+  
+  
+```
+
+```{r echo=FALSE, warning=FALSE}
+complications[, 
+  reintervention_total:=.N, 
+  .(reintervention)] %>% 
+  .[, .(prop=100*.N/reintervention_total), .(reintervention, category)] %>% 
+  ggplot(aes(reintervention, prop, color=category, group=category)) +
+  geom_line() +
+  ylab('%') +
+  ggtitle('Proportion of categories')
+```
+
+
+
+```{r echo=FALSE, warning=FALSE}
+max_reint <- complications[, max(reintervention)]
+complication_types <- complications[, category %>% unique]
+reints <- 1:(max_reint-1)
+
+lapply(complication_types, function(compl1){
+  lapply(complication_types, function(compl2){
+    sapply(reints, function(reint){
+      patient_selection <- complications[reintervention==reint, .(has_category=compl1 %in% category), .(patient_id)][has_category==TRUE, patient_id]
+      base <- complications[ patient_id %in% patient_selection] 
+      denom <- base[reintervention==reint, uniqueN(patient_id)]
+      numer <- base[reintervention==(reint + 1) & category==compl2, .N]
+      prop <- numer/denom
+      c(proportion=prop, ci=1.96*sqrt(prop*(1-prop)/denom))
+    }) %>% 
+      t %>% 
+    data.frame(., reintervention=reints, complication_next=compl2) 
+  }) %>% 
+    do.call(rbind, .) %>% 
+    data.frame(., complication_reintervention=compl1)
+}) %>% 
+  do.call(rbind, .) %>% 
+  data.table  %>% 
+  .[, complication_reintervention := gsub(' ', '\n', complication_reintervention , fixed=TRUE)] ->
+  res
+
+res %>% 
+    .[, ymin:=max(proportion-ci, 0), 1:nrow(res)] %>% 
+    .[, ymax:=min(proportion+ci, 1), 1:nrow(res)] %>% 
+  ggplot(aes(
+    reintervention, proportion, 
+    group=complication_next, color=complication_next)
+  ) +
+  geom_line() +
+  geom_point() +
+  geom_ribbon(aes(ymin=ymin, ymax=ymax), linetype=2, alpha=0.1) +
+  facet_grid(complication_reintervention ~. ) +
+  ggtitle('Proportion of complications in next reintervention')
+
+```
+
+
+```{r echo=FALSE, include=FALSE}
+max_reint <- category_los[, max(reintervention)]
+complication_types <- category_los[, category %>% unique]
+reints <- 1:(max_reint-1)
+
+lapply(reints, function(reint){
+  lapply(complication_types, function(compl1){
+    patients_ <- complications %>% 
+      .[reintervention==reint] %>% 
+      .[category==compl1] %>% 
+      .[, patient_id] %>% 
+      unique
+    category_los %>% 
+      .[reintervention==(reint+1) & patient_id %in% patients_] %>% 
+      .[, .(reintervention_base=reint, 
+        days_since_surgery,
+        blood_loss,
+        surgical_time,
+        category,
+        hospitalization_time, 
+        base_category=compl1)]
+  }) %>% 
+    do.call(rbind, .) 
+}) %>% 
+  do.call(rbind, .) ->
+  results
+```
+
+## Comparation with next reintervention
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, blood_loss, color=category)) +
+  geom_point() +
+  ggtitle('Blood Loss') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, surgical_time, color=category)) +
+  geom_point() +
+  ggtitle('Surgical Time') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+```{r echo=FALSE}
+results %>% 
+  .[, base_category := gsub(' ', '\n', base_category , fixed=TRUE)] %>% 
+  ggplot(aes(days_since_surgery, hospitalization_time, color=category)) +
+  geom_point() +
+  ggtitle('Hospitalization Time') +
+  theme(axis.text.x = element_text(angle = 45, vjust = 0.5, hjust=1), 
+    legend.position="bottom") +
+  facet_grid(base_category~reintervention_base)
+```
+
+
+# By Complication type & Reintervention
+
+### Blood Loss
+```{r echo=FALSE}
+max_val <- category_los[, quantile(blood_loss, 0.8, na.rm=TRUE)]
+
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>%
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(blood_loss, fill=category, color=category)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Blood Loss' %>% f) +
+  facet_grid(reintervention~category) 
+```
+
+###
+```{r echo=FALSE}
+max_val <- category_los[, quantile(surgical_time, 0.96, na.rm=TRUE)]
+# for( compl in complication_types){
+#     category_los[category==compl] %>% 
+#     .[, reintervention:=factor(reintervention)] %>% 
+#     ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+#     geom_density(alpha=0.1) +
+#     xlim(c(0, max_val)) +
+#     ggtitle('Surgical Time, complication {compl}' %>% f) +
+#     facet_grid(reintervention~.) ->
+#     data_plot
+#   print(data_plot)
+# }
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>% 
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(surgical_time, fill=category, color=category)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Surgical Time' %>% f) +
+  facet_grid(reintervention~category) 
+```
+
+```{r echo=FALSE}
+max_val <- category_los[, quantile(hospitalization_time, 0.96, na.rm=TRUE)]
+# for( compl in complication_types){
+#   reints_val <- category_los[category==compl, .N, reintervention][N>1, reintervention]
+#   category_los[category==compl] %>% 
+#     .[reintervention %in% reints_val] %>% 
+#     .[, reintervention:=factor(reintervention)] %>% 
+#     ggplot(aes(hospitalization_time, fill=reintervention, color=reintervention)) +
+#     geom_density(alpha=0.1) +
+#     xlim(c(0, max_val)) +
+#     ggtitle('Hospitalization Time, complication {compl}' %>% f) +
+#     facet_grid(reintervention~., drop = TRUE) ->
+#     data_plot
+#   print(data_plot)
+# }
+category_los %>% 
+  .[reintervention %in% c(1, 2, 3)] %>%
+  .[, reintervention:=factor(reintervention)] %>% 
+  ggplot(aes(hospitalization_time, fill=category, color=category)) +
+  geom_density(alpha=0.1) +
+  xlim(c(0, max_val)) +
+  ggtitle('Hospitalization Time' %>% f) +
+  facet_grid(reintervention~category) 
+```
+

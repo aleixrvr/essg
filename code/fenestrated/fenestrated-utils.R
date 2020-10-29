@@ -11,11 +11,22 @@ get_data <- function(){
   
   matching_vars <- read_yaml('code/fenestrated/matching_vars.yml')
   
-  fread('data/Fenestrated screws/Complications tots.csv') %>% 
-    # .[`Complication Impact`=='Major Complication', `Code of the patient`] %>% 
+  comps <- fread('data/Fenestrated screws/Complications tots.csv') 
+  
+  comps %>% 
     .[, `Code of the patient`] %>% 
     unique ->
     patients_complications
+  
+  comps %>% 
+    .[`Complication Impact`=='Major Complication', `Code of the patient`] %>%
+    unique ->
+    patients_major_complications
+  
+  comps %>% 
+    .[`Category of the complication`=='Mechanical complications', `Code of the patient`] %>%
+    unique ->
+    patients_mechanical_complications
   
   fread('data/Fenestrated screws/DPS ops.csv') %>% 
     setnames('3CO', 'CO3') %>% 
@@ -24,8 +35,12 @@ get_data <- function(){
     .[`ASA classification` > 1] %>% 
     .[`ASA classification` < 4] %>% 
     .[Age > 50] %>% 
+    .[, complication:='No'] %>% 
+    .[`Code of the patient` %in% patients_complications, complication :='Yes'] %>% 
     .[, major_complication:='No'] %>% 
-    .[`Code of the patient` %in% patients_complications, major_complication :='Yes'] %>% 
+    .[`Code of the patient` %in% patients_major_complications, major_complication :='Yes'] %>% 
+    .[, mechanical_complication:='No'] %>% 
+    .[`Code of the patient` %in% patients_mechanical_complications, mechanical_complication :='Yes'] %>% 
     .[, 
       `Global Tilt`:= `Global Tilt` %>% 
         str_replace_all(',' %>% fixed, '.') %>% 

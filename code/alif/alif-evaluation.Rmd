@@ -21,11 +21,12 @@ library(yaml)
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 25
+tuneLenghtPropensity <- 1
 modelsPropensity <- c('elastic')
 tuneLenghtATE <- 1
 modelsATE <- c('boosting')
 replicas_boot <- 50L
+propensity_trim <- 0.5
 
 c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
@@ -110,7 +111,8 @@ for(outcome in outcomes){
 ```{r echo=FALSE, warning=FALSE, comment=""}
 for(outcome in outcomes){
   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
-  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification)
+  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification, 
+    propensity_trim)
 }
 ```
 
@@ -134,7 +136,8 @@ for(outcome in outcomes){
 ```{r echo=FALSE, warning=FALSE, comment=""}
 for(outcome in outcomes){
   is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
-  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification)
+  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification, 
+    propensity_trim)
 }
 ```
 
@@ -157,17 +160,18 @@ data_ <- ate_data %>%
 
 outcome <- 'complication'
 is_classification <- TRUE
-predictive_variates <- c(
-  matching_vars$covariates, matching_vars$predictive, 'Propensity'
-) %>% unique
+# predictive_variates <- c(
+#   matching_vars$covariates, matching_vars$predictive, 'Propensity'
+# ) %>% unique
+predictive_variates <- c(treatment_name, 'Propensity')
 results <- calc_ate(
-    data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
-    tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
+  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
 )
 ```
 
 ```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(treatment_name, outcome, results, is_classification)
+print_ates(treatment_name, outcome, results, is_classification, propensity_trim)
 ```
 
 # Average Treatment Effects - Nombre Revisions
@@ -189,15 +193,16 @@ data_ <- ate_data %>%
 
 outcome <- 'reinterventions'
 is_classification <- FALSE
-predictive_variates <- c(
-  matching_vars$covariates, matching_vars$predictive, 'Propensity'
-) %>% unique
+predictive_variates <- c(treatment_name, 'Propensity')
+# predictive_variates <- c(
+#   matching_vars$covariates, matching_vars$predictive, 'Propensity'
+# ) %>% unique
 results <- calc_ate(
-    data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
-    tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
+  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
 )
 ```
 
 ```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(treatment_name, outcome, results, is_classification)
+print_ates(treatment_name, outcome, results, is_classification, propensity_trim)
 ```

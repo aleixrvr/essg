@@ -18,8 +18,8 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 15
-modelsATE <- c('elastic', 'boosting')
+tuneLenghtATE <- 10
+modelsATE <- c('boosting')
 replicas_boot <- 50L
 
 c(sel_data, matching_vars) %<-% get_data()
@@ -121,12 +121,41 @@ sel_data %>%
 
 # Average Treatment Effects - Complications
 
-```{r ate_complications, warning=FALSE, echo=FALSE, comment=""}
+```{r complications, warning=FALSE, echo=FALSE, comment=""}
+
+# predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+
+predictive_variates <- c(treatment_name, 'Propensity')
+outcome = 'complication'
+is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
+results <- calc_ate(
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+)
+
+print_ates(treatment_name, outcome, results, is_classification)
+```
+
+
+```{r major_complications, warning=FALSE, echo=FALSE, comment=""}
 
 # predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
 
 predictive_variates <- c(treatment_name, 'Propensity')
 outcome = 'major_complication'
+is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
+results <- calc_ate(
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+)
+
+print_ates(treatment_name, outcome, results, is_classification)
+```
+
+```{r mechanical_complications, warning=FALSE, echo=FALSE, comment=""}
+
+# predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
+
+predictive_variates <- c(treatment_name, 'Propensity')
+outcome = 'mechanical_complication'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
   ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification

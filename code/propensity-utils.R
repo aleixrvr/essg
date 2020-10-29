@@ -143,18 +143,32 @@ calc_ate <- function(
   ))
 }
 
-print_ates <- function(treatment_name, outcome, results, is_classification){
+print_ates <- function(treatment_name, outcome, results, is_classification, propensity_trim=1){
   "Outcome: {outcome}" %>% f %>% print
   "Distribution:" %>% f %>% print
   results$distribution %>% print
-  "Model Type: {results$best_model$sel_model} \n" %>% f %>% print
+  
+  "Model Type Y: {results$best_model_yes$sel_model} \n" %>% f %>% print
   if( is_classification == TRUE ){
-    "Accuracy: {results$best_model$accuracy} \n" %>% f %>% print
+    "Accuracy: {results$best_model_yes$accuracy} \n" %>% f %>% print
   }else{
-    "RMSE: {results$best_model$rmse} \n" %>% f %>% print
+    "RMSE: {results$best_model_yes$rmse} \n" %>% f %>% print
   }
-  "Params: {as.yaml(results$best_model$params)}" %>% f %>% print
+  "Params: {as.yaml(results$best_model_yes$params)}" %>% f %>% print
+  
+  "Model Type No: {results$best_model_no$sel_model} \n" %>% f %>% print
+  if( is_classification == TRUE ){
+    "Accuracy: {results$best_model_no$accuracy} \n" %>% f %>% print
+  }else{
+    "RMSE: {results$best_model_no$rmse} \n" %>% f %>% print
+  }
+  "Params: {as.yaml(results$best_model_no$params)}" %>% f %>% print
+  
   "ATE (Yes-No): {results$ate} \n" %>% f %>% print
+  if( propensity_trim < 1 ){
+    ate_trim <- results$ate_dt[Propensity< propensity_trim, mean(pred_y-pred_n)]
+    "Trimmed ATE (Yes-No) at level {propensity_trim}: {ate_trim} \n" %>% f %>% print
+  }
   
   dt_ <- results$ate_dt %>% 
     copy %>% 
@@ -191,7 +205,7 @@ print_ates <- function(treatment_name, outcome, results, is_classification){
       dt_ %>% 
         ggplot(aes(Propensity, outcome, color=treatment)) +
         geom_point() +
-        geom_smooth(method='lm') ->
+        geom_smooth() ->
         data_plot
     }
     ind_yes <- which(table_treatement[, 1] == 'Yes')
@@ -206,11 +220,11 @@ print_ates <- function(treatment_name, outcome, results, is_classification){
     
     dt_ %>% 
       setorder(-Propensity) %>% 
-      .[, individual_ate:=pred_y - pred_n] %>% 
-      .[, mean_ate_rolling:=cumsum(individual_ate)/(1:nrow(dt_))] %>% 
-      ggplot(aes(Propensity, mean_ate_rolling, group=1)) +
-      geom_line() +
-      ggtitle("Mean accumulative by propensity of outcome {outcome}" %>% f) ->
+      .[, ite:=pred_y - pred_n] %>% 
+      ggplot(aes(Propensity, ite, group=1)) +
+      geom_line(color='orange') +
+      geom_abline(slope=0, intercept=0, color='black') +
+      ggtitle("Individual Treatment effect by propensity of outcome {outcome}" %>% f) ->
       data_plot
     print(data_plot)
   }
