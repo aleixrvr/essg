@@ -382,7 +382,7 @@ res %>%
 print(data_plot)
 
 impact_var <- 'reint_n'
-outcome <- 'odi'
+outcome <- 'srss'
 controlling_vars_ <- controlling_vars
 
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
@@ -399,7 +399,7 @@ res %>%
 print(data_plot)
 
 impact_var <- 'reint_n'
-outcome <- 'odi'
+outcome <- 'pcs'
 controlling_vars_ <- controlling_vars
 
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
@@ -416,7 +416,7 @@ res %>%
 print(data_plot)
 
 impact_var <- 'reint_n'
-outcome <- 'odi'
+outcome <- 'mcs'
 controlling_vars_ <- controlling_vars
 
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
