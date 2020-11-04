@@ -27,6 +27,7 @@ tuneLenghtATE <- 1
 modelsATE <- c('boosting')
 replicas_boot <- 50L
 propensity_trim <- 0.5
+repetitions <- 10
 
 c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
@@ -103,7 +104,7 @@ results_outcomes <- list()
 for(outcome in outcomes){
   is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
   results_outcomes[[outcome]] <- calc_ate(
-    ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=TRUE, tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
+    ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=TRUE, tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions
   )
 }
 ```
@@ -128,7 +129,7 @@ for(outcome in outcomes){
   is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
   results_outcomes[[outcome]] <- calc_ate(
     ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
-    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
+    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions
   )
 }
 ```
@@ -166,7 +167,7 @@ is_classification <- TRUE
 predictive_variates <- c(treatment_name, 'Propensity')
 results <- calc_ate(
   data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
-  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
 ```
 
@@ -199,7 +200,7 @@ predictive_variates <- c(treatment_name, 'Propensity')
 # ) %>% unique
 results <- calc_ate(
   data_, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE,
-  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
 ```
 

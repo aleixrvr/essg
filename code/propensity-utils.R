@@ -66,7 +66,7 @@ run_propensity <- function(sel_data, treatment_name, k_fold=5, tuneLength=5, mod
 
 calc_ate <- function(
   ate_data, outcome, treatment_name, predictive_variates, first_visit=FALSE, 
-  tuneLenghtATE, modelsATE, incremental=TRUE, is_classification
+  tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions=10
 ){
   if( incremental == TRUE ){
     base_outcome <- get_base_outcome(outcome, first_visit)
@@ -90,43 +90,7 @@ calc_ate <- function(
     setnames(dt, outcome, 'diff_outcome') 
   }
   
-  dt %>%
-    .[get(treatment_name) == 'Yes'] %>% 
-    .[, c(treatment_name):= NULL] %>%
-    train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
-    best_model_yes
-  
-  dt %>%
-    .[get(treatment_name) == 'No'] %>% 
-    .[, c(treatment_name):= NULL] %>% 
-    train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
-    best_model_no
-  
-  dt_y <- copy(dt)
-  dt_y[[treatment_name]] ='Yes'
-  if( is_classification == TRUE ){
-    pred_y <- predict(best_model_yes$model, dt_y, type='prob')$Yes
-  }else{
-    pred_y <- predict(best_model_yes$model, dt_y)
-  }
-  
-  dt_n <- copy(dt)
-  dt_n[[treatment_name]] ='No'
-  if( is_classification == TRUE ){
-    pred_n <- predict(best_model_no$model, dt_n, type='prob')$Yes
-  }else{
-    pred_n <- predict(best_model_no$model, dt_n)
-  }
-  
-  ate_res <- NULL
-  ate <- mean(pred_y - pred_n)
-  if( 'Propensity' %in% colnames(dt)){
-    ate_dt <- dt %>% 
-      copy %>% 
-      setnames('diff_outcome', 'outcome')
-    ate_dt$pred_y <- pred_y 
-    ate_dt$pred_n <- pred_n
-  }
+  ate_res <- bootstrap_ate(dt, 'diff_outcome', is_classification, repetitions, tuneLenghtATE, modelsATE)
   
   if( is_classification == TRUE ){
     distribution <- c(Proportion=mean(dt[['diff_outcome']]=='Yes'))
@@ -136,10 +100,101 @@ calc_ate <- function(
   
   return(list(
     distribution=distribution,
-    best_model_yes = best_model_yes,
-    best_model_no = best_model_no,
-    ate=ate,
-    ate_dt=ate_dt
+    ate_res=ate_res,
+    dt=dt
+  ))
+}
+
+bootstrap_ate <- function(dt, outcome_name, is_classification, repetitions=10, 
+  tuneLenghtATE, modelsATE
+){
+  pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
+  
+  dt %>%
+    .[get(treatment_name) == 'Yes'] %>% 
+    .[, c(treatment_name):= NULL] ->
+    dt_yes
+  
+  dt %>%
+    .[get(treatment_name) == 'No'] %>% 
+    .[, c(treatment_name):= NULL] ->
+    dt_no
+  
+  dt_do_yes <- copy(dt)
+  dt_do_yes[[treatment_name]] ='Yes'
+  dt_do_no <- copy(dt)
+  dt_do_no[[treatment_name]] ='No'
+  
+  dt_yes %>%
+    train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
+    best_model_yes
+  method_yes <- get_method(best_model_yes)
+  
+  dt_no %>%
+    train_model('diff_outcome', tuneLength = tuneLenghtATE, models=modelsATE) ->
+    best_model_no
+  method_no <- get_method(best_model_no)
+  
+  row_n_yes <- dt_yes %>% nrow
+  row_n_no <- dt_no %>% nrow
+  
+  if( 'Propensity' %in% colnames(dt)){
+    dt_base <- dt[, .(id=1:nrow(dt), outcome=get(treatment_name), Propensity)]
+  }else{
+    dt_base <- dt[, .(id=1:nrow(dt_), outcome=get(treatment_name))]
+  }
+  
+  predictions <- list()
+  for(r_ in 1:repetitions){
+    inds_yes <- sample(1:row_n_yes)
+    dt_sample_yes <- dt_yes[inds_yes, ]
+    inds_no <- sample(1:row_n_no)
+    dt_sample_no <- dt_no[inds_no, ]
+    
+    model_yes <- train(pred_formula, dt_sample_yes, method=method_yes, tuneGrid=best_model_yes$params)
+    model_no <- train(pred_formula, dt_sample_no, method=method_no, tuneGrid=best_model_no$params)
+
+    dt_res <- copy(dt_base)
+    if( is_classification == TRUE ){
+      dt_res$pred_y <- predict(model_yes, dt_do_yes, type='prob')$Yes
+      dt_res$pred_n <- predict(model_no, dt_do_no, type='prob')$Yes
+    }else{
+      dt_res$pred_y <- predict(model_yes, dt_do_yes)
+      dt_res$pred_n <- predict(model_no, dt_do_no)
+    }
+    dt_res[, ite:=pred_y - pred_n]
+    
+    predictions[[r_]] <- dt_res
+  }
+  
+  return(list(
+    predictions=predictions,
+    best_model_yes=best_model_yes,
+    best_model_no=best_model_no)
+  )
+}
+
+calc_ate_stats <- function(predictions, propensity_trim){
+  mean_ate <- sapply(predictions, function(res_){
+    res_[, ite %>% mean]
+  })
+  sd_mean_ate <- sd(mean_ate) %>% round(3)
+  mean_ate <-mean(mean_ate) %>% round(3)
+  mean_ate_trim <- sapply(predictions, function(res_){
+    res_[Propensity < propensity_trim, ite %>% mean]
+  })
+  sd_mean_ate_trim <- sd(mean_ate_trim) %>% round(3)
+  mean_ate_trim <- mean(mean_ate_trim) %>% round(3)
+  mean_ate_compl <- sapply(predictions, function(res_){
+    res_[Propensity > propensity_trim, ite %>% mean]
+  })
+  sd_mean_ate_compl <- sd(mean_ate_compl) %>% round(3)
+  mean_ate_compl <- mean(mean_ate_compl) %>% round(3)
+  
+  return(list(
+    mean_ate, sd_mean_ate, 
+    mean_ate_trim, sd_mean_ate_trim, 
+    mean_ate_compl, sd_mean_ate_compl 
   ))
 }
 
@@ -148,43 +203,48 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
   "Distribution:" %>% f %>% print
   results$distribution %>% print
   
-  "Model Type Y: {results$best_model_yes$sel_model} \n" %>% f %>% print
+  "Model Type Y: {results$ate_res$best_model_yes$sel_model} \n" %>% f %>% print
   if( is_classification == TRUE ){
-    "Accuracy: {results$best_model_yes$accuracy} \n" %>% f %>% print
+    "Accuracy: {results$ate_res$best_model_yes$accuracy} \n" %>% f %>% print
   }else{
-    "RMSE: {results$best_model_yes$rmse} \n" %>% f %>% print
+    "RMSE: {results$ate_res$best_model_yes$rmse} \n" %>% f %>% print
   }
-  "Params: {as.yaml(results$best_model_yes$params)}" %>% f %>% print
+  "Params: {as.yaml(results$ate_res$best_model_yes$params)}" %>% f %>% print
   
-  "Model Type No: {results$best_model_no$sel_model} \n" %>% f %>% print
+  "Model Type No: {results$ate_res$best_model_no$sel_model} \n" %>% f %>% print
   if( is_classification == TRUE ){
-    "Accuracy: {results$best_model_no$accuracy} \n" %>% f %>% print
+    "Accuracy: {results$ate_res$best_model_no$accuracy} \n" %>% f %>% print
   }else{
-    "RMSE: {results$best_model_no$rmse} \n" %>% f %>% print
+    "RMSE: {results$ate_res$best_model_no$rmse} \n" %>% f %>% print
   }
-  "Params: {as.yaml(results$best_model_no$params)}" %>% f %>% print
+  "Params: {as.yaml(results$ate_res$best_model_no$params)}" %>% f %>% print
   
-  "ATE (Yes-No): {results$ate} \n" %>% f %>% print
-  if( propensity_trim < 1 ){
-    ate_trim <- results$ate_dt[Propensity< propensity_trim, mean(pred_y-pred_n)]
-    "Trimmed ATE (Yes-No) at level {propensity_trim}: {ate_trim} \n" %>% f %>% print
-  }
   
-  dt_ <- results$ate_dt %>% 
+  c(mean_ate, sd_mean_ate, mean_ate_trim, sd_mean_ate_trim,
+    mean_ate_compl, sd_mean_ate_compl ) %<-% 
+    calc_ate_stats(
+      results$ate_res$predictions, propensity_trim
+    )
+  
+  "ATE (Yes-No): {mean_ate} ({sd_mean_ate})\n" %>% f %>% print
+  "Trimmed ATE (Yes-No): {mean_ate_trim} ({sd_mean_ate_trim})\n" %>% f %>% print
+  "Upper ATE (Yes-No): {mean_ate_compl} ({sd_mean_ate_compl})\n" %>% f %>% print
+  
+  dt_ <- results$dt %>% 
     copy %>% 
-    .[, outcome_binary:=ifelse(outcome=='Yes', 1, 0)] %>% 
+    setnames('diff_outcome', outcome) %>% 
     setnames(treatment_name, 'treatment')
-  if( !is.null(dt_) ){
+
+  if( !is.null(dt) ){
     
     if( is_classification == TRUE ){
-      results$ate_dt %>% .[,
-        .(outcome=mean(outcome=='Yes')), 
-        .(treatment=get(treatment_name))] %>% 
-        setnames('outcome', outcome) %>% 
-        setnames('treatment', treatment_name) ->
+      dt_ %>% .[,
+        .(outcome=mean(get(outcome)=='Yes')), 
+        treatment] ->
         table_treatement
       
       dt_ %>% 
+        .[, outcome_binary := ifelse(get(outcome) == 'Yes', 1, 0)] %>% 
         ggplot(aes(Propensity, outcome_binary, color=treatment)) +
         # geom_point() +
         geom_jitter(width =0, height=0.07) +
@@ -195,16 +255,15 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
         ylab(outcome) ->
         data_plot
     }else{
-      results$ate_dt %>% .[,
-        .(outcome=mean(outcome)), 
-        .(treatment=get(treatment_name))] %>% 
-        setnames('outcome', outcome) %>% 
-        setnames('treatment', treatment_name) ->
+      dt_ %>% .[,
+          .(outcome=mean(get(outcome))), 
+          treatment] ->
         table_treatement
       
       dt_ %>% 
-        ggplot(aes(Propensity, outcome, color=treatment)) +
+        ggplot(aes(Propensity, get(outcome), color=treatment)) +
         geom_point() +
+        ylab(outcome) +
         geom_smooth() ->
         data_plot
     }
@@ -218,13 +277,19 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
     print(table_treatement)
     print(data_plot)
     
-    dt_ %>% 
+    results$ate_res$predictions %>% 
+      do.call(rbind, .) %>% 
+      .[, .(ite=mean(ite), ite_sd=sd(ite)), .(id, Propensity)] %>% 
+      .[, ite_up:=ite + 1.96*ite_sd] %>% 
+      .[, ite_low:=ite - 1.96*ite_sd] %>% 
       setorder(-Propensity) %>% 
-      .[, ite:=pred_y - pred_n] %>% 
       ggplot(aes(Propensity, ite, group=1)) +
       geom_line(color='orange') +
+      geom_ribbon(
+        aes(ymin=ite_low, ymax=ite_up), 
+        linetype=2, alpha=0.1) +
       geom_abline(slope=0, intercept=0, color='black') +
-      ggtitle("Individual Treatment effect by propensity of outcome {outcome}" %>% f) ->
+      ggtitle("Individual Treatment effect by propensity\n{outcome}" %>% f) ->
       data_plot
     print(data_plot)
   }
@@ -373,4 +438,23 @@ plot_coefs <- function(treatment_name, covariates_data, best_model, replicas_boo
   #   theme( 
   #     panel.border = element_rect(color = "black", fill = NA, size = .2),
   #     axis.text=element_text(size=20))
+}
+
+
+get_method <- function(trained_model){
+  sel_model <- trained_model$sel_model
+  
+  if( 'lm' == sel_model ){
+    method_ <- 'lm'
+  }else if('glm' == sel_model){
+    method_ <- 'glm'
+  }else if('elastic_net' == sel_model){
+    method_ <- 'glmnet'
+  }else if('boosting' == sel_model){
+    method_ <- 'xgbTree'
+  }else{
+    stop('Wrong model selection')
+  }
+  
+  return(method_)
 }

@@ -83,3 +83,41 @@ select_best_model <- function(results_model, model_type){
 run_cross_validation <- function(){
   
 }
+
+bootstrap_model <- function(dt_, outcome_name, trained_model, is_classification, repetitions=10){
+  pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
+  sel_model <- trained_model$sel_model
+  
+  if( 'lm' == sel_model ){
+    method_ <- 'lm'
+  }else if('glm' == sel_model){
+    method_ <- 'glm'
+  }else if('elastic_net' == sel_model){
+    method_ <- 'glmnet'
+  }else if('boosting' == sel_model){
+    method_ <- 'xgbTree'
+  }else{
+    stop('Wrong model selection')
+  }
+  
+  row_n <- dt_ %>% nrow
+  predictions <- data.table()
+  for(r_ in 1:repetitions){
+    inds <- sample(1:row_n)
+    dt_sample <- dt_[inds, ]
+    
+    model_ <- train(pred_formula, dt_sample, method=method_, tuneGrid=trained_model$params)
+    
+    if( is_classification == TRUE ){
+      pred_y <- predict(model_, dt_sample, type='prob')$Yes
+    }else{
+      pred_y <- predict(model_, dt_sample)
+    }
+    
+    predictions %<>% cbind(pred_y)
+  }
+  
+  return(predictions)
+}
+
+
