@@ -1,0 +1,95 @@
+---
+title: "Predictions"
+output: html_document
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+source('code/five_years/five_years-utils.R')
+source('code/five_years/config.R')
+```
+
+
+```{r odi, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- '5Y. ODI - Score (%)'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+```{r srss, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- '5Y. SRS22 - SRS Subtotal score'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+```{r pcs, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- '5Y. SF36 - PCS'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+```{r mcs, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- '5Y. SF36 - MCS'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+
+```{r complications, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- 'had_complication'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+
+
+```{r reinterventions, warning=FALSE, echo=FALSE, include=FALSE}
+outcome <- 'reinterventions'
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results, show_vars=FALSE)
+```
+
+
+
+## Predictive Variables
+```{r echo=FALSE, comment=""}
+cat(predictive_vars$predictive %>% as.yaml)
+```
+

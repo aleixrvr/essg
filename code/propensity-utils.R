@@ -2,6 +2,8 @@ library(ggplot2)
 library(zeallot)
 library(boot)
 library(magrittr)
+library(gridExtra)
+library(selectiveInference)
 
 source('code/basic.R')
 source('code/train.R')
@@ -65,7 +67,7 @@ run_propensity <- function(sel_data, treatment_name, k_fold=5, tuneLength=5, mod
 }
 
 calc_ate <- function(
-  ate_data, outcome, treatment_name, predictive_variates, first_visit=FALSE, 
+  data_, outcome, treatment_name, predictive_variates, first_visit=FALSE, 
   tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions=10
 ){
   if( incremental == TRUE ){
@@ -74,8 +76,8 @@ calc_ate <- function(
     base_outcome <- outcome
   }
   
-  sel_vars <- c(outcome, base_outcome, predictive_variates) %>% unique
-  ate_data %>%
+  sel_vars <- c(outcome, base_outcome, predictive_variates, "Code of the patient") %>% unique
+  data_ %>%
     .[, .SD, .SDcols=sel_vars] %>%
     na.omit %>% 
     remove_constant_cols ->
@@ -84,10 +86,11 @@ calc_ate <- function(
   if( incremental == TRUE ){
     diff_outcome <- dt[, ..outcome] - dt[, ..base_outcome]
     dt[, diff_outcome:= diff_outcome]
-    dt[, c(outcome):=NULL]
-    dt[, c(base_outcome):=NULL]
+    # dt[, c(outcome):=NULL]
+    # dt[, c(base_outcome):=NULL]
   }else{
-    setnames(dt, outcome, 'diff_outcome') 
+    dt[, diff_outcome:= get(outcome)]
+    # setnames(dt, outcome, 'diff_outcome') 
   }
   
   ate_res <- bootstrap_ate(dt, 'diff_outcome', is_classification, repetitions, tuneLenghtATE, modelsATE)
@@ -110,14 +113,16 @@ bootstrap_ate <- function(dt, outcome_name, is_classification, repetitions=10,
 ){
   pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
   
+  sel_cols <- c('Propensity', outcome_name)
+  
   dt %>%
     .[get(treatment_name) == 'Yes'] %>% 
-    .[, c(treatment_name):= NULL] ->
+    .[, .SD, .SDcols=sel_cols] ->
     dt_yes
   
   dt %>%
     .[get(treatment_name) == 'No'] %>% 
-    .[, c(treatment_name):= NULL] ->
+    .[, .SD, .SDcols=sel_cols] ->
     dt_no
   
   dt_do_yes <- copy(dt)
@@ -138,21 +143,26 @@ bootstrap_ate <- function(dt, outcome_name, is_classification, repetitions=10,
   row_n_yes <- dt_yes %>% nrow
   row_n_no <- dt_no %>% nrow
   
-  if( 'Propensity' %in% colnames(dt)){
-    dt_base <- dt[, .(id=1:nrow(dt), outcome=get(treatment_name), Propensity)]
-  }else{
-    dt_base <- dt[, .(id=1:nrow(dt_), outcome=get(treatment_name))]
-  }
+  dt_base <- copy(dt)
+  # if( 'Propensity' %in% colnames(dt)){
+  #   dt_base <- dt[, .(id=1:nrow(dt), outcome=get(treatment_name), Propensity)]
+  # }else{
+  #   dt_base <- dt[, .(id=1:nrow(dt_), outcome=get(treatment_name))]
+  # }
+  
+  trControl <-  caret::trainControl(method = "none", number = 1, p=1)
   
   predictions <- list()
   for(r_ in 1:repetitions){
-    inds_yes <- sample(1:row_n_yes)
+    inds_yes <- sample(1:row_n_yes, row_n_yes, replace=TRUE)
     dt_sample_yes <- dt_yes[inds_yes, ]
-    inds_no <- sample(1:row_n_no)
+    inds_no <- sample(1:row_n_no, row_n_no, replace=TRUE)
     dt_sample_no <- dt_no[inds_no, ]
     
-    model_yes <- train(pred_formula, dt_sample_yes, method=method_yes, tuneGrid=best_model_yes$params)
-    model_no <- train(pred_formula, dt_sample_no, method=method_no, tuneGrid=best_model_no$params)
+    model_yes <- train(pred_formula, dt_sample_yes, method=method_yes, 
+      tuneGrid=best_model_yes$params, trControl = trControl)
+    model_no <- train(pred_formula, dt_sample_no, method=method_no, 
+      tuneGrid=best_model_no$params, trControl = trControl)
 
     dt_res <- copy(dt_base)
     if( is_classification == TRUE ){
@@ -198,7 +208,10 @@ calc_ate_stats <- function(predictions, propensity_trim){
   ))
 }
 
-print_ates <- function(treatment_name, outcome, results, is_classification, propensity_trim=1){
+print_ates <- function(
+  treatment_name, outcome, results, is_classification, 
+  propensity_trim=1, demographics
+){
   "Outcome: {outcome}" %>% f %>% print
   "Distribution:" %>% f %>% print
   results$distribution %>% print
@@ -226,16 +239,17 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
       results$ate_res$predictions, propensity_trim
     )
   
-  "ATE (Yes-No): {mean_ate} ({sd_mean_ate})\n" %>% f %>% print
-  "Trimmed ATE (Yes-No): {mean_ate_trim} ({sd_mean_ate_trim})\n" %>% f %>% print
-  "Upper ATE (Yes-No): {mean_ate_compl} ({sd_mean_ate_compl})\n" %>% f %>% print
+  "ATE (Yes-No): {mean_ate} (Std.Error: {sd_mean_ate})\n" %>% f %>% print
+  if( propensity_trim < 1){
+    "Trimmed ATE (Yes-No): {mean_ate_trim} (Std.Error: {sd_mean_ate_trim})\n" %>% f %>% print
+    "Upper ATE (Yes-No): {mean_ate_compl} (Std.Error: {sd_mean_ate_compl})\n" %>% f %>% print
+  }
   
   dt_ <- results$dt %>% 
     copy %>% 
-    setnames('diff_outcome', outcome) %>% 
     setnames(treatment_name, 'treatment')
 
-  if( !is.null(dt) ){
+  if( !is.null(dt_) ){
     
     if( is_classification == TRUE ){
       dt_ %>% .[,
@@ -279,10 +293,13 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
     
     results$ate_res$predictions %>% 
       do.call(rbind, .) %>% 
-      .[, .(ite=mean(ite), ite_sd=sd(ite)), .(id, Propensity)] %>% 
+      .[, .(ite=mean(ite), ite_sd=sd(ite)), .(`Code of the patient`, Propensity)] %>% 
       .[, ite_up:=ite + 1.96*ite_sd] %>% 
       .[, ite_low:=ite - 1.96*ite_sd] %>% 
-      setorder(-Propensity) %>% 
+      setorder(-Propensity) ->
+      ites
+    
+    ites %>% 
       ggplot(aes(Propensity, ite, group=1)) +
       geom_line(color='orange') +
       geom_ribbon(
@@ -292,6 +309,36 @@ print_ates <- function(treatment_name, outcome, results, is_classification, prop
       ggtitle("Individual Treatment effect by propensity\n{outcome}" %>% f) ->
       data_plot
     print(data_plot)
+    
+    ites %>% 
+      merge(results$dt, by='Code of the patient') ->
+      ites_demo
+    
+    demo_plots <- list()
+    for(demo in demographics){
+      if( class(ites_demo[, get(demo)]) == 'numeric' ){
+        ites_demo %>% 
+          copy() %>% 
+          setnames(demo, 'demo_var') %>% 
+          ggplot(aes(demo_var, ite)) +
+          geom_point() + 
+          xlab(demo) +
+          geom_smooth(method='lm') ->
+          demo_plots[[demo]]
+      }else{
+        ites_demo %>% 
+          copy() %>% 
+          setnames(demo, 'demo_var') %>% 
+          ggplot(aes(demo_var, ite)) +
+          xlab(demo) +
+          geom_boxplot() ->
+          demo_plots[[demo]]
+      }
+    }
+    
+    
+    do.call("grid.arrange", c(demo_plots, ncol=3))
+    
   }
   
   return(invisible())
@@ -334,7 +381,6 @@ plot_coefs <- function(treatment_name, covariates_data, best_model, replicas_boo
       )  
     }
   }
-  
   
   data_ <- covariates_data %>% 
     na.omit
@@ -397,47 +443,25 @@ plot_coefs <- function(treatment_name, covariates_data, best_model, replicas_boo
     theme( 
       panel.border = element_rect(color = "black", fill = NA, size = .4),
       strip.text.x = element_text(angle = 90),
-      axis.text=element_text(size=10))
+      axis.text=element_text(size=10)) ->
+    data_plot
   
+  all_coefs[, .(
+    low_ci=quantile(value, 0.025) %>% round(3), 
+    median=median(value) %>% round(3), 
+    up_ci=quantile(value, 0.975) %>% round(3),
+    sd = sd(value) %>% round(3),
+    t_value = round(abs(mean(value))/sd(value), 3)
+  ), 
+    variable] %>% 
+    .[, selected := ifelse(low_ci*up_ci > 0, '*', '')] %>% 
+    .[, .(variable, low_ci, median, up_ci, t_value, selected) ] ->
+    table_ci
   
-  # std_err <- bootSamples$t %>% apply(2, sd)
-  # 
-  # coef_results <- coef(best_model$model$finalModel, best_model$params$lambda) 
-  # 
-  # coefs <- as.numeric(coef_results)
-  # coefs_names <- rownames(coef_results)
-  # 
-  # coef_results <- data.table(variable=coefs_names, coef_value=coefs %>% round(3), std_err) %>% 
-  #   setorder(-coef_value)
-  # 
-  # intercept_std <- coef_results[variable=='(Intercept)', std_err]
-  # 
-  # all_names %>% 
-  #   as.data.table %>% 
-  #   merge(coef_results, by='variable', all=TRUE) ->
-  #   all_coefs
-  # 
-  # all_coefs %<>% 
-  #   .[is.na(coef_value), std_err:=intercept_std] %>% 
-  #   .[is.na(coef_value), coef_value:=0] %>% 
-  #   setorder(-coef_value)
-  # 
-  # variables <- all_coefs[, variable]
-  # all_coefs[, variable := factor(variable, levels=variables)]
-  # all_coefs[, ci_up:=coef_value + 1.96*std_err]
-  # all_coefs[, ci_low:=coef_value - 1.96*std_err]
-  # 
-  # 
-  # all_coefs %>% 
-  #   .[!is.na(original_name)] %>% 
-  #   ggplot(aes(variable, coef_value)) +
-  #   geom_col() +
-  #   geom_errorbar(aes(ymin = ci_low, ymax = ci_up, width=0.3), linetype = "dashed") +
-  #   theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust=1)) +
-  #   facet_grid(.~original_name, scales='free_x', space = "free_x") +
-  #   theme( 
-  #     panel.border = element_rect(color = "black", fill = NA, size = .2),
-  #     axis.text=element_text(size=20))
+  return(list(
+    data_plot, 
+    table_ci
+  ))
 }
 
 

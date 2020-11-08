@@ -1,0 +1,36 @@
+---
+title: "Prediction"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(data.table)
+library(magrittr)
+library(kableExtra)
+library(zeallot)
+library(yaml)
+
+
+source('code/five_years/five_years-utils.R')
+
+outcome <- '5Y. ODI - Score (%)'
+
+k_fold <- 10
+tuneLength <- 5
+models <- c('elastic', 'boosting')
+create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+  
+  #   - "2Y. ODI - Score (%)"
+  # - "2Y. SRS22 - SRS Subtotal score"
+  # - "2Y. SF36 - MCS"
+  # - "2Y. SF36 - PCS" 
+```

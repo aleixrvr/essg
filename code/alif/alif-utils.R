@@ -3,9 +3,11 @@ library(data.table)
 library(magrittr)
 library(yaml)
 library(stringr)
+library(zeallot)
 
 source('code/basic.R')
 source('code/utils.R')
+
 
 get_data <- function(evaluation=FALSE){
   xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
@@ -65,11 +67,13 @@ aggregate_data <- function(sel_data){
   #   .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
   #   .[Site=='ZUR Op', Site:='ANKZUR Op'] 
   
-  sel_data %>%
-    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>%
-    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>%
-    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>%
-    .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
+  if( "Levels Previously operated - Lower" %in% colnames(sel_data)){
+    sel_data %>%
+      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>%
+      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>%
+      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>%
+      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
+  }
   
   if( "1st surgeon: experience in ASD surgery" %in% colnames(sel_data)){
     sel_data %>% 

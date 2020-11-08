@@ -20,7 +20,9 @@ tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
 tuneLenghtATE <- 10
 modelsATE <- c('boosting')
-replicas_boot <- 50L
+replicas_boot <- 100L
+repetitions <- 50
+
 
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
@@ -69,8 +71,10 @@ print(best_model$plot)
 Bootstraping replicas: `r replicas_boot`
 
 ```{r echo=FALSE, fig.height=9, fig.width=10}
-plot_coefs(treatment_name, covariates_data, best_model, replicas_boot) %>% 
-  print
+c(data_plot, table_ci) %<-% plot_coefs(treatment_name, covariates_data, best_model, replicas_boot) 
+
+print(data_plot)
+print(table_ci)
 ```
 
 
@@ -129,7 +133,7 @@ predictive_variates <- c(treatment_name, 'Propensity')
 outcome = 'complication'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
-  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
 
 print_ates(treatment_name, outcome, results, is_classification)
@@ -144,7 +148,7 @@ predictive_variates <- c(treatment_name, 'Propensity')
 outcome = 'major_complication'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
-  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
 
 print_ates(treatment_name, outcome, results, is_classification)
@@ -158,7 +162,7 @@ predictive_variates <- c(treatment_name, 'Propensity')
 outcome = 'mechanical_complication'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
-  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification
+  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
 
 print_ates(treatment_name, outcome, results, is_classification)
