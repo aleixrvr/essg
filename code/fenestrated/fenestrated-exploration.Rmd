@@ -16,12 +16,12 @@ library(yaml)
 source('code/fenestrated/fenestrated-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 25
+tuneLenghtPropensity <- 2 #25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 10
+tuneLenghtATE <- 2
 modelsATE <- c('boosting')
-replicas_boot <- 100L
-repetitions <- 50
+replicas_boot <- 2#100L
+repetitions <- 2
 
 
 c(sel_data, matching_vars) %<-% get_data()
@@ -120,6 +120,12 @@ propensities <- best_model$clean_data %>%
 sel_data %>% 
   merge(propensities, by='Code of the patient', all.x=TRUE) ->
   ate_data
+```
+
+
+```{r warning=FALSE, echo=FALSE, comment="", include=FALSE}
+demographics <- NULL
+predictive_variates <- c(treatment_name, 'Propensity')
 ```
 
 

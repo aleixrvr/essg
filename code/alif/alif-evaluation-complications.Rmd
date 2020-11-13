@@ -21,11 +21,11 @@ library(yaml)
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 40
+tuneLenghtPropensity <- 2 #40
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 15
+tuneLenghtATE <- 2 #15
 modelsATE <- c('boosting')
-replicas_boot <- 200L
+replicas_boot <- 50L #200L
 propensity_trim <- 0.5
 repetitions <- 100
 
@@ -105,57 +105,6 @@ demographics <- matching_vars$demographic
 predictive_variates <- c(treatment_name, 'Propensity', demographics) %>% unique
 ```
 
-# Average Treatment Effects - Quality Life
-
-
-```{r ate_ql, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-outcomes <- matching_vars$outcomes_ql
-
-# predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
-results_outcomes <- list()
-for(outcome in outcomes){
-  is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
-  results_outcomes[[outcome]] <- calc_ate(
-    ate_data, outcome, treatment_name=treatment_name,
-    predictive_variates, first_visit=TRUE,
-    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions
-  )
-}
-```
-
-```{r echo=FALSE, warning=FALSE, comment=""}
-for(outcome in outcomes){
-  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
-  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification,
-    propensity_trim, demographics)
-}
-```
-
-# Average Treatment Effects - Radiology
-
-```{r ate_radio, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-outcomes <- matching_vars$outcomes_radiology
-
-# predictive_variates <- c(treatment_name, 'Propensity')
-results_outcomes <- list()
-for(outcome in outcomes){
-  is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
-  results_outcomes[[outcome]] <- calc_ate(
-    ate_data, outcome, treatment_name=treatment_name,
-    predictive_variates, first_visit=FALSE,
-    tuneLenghtATE, modelsATE, incremental=TRUE, is_classification, repetitions
-  )
-}
-```
-
-```{r echo=FALSE, warning=FALSE, comment=""}
-for(outcome in outcomes){
-  is_classification <- class(sel_data[[outcome]]) %in% c('character', 'factor')
-  print_ates(treatment_name, outcome, results_outcomes[[outcome]], is_classification,
-    propensity_trim, demographics)
-}
-```
-
 # Average Treatment Effects - Complications
 
 - Complications Type: Primary
@@ -167,8 +116,7 @@ xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
-  .[`Complication Type`=='Primary'] %>%
-  .[`Reoperation Due to Complication`=='Yes']
+  .[`Complication Impact` == 'Major Complication']
 
 patients_complications <- complications[, `Code of the patient`]
 
@@ -224,67 +172,3 @@ for(outcome in outcomes){
 
 
 
-
-# Average Treatment Effects - Reintervention Number
-
-```{r ate_reintervention, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
-# excel_sheets(xls_path)
-
-rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>%
-  data.table %>%
-  .[, .(reinterventions=.N), `Code of the patient`]
-
-data_ <- ate_data %>%
-  copy %>%
-  merge(rev_patient_data, by="Code of the patient", all.x=TRUE, all.y=FALSE) %>%
-  .[is.na(reinterventions), reinterventions:=0] %>% 
-  .[, reinterventions := reinterventions * 1.0]
-  # .[reinterventions > 0] %>%
-  # .[, `Code of the patient`:=NULL]
-
-outcome <- 'reinterventions'
-is_classification <- FALSE
-# predictive_variates <- c(treatment_name, 'Propensity')
-# predictive_variates <- c(
-#   matching_vars$covariates, matching_vars$predictive, 'Propensity'
-# ) %>% unique
-results <- calc_ate(
-  data_, outcome, treatment_name=treatment_name,
-  predictive_variates, first_visit=FALSE,
-  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
-)
-```
-
-```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(treatment_name, outcome, results, is_classification, propensity_trim, demographics)
-```
-
-# Average Treatment Effects - Had Reintervention
-
-```{r ate_reintervention_bool, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
-# excel_sheets(xls_path)
-
-rev_patients <- read_excel(xls_path, sheet = "Rev surgeries") %>%
-  data.table %>%
-  .[, unique(`Code of the patient`)]
-
-data_ <- ate_data %>%
-  copy %>%
-  .[, had_reintervention := 'No'] %>%
-  .[`Code of the patient` %in% rev_patients, had_reintervention := 'Yes']
-
-outcome <- 'had_reintervention'
-is_classification <- TRUE
-# predictive_variates <- c(treatment_name, 'Propensity')
-results <- calc_ate(
-  data_, outcome, treatment_name=treatment_name,
-  predictive_variates, first_visit=FALSE,
-  tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
-)
-```
-
-```{r echo=FALSE, warning=FALSE, comment=""}
-print_ates(treatment_name, outcome, results, is_classification, propensity_trim, demographics)
-```

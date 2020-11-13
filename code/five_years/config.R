@@ -1,4 +1,4 @@
-k_fold <- 10
+k_fold <- 5
 tuneLength <- 15
 models <- c('elastic', 'boosting')
 # tuneLength <- 2

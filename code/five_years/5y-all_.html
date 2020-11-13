@@ -367,59 +367,64 @@ summary {
 
 
 <pre><code>5Y. ODI - Score (%)
-RMSE: 15.0513520632103
+RMSE: 14.164818288222
 5Y. ODI - Score (%) distribution:
   0%  25%  50%  75% 100% 
    0   10   22   40   92 
-Model Type: elastic_net
-Params: alpha: 1.0
-lambda: 0.2889246</code></pre>
+Model Type: boosting
+Params: nrounds: 50.0
+max_depth: 10
+eta: 0.3
+gamma: 0.0
+colsample_bytree: 0.6
+min_child_weight: 1.0
+subsample: 0.7777778</code></pre>
 <pre><code>5Y. SRS22 - SRS Subtotal score
-RMSE: 0.645120832830026
+RMSE: 0.64908115041384
 5Y. SRS22 - SRS Subtotal score distribution:
   0%  25%  50%  75% 100% 
 0.00 2.80 3.58 4.15 5.00 
 Model Type: elastic_net
-Params: alpha: 1.0
-lambda: 0.0060374</code></pre>
+Params: alpha: 0.6
+lambda: 0.0163599</code></pre>
 <pre><code>5Y. SF36 - PCS
-RMSE: 7.94951675500787
+RMSE: 8.01355490392752
 5Y. SF36 - PCS distribution:
     0%    25%    50%    75%   100% 
  9.400 33.595 42.095 50.965 64.510 
 Model Type: boosting
 Params: nrounds: 50.0
-max_depth: 2
+max_depth: 1
 eta: 0.3
 gamma: 0.0
 colsample_bytree: 0.6
 min_child_weight: 1.0
-subsample: 0.9642857</code></pre>
+subsample: 0.8888889</code></pre>
 <pre><code>5Y. SF36 - MCS
-RMSE: 9.42584227315513
+RMSE: 9.14562893847501
 5Y. SF36 - MCS distribution:
    0%   25%   50%   75%  100% 
 15.07 40.32 50.58 57.06 67.62 
 Model Type: elastic_net
-Params: alpha: 1.0
-lambda: 6.6612508</code></pre>
+Params: alpha: 0.2
+lambda: 0.4326998</code></pre>
 <pre><code>had_complication
-Accuracy: 0.869257209238759
+Accuracy: 0.868539018723521
 had_complication distribution:
 .
        No       Yes 
 0.8653278 0.1346722 
 Model Type: elastic_net
-Params: alpha: 1.0
-lambda: 0.0005631</code></pre>
+Params: alpha: 0.4
+lambda: 0.0676674</code></pre>
 <pre><code>reinterventions
-RMSE: 0.969928861590898
+RMSE: 1.028191196412
 reinterventions distribution:
   0%  25%  50%  75% 100% 
    1    1    1    2    6 
 Model Type: elastic_net
-Params: alpha: 1.0
-lambda: 0.2320762</code></pre>
+Params: alpha: 0.5
+lambda: 0.0857331</code></pre>
 <div id="predictive-variables" class="section level2">
 <h2>Predictive Variables</h2>
 <pre><code>- Weight (kgs)_First Visit

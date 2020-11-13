@@ -210,7 +210,7 @@ calc_ate_stats <- function(predictions, propensity_trim){
 
 print_ates <- function(
   treatment_name, outcome, results, is_classification, 
-  propensity_trim=1, demographics
+  propensity_trim=1, demographics=NULL
 ){
   "Outcome: {outcome}" %>% f %>% print
   "Distribution:" %>% f %>% print
@@ -314,31 +314,32 @@ print_ates <- function(
       merge(results$dt, by='Code of the patient') ->
       ites_demo
     
-    demo_plots <- list()
-    for(demo in demographics){
-      if( class(ites_demo[, get(demo)]) == 'numeric' ){
-        ites_demo %>% 
-          copy() %>% 
-          setnames(demo, 'demo_var') %>% 
-          ggplot(aes(demo_var, ite)) +
-          geom_point() + 
-          xlab(demo) +
-          geom_smooth(method='lm') ->
-          demo_plots[[demo]]
-      }else{
-        ites_demo %>% 
-          copy() %>% 
-          setnames(demo, 'demo_var') %>% 
-          ggplot(aes(demo_var, ite)) +
-          xlab(demo) +
-          geom_boxplot() ->
-          demo_plots[[demo]]
+    if( length( demographics ) > 0){
+      demo_plots <- list()
+      for(demo in demographics){
+        if( class(ites_demo[, get(demo)]) == 'numeric' ){
+          ites_demo %>% 
+            copy() %>% 
+            setnames(demo, 'demo_var') %>% 
+            ggplot(aes(demo_var, ite)) +
+            geom_point() + 
+            xlab(demo) +
+            geom_smooth(method='lm') ->
+            demo_plots[[demo]]
+        }else{
+          ites_demo %>% 
+            copy() %>% 
+            setnames(demo, 'demo_var') %>% 
+            ggplot(aes(demo_var, ite)) +
+            xlab(demo) +
+            geom_boxplot() ->
+            demo_plots[[demo]]
+        }
       }
+      
+      
+      do.call("grid.arrange", c(demo_plots, ncol=3))
     }
-    
-    
-    do.call("grid.arrange", c(demo_plots, ncol=3))
-    
   }
   
   return(invisible())
