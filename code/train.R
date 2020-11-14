@@ -1,12 +1,16 @@
 library(magrittr)
 library(logger)
+library(caret)
 
 train_model <- function(
   dt, outcome_name, k_fold=5, tuneLength=5, models=c('lm', 'boosting', 'elastic'), verbose=FALSE
 ){
   results <- list()
   pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
-  trControl <-  caret::trainControl(method = "cv", number = k_fold)
+  
+  y <- dt[, get(outcome_name)]
+  index <- createFolds(y, k_fold, returnTrain = TRUE)
+  trControl <-  caret::trainControl(method = "cv", number = k_fold, index=index)
   # trControl <-  caret::trainControl(method = "cv", number = k_fold, classProbs = TRUE)
   model_type <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'regression', 'classification')
   method <- ifelse(model_type == 'regression', 'lm', 'glm')

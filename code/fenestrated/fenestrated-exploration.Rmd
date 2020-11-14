@@ -16,12 +16,12 @@ library(yaml)
 source('code/fenestrated/fenestrated-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 2 #25
+tuneLenghtPropensity <- 25
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 2
+tuneLenghtATE <- 10
 modelsATE <- c('boosting')
-replicas_boot <- 2#100L
-repetitions <- 2
+replicas_boot <- 200L
+repetitions <- 300
 
 
 c(sel_data, matching_vars) %<-% get_data()

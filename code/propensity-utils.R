@@ -140,24 +140,20 @@ bootstrap_ate <- function(dt, outcome_name, is_classification, repetitions=10,
     best_model_no
   method_no <- get_method(best_model_no)
   
-  row_n_yes <- dt_yes %>% nrow
-  row_n_no <- dt_no %>% nrow
-  
   dt_base <- copy(dt)
-  # if( 'Propensity' %in% colnames(dt)){
-  #   dt_base <- dt[, .(id=1:nrow(dt), outcome=get(treatment_name), Propensity)]
-  # }else{
-  #   dt_base <- dt[, .(id=1:nrow(dt_), outcome=get(treatment_name))]
-  # }
-  
+ 
   trControl <-  caret::trainControl(method = "none", number = 1, p=1)
   
   predictions <- list()
+  k_fold_rep <- 1
   for(r_ in 1:repetitions){
-    inds_yes <- sample(1:row_n_yes, row_n_yes, replace=TRUE)
-    dt_sample_yes <- dt_yes[inds_yes, ]
-    inds_no <- sample(1:row_n_no, row_n_no, replace=TRUE)
-    dt_sample_no <- dt_no[inds_no, ]
+    dt_sample_yes <- stratified_resampling(dt_yes, outcome_name)
+    dt_sample_no <- stratified_resampling(dt_no, outcome_name)
+    
+    # inds_yes <- sample(1:row_n_yes, row_n_yes, replace=TRUE)
+    # dt_sample_yes <- dt_yes[inds_yes, ]
+    # inds_no <- sample(1:row_n_no, row_n_no, replace=TRUE)
+    # dt_sample_no <- dt_no[inds_no, ]
     
     model_yes <- train(pred_formula, dt_sample_yes, method=method_yes, 
       tuneGrid=best_model_yes$params, trControl = trControl)
@@ -182,6 +178,32 @@ bootstrap_ate <- function(dt, outcome_name, is_classification, repetitions=10,
     best_model_yes=best_model_yes,
     best_model_no=best_model_no)
   )
+}
+
+stratified_resampling <- function(dt_, outcome_name){
+  row_n_ <- dt_ %>% nrow()
+  if( class(dt_[, get(outcome_name)])  == 'numeric' ){
+    inds_ <- sample(1:row_n_, row_n_, replace=TRUE)
+    dt_sample_ <- dt_[inds_, ]
+  }else{
+    if( dt_[, get(outcome_name) %>% uniqueN] > 2 ){
+      stop('More than 2 classes')
+    }else{
+      class_names <- dt_[, get(outcome_name) %>% unique %>% sort]
+      if( !all(class_names == c('No', 'Yes')) ){
+        stop('Binary with different names')
+      }
+      inds_y <-  dt_[, get(outcome_name) == 'Yes'] %>% which()
+      inds_n <-  dt_[, get(outcome_name) == 'No'] %>% which()
+      
+      re_inds_y <- sample(inds_y, len(inds_y), replace=TRUE)
+      re_inds_n <- sample(inds_n, len(inds_n), replace=TRUE)
+      inds_ <- c(re_inds_n, re_inds_y)
+      dt_sample_ <- dt_[inds_, ]
+    }
+  }
+  
+  return(dt_sample_)  
 }
 
 calc_ate_stats <- function(predictions, propensity_trim){

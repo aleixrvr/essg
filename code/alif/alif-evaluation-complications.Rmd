@@ -21,13 +21,13 @@ library(yaml)
 source('code/alif/alif-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 2 #40
+tuneLenghtPropensity <- 40
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 2 #15
+tuneLenghtATE <- 10
 modelsATE <- c('boosting')
-replicas_boot <- 50L #200L
+replicas_boot <- 200L
 propensity_trim <- 0.5
-repetitions <- 100
+repetitions <- 200
 
 c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
@@ -142,6 +142,7 @@ print_ates(treatment_name, outcome, results, is_classification, propensity_trim,
 
 ```{r ate_comps, warning=FALSE, echo=FALSE, comment="", include=FALSE}
 outcomes <- complications[, `Category of the complication` %>% unique]
+outcomes <- outcomes %!in% "Central neurologic complications"
 
 # predictive_variates <- c(treatment_name, 'Propensity')
 results_outcomes <- list()

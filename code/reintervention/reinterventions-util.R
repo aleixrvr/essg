@@ -6,7 +6,7 @@ library(yaml)
 library(ggplot2)
 
 
-get_data <- function(){
+get_data <- function(only_two_years=TRUE){
   xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   # excel_sheets(xls_path)
   
@@ -18,6 +18,16 @@ get_data <- function(){
     data.table() 
   complications <- read_excel(xls_path, sheet = "Complications") %>% 
     data.table 
+  
+  if( only_two_years ){
+    valid_patients <- clinical_data[
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `Code of the patient` %>% unique
+    ]
+    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
+    rev_patient_data %<>% .[`Code of the patient` %in% valid_patients]
+    complications %<>% .[`Code of the patient` %in% valid_patients]
+  }
   
   time_evolution <- get_time_evolution(clinical_data, rev_patient_data)
   complications <- get_complications(complications)

@@ -109,59 +109,150 @@ print_ates(treatment_name, outcome, results, is_classification, propensity_trim,
 # library(kableExtra)
 # library(zeallot)
 # library(yaml)
+# library(caret)
 # 
 # 
 # source('code/alif/alif-utils.R')
 # source('code/propensity-utils.R')
 # 
-# tuneLenghtPropensity <- 40
-# modelsPropensity <- c('elastic')
-# tuneLenghtATE <- 15
-# modelsATE <- c('boosting')
-# replicas_boot <- 200L
-# propensity_trim <- 0.5
-# repetitions <- 100
+# 
+# tuneLength <- 2
 # 
 # c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
 # covariates_data <- sel_data[, .SD, .SDcols=c(
-#   matching_vars$covariates, 
+#   matching_vars$covariates,
 #   'Code of the patient',
 #   '6W. Sagittal Balance'
 # )]
+# 
+# covariates_data[
+#   `Posterior Instrumented Fusion: Upper / Lower Levels` == 'T', 
+#   `Posterior Instrumented Fusion: Upper / Lower Levels` := 'L']
+# 
+# covariates_data[
+#   `Levels Previously operated - Lower` %in% c('C', 'T'),
+#   `Levels Previously operated - Lower` := 'NA'
+# ]
+# 
+# covariates_data[
+#   `Levels Previously operated - Lower` %in% c('Iliac', 'S'),
+#   `Levels Previously operated - Lower` := 'Iliac+S'
+# ]
+# 
+# # covariates_data[, table(Alif, `Posterior Instrumented Fusion: Upper / Lower Levels`)]
+# # covariates_data[, table(Alif, `Levels Previously operated - Lower`)]
+# 
+# # library(GGally)
+# # ggpairs(covariates_data)
+# # covariates_data[, .(LGap, RLL)] %>% na.omit %>% cor
 # 
 # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
 # 
 # complications <- read_excel(xls_path, sheet='Complications') %>%
 #   as.data.table %>%
-#   .[`Complication Impact` == 'Major Complication'] %>% 
-#   .[`Category of the complication` == 'Mechanical complications']  
+#   .[`Complication Impact` == 'Major Complication'] %>%
+#   .[`Category of the complication` == 'Mechanical complications']
 # 
 # patients_complications <- complications[, `Code of the patient`]
 # 
-# covariates_data[, had_mech_complication := 0]
-# covariates_data[`Code of the patient` %in% patients_complications, had_mech_complication := 1] 
+# covariates_data[, had_mech_complication := 'No']
+# covariates_data[`Code of the patient` %in% patients_complications, had_mech_complication := 'Yes']
 # 
-# data_ <- covariates_data[, 
-#   .SD, 
-#   .SDcols= (colnames(covariates_data) %!in% "Code of the patient")
+# cols_to_rm <- c("Code of the patient", "6W. Sagittal Balance", "RLL")
+# 
+# data_ <- covariates_data[,
+#   .SD,
+#   .SDcols= (colnames(covariates_data) %!in% cols_to_rm)
 #   ] %>% na.omit
 # 
-# data_nosag <- data_[, 
-#   .SD, 
+# data_nosag <- data_[,
+#   .SD,
 #   .SDcols= (colnames(data_) %!in% "6W. Sagittal Balance")
 # ] %>% na.omit
 # 
-# alif_model <- glm(had_mech_complication~., data=data_)
-# data_y <- copy(data_) %>% 
-#   .[, Alif:='Yes']
-# data_n <- copy(data_) %>% 
-#   .[, Alif:='No']
+# data_y <- data_ %>% 
+#   .[Alif=='Yes'] %>% 
+#   remove_constant_cols()
+# data_n <- data_ %>% 
+#   .[Alif=='No'] %>% 
+#   remove_constant_cols()
 # 
-# mean(predict(alif_model, data_y) - predict(alif_model, data_n))
+# trControl <-  caret::trainControl(method = "cv", number = 5)
+# metric <- 'Accuracy'
+# 
+# model_yes<- caret::train(
+#   had_mech_complication~., data = data_y, method='xgbTree', 
+#   trControl = trControl, tuneLength = tuneLength, 
+#   verbose = FALSE, metric = metric
+# )
+# 
+# model_no<- caret::train(
+#   had_mech_complication~., data = data_n, method='xgbTree', 
+#   trControl = trControl, tuneLength = tuneLength, 
+#   verbose = FALSE, metric = metric
+# )
+# 
+# 
+# 
+# data_do_y <- copy(data_) %>%
+#   .[, Alif:='Yes'] %>% 
+#   .[, .SD, .SDcols=colnames(data_y)]
+# data_do_n <- copy(data_) %>%
+#   .[, Alif:='No'] %>% 
+#   .[, .SD, .SDcols=colnames(data_n)]
+# 
+# mean(predict(model_yes, data_do_y, type='prob')$Yes - predict(model_no, data_do_n, type='prob')$Yes)
 # 
 # covariates_data[, Alif]
 # covariates_data[, `6W. Sagittal Balance`]
 # covariates_data[, had_mech_complication]
+# 
+# data_ %>% copy %>% 
+#   .[had_mech_complication=='No', had_mech_complication:=0] %>% 
+#   .[had_mech_complication=='Yes', had_mech_complication:=1] %>% 
+#   .[, had_mech_complication:=as.numeric(had_mech_complication)] %>% 
+#   glm(had_mech_complication~., data=.) ->
+#   model
+# 
+# data_do_y <- copy(data_) %>%
+#   .[, Alif:='Yes'] 
+# data_do_n <- copy(data_) %>%
+#   .[, Alif:='No'] 
+# 
+# mean(predict(model, data_do_y, type='response') - predict(model, data_do_n, type='response'))
+# 
+# data_ %>% copy %>% 
+#   .[Alif=='Yes'] %>% 
+#   remove_constant_cols() %>% 
+#   .[had_mech_complication=='No', had_mech_complication:=0] %>% 
+#   .[had_mech_complication=='Yes', had_mech_complication:=1] %>% 
+#   .[, had_mech_complication:=as.numeric(had_mech_complication)] ->
+#   data_y
+# 
+# data_y %>% glm(had_mech_complication~., data=.) ->
+#   model_y
+# 
+# data_ %>% copy %>% 
+#   .[Alif=='No'] %>% 
+#   remove_constant_cols() %>% 
+#   .[had_mech_complication=='No', had_mech_complication:=0] %>% 
+#   .[had_mech_complication=='Yes', had_mech_complication:=1] %>% 
+#   .[, had_mech_complication:=as.numeric(had_mech_complication)] -> 
+#   data_n
+# 
+# data_n %>% 
+#   glm(had_mech_complication~., data=.) ->
+#   model_n
+# 
+# data_do_y <- copy(data_) %>%
+#   .[, Alif:='Yes'] %>% 
+#   .[, .SD, .SDcols=colnames(data_y)]
+# data_do_n <- copy(data_) %>%
+#   .[, Alif:='No'] %>% 
+#   .[, .SD, .SDcols=colnames(data_n)]
+# 
+# mean(predict(model_y, data_do_y, type='response') - predict(model_n, data_do_n, type='response'))
+
 
 ```
 

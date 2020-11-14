@@ -27,7 +27,7 @@ tuneLenghtATE <- 15
 modelsATE <- c('boosting')
 replicas_boot <- 200L
 propensity_trim <- 0.5
-repetitions <- 100
+repetitions <- 200
 
 c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
