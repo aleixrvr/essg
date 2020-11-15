@@ -9,7 +9,7 @@ source('code/basic.R')
 source('code/utils.R')
 
 
-get_data <- function(evaluation=FALSE){
+get_data <- function(evaluation=FALSE, only_two_years=TRUE){
   xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   # excel_sheets(xls_path)
   
@@ -28,6 +28,15 @@ get_data <- function(evaluation=FALSE){
   all_vars <- c(matching_vars %>% unlist, outcomes_ql_index, outcome_radiology_index) %>% unique
   
   # setnames(clinical_data, '3CO', 'CO3')
+  
+  
+  if( only_two_years ){
+    valid_patients <- clinical_data[
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `Code of the patient` %>% unique
+    ]
+    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
+  }
  
   clinical_data %>% 
     .[ALIF + TLIF + PLIF > 0] %>% 

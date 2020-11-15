@@ -71,7 +71,7 @@ show_stats <- function(best_model, predictive_vars, validation_results, show_var
   return(invisible())
 }
 
-get_data <- function(outcome='', first_visit=TRUE, increment=FALSE){
+get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE, only_two_years=TRUE){
   
   clinical_data <- read_excel(XLS_PATH) %>% 
     data.table
@@ -86,6 +86,14 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE){
     .[`Reoperation Due to Complication`=='Yes'] %>% 
     .[, unique(`Code of the patient`)]
   
+  if( only_two_years ){
+    valid_patients <- clinical_data[
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `Code of the patient` %>% unique
+    ]
+    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
+  }
+  
   clinical_data %<>% 
     .[, had_complication := 'No'] %>% 
     .[`Code of the patient` %in% complication_patients, had_complication := 'Yes'] %>%
@@ -97,15 +105,20 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE){
   if( increment ){
     outcome_base <- get_base_outcome(outcome, first_visit)
     clinical_data[, increment := get(outcome) - get(outcome_base)]
+    clinical_data[, c(outcome) := NULL]
     outcome <- 'increment'
   }
   
-  clinical_data %>% 
-    clean_data(predictive_vars$predictive) %>% 
-    .[, .SD, .SDcols=c(outcome, predictive_vars$predictive)] %>% 
-    remove_constant_cols %>% 
-    na.omit ->
-    data_set
+  if( clean ){
+    clinical_data %>% 
+      clean_data(predictive_vars$predictive) %>% 
+      .[, .SD, .SDcols=c(outcome, predictive_vars$predictive)] %>% 
+      remove_constant_cols %>% 
+      na.omit ->
+      data_set
+  }else{
+    data_set <- clinical_data
+  }
   
   return(list(
     data_set,
@@ -125,4 +138,96 @@ create_validation_set <- function(data_set){
 
 eval_validation <- function(validation_data, best_model){
   
+}
+
+plot_scores <- function(data_set, outcome, demographics){
+  demo_plots <- list()
+  for(demo_var in demographics){
+    if( class(data_set[, get(demo_var)]) == 'numeric' ){
+      data_set %>% 
+        copy() %>% 
+        setnames(demo_var, 'demo_var') %>% 
+        setnames(outcome, 'outcome') %>% 
+        setnames(outcomes_2y[[outcome]], 'outcome_2y') %>% 
+        .[, .(demo_var, outcome, outcome_2y)] %>% 
+        melt(id.vars='demo_var') %>% 
+        ggplot(aes(demo_var, value, color=variable)) +
+        geom_point(alpha=0.1) + 
+        xlab(demo_var) +
+        ylab('score') + 
+        scale_color_discrete(labels = c(outcome, outcomes_2y[[outcome]])) +
+        geom_smooth(method='lm') ->
+        demo_plots[[demo_var]]
+    }else{
+      data_set %>% 
+        copy() %>% 
+        setnames(demo_var, 'demo_var') %>% 
+        setnames(outcome, 'outcome') %>% 
+        setnames(outcomes_2y[[outcome]], 'outcome_2y') %>% 
+        .[, .(demo_var, outcome, outcome_2y)] %>% 
+        melt(id.vars='demo_var') %>% 
+        ggplot(aes(demo_var, value, fill=variable)) +
+        geom_boxplot() + 
+        xlab(demo_var) +
+        ylab('score') + 
+        scale_fill_discrete(labels = c(outcome, outcomes_2y[[outcome]])) ->
+        demo_plots[[demo_var]]
+    }
+  }
+  
+  return(demo_plots)
+}
+
+plot_complications <- function(
+  complication_type, complications, data_set, demographics
+){
+  patients_complications_5y <- complications %>%
+    .[`Days since surgery` >= 365*2 ] %>% 
+    .[`Days since surgery` < 365*5 ] %>% 
+    .[`Category of the complication` == complication_type, `Code of the patient`]
+  patients_complications_2y <- complications %>%
+    .[`Days since surgery` < 365*2 ] %>% 
+    .[`Category of the complication` == complication_type, `Code of the patient`]
+  
+  data_ <- data_set %>%
+    copy %>%
+    .[, complication_before_2y:='No'] %>%
+    .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+    .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
+    .[, complication_2y_5y:='No'] %>%
+    .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+    .[ followup_5y == FALSE, complication_2y_5y:=NA]
+  
+  demo_plots <- list()
+  for(demo_var in demographics){
+    if( class(data_[, get(demo_var)]) == 'numeric' ){
+      data_ %>% 
+        copy() %>% 
+        setnames(demo_var, 'demo_var') %>% 
+        .[, .(demo_var, complication_before_2y, complication_2y_5y)] %>% 
+        melt(id.vars='demo_var') %>% 
+        ggplot(aes(variable, demo_var, fill=value)) +
+        geom_boxplot() + 
+        coord_flip() +
+        ylab(demo_var) +
+        xlab(complication_type) + 
+        scale_color_discrete(labels = c(outcome, outcomes_2y[[outcome]])) ->
+        demo_plots[[demo_var]]
+    }else{
+      data_ %>% 
+        copy() %>% 
+        setnames(demo_var, 'demo_var') %>% 
+        .[, .(complications_ratio=sum(complication_2y_5y=='Yes')/sum(complication_before_2y=='Yes')), 
+          demo_var
+        ] %>% 
+        ggplot(aes(demo_var, complications_ratio, fill=demo_var)) +
+        geom_col() + 
+        xlab(demo_var) +
+        ylab('Ratio Complications Yes: 2y->5y / Before 2y') +
+        theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1)) ->
+        demo_plots[[demo_var]]
+    }
+  }
+  
+  return(demo_plots)
 }

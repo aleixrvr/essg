@@ -1,0 +1,16 @@
+demographic:
+  - Age
+  - Gender
+  - Prior Spine Surgery
+  - ASA classification
+  - "3CO"
+  - BMI_First Visit
+  - LGap
+  - Global Tilt
+  - Ideal LL
+  - Lordosis (top of L1-S1)
+  - "ODI - Score (%)_First Visit"
+  - "SRS22 - SRS Total score_First Visit"
+  - "SF36 - PCS_First Visit"
+  - "SF36 - MCS_First Visit"
+  - "Major curve Cobb angle" 

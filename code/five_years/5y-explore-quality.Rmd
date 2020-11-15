@@ -1,0 +1,168 @@
+---
+title: "5y quality life analysis"
+output: html_document
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+
+source('code/five_years/five_years-utils.R')
+
+ncols_plots <- 2
+
+outcomes <- c(
+  '5Y. ODI - Score (%)', '5Y. SRS22 - SRS Subtotal score', '5Y. SF36 - PCS', '5Y. SF36 - MCS'
+)
+
+c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+demographics <- read_yaml('code/five_years/demographic.yml')$demographic
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '2')) ->
+  outcomes_2y
+names(outcomes_2y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '6')) ->
+  outcomes_6y
+names(outcomes_6y) <- outcomes
+
+outcomes %>% 
+  sapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes 
+
+for( outcome in names(outcomes_6y)){
+  outcome_6y <- outcomes_6y[[outcome]]
+  data_set %<>%
+    .[is.na(get(outcome)), c(outcome_6y) := get(outcome)]
+}
+
+outcome_2y <- outcomes_2y[[1]]
+outcome <- outcomes[[1]]
+
+
+study_vars <- c(outcomes, outcomes_2y %>% unlist, demographics, base_outcomes) %>% unique
+data_set %<>% 
+  .[Study=='Op'] %>% 
+  .[, .SD, .SDcols=study_vars] %>% 
+  .[, followup_2y := 'has_followup'] %>% 
+  .[is.na(get(outcome_2y)), followup_2y := 'no_followup'] %>% 
+  .[, followup_5y := 'has_followup'] %>% 
+  .[is.na(get(outcome)), followup_5y := 'no_followup'] 
+
+
+```
+
+
+# Scores
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+outcome <- outcomes[1]
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+```{r echo=FALSE, include=FALSE}
+demo_plots <- plot_scores(data_set, outcome, demographics)
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
+htmltools::h1(outcome)
+do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+outcome <- outcomes[2]
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+```{r echo=FALSE, include=FALSE}
+plot_scores(data_set, outcome, demographics)
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
+htmltools::h1(outcome)
+do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+outcome <- outcomes[3]
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+```{r echo=FALSE, include=FALSE}
+demo_plots <- plot_scores(data_set, outcome, demographics)
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
+htmltools::h1(outcome)
+do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+outcome <- outcomes[4]
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+```{r echo=FALSE, include=FALSE}
+demo_plots <- plot_scores(data_set, outcome, demographics)
+```
+
+```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
+htmltools::h1(outcome)
+do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
