@@ -9,7 +9,7 @@ source('code/basic.R')
 source('code/utils.R')
 
 
-get_data <- function(evaluation=FALSE, only_two_years=TRUE){
+get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=FALSE){
   xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   # excel_sheets(xls_path)
   
@@ -27,15 +27,16 @@ get_data <- function(evaluation=FALSE, only_two_years=TRUE){
   outcome_radiology_index <- matching_vars$outcomes_radiology %>% get_base_outcome(first_visit=FALSE)
   all_vars <- c(matching_vars %>% unlist, outcomes_ql_index, outcome_radiology_index) %>% unique
   
-  # setnames(clinical_data, '3CO', 'CO3')
-  
-  
-  if( only_two_years ){
+  if( only_two_years == TRUE ){
     valid_patients <- clinical_data[
       `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
       `Code of the patient` %>% unique
     ]
     clinical_data %<>% .[`Code of the patient` %in% valid_patients]
+  }
+  
+  if( correction_approach == TRUE){
+    all_vars <- c(all_vars, 'Surgical Approach')
   }
  
   clinical_data %>% 
@@ -43,9 +44,19 @@ get_data <- function(evaluation=FALSE, only_two_years=TRUE){
     .[`Posterior Instrumented Fusion`!='No'] %>% 
     .[, Alif := ifelse(ALIF > 0, 'Yes', 'No')] %>% 
     .[, .SD, .SDcols = all_vars] %>% 
+    # .[ RSA < 60 ] %>% 
+    # .[ RLL > -80 ] %>% 
+    # .[RPV > -50 ] %>% 
     aggregate_data  %>% 
     clean_data(all_vars) ->
     sel_data
+  
+  if( correction_approach == TRUE ){
+    sel_data %>% 
+      .[`Surgical Approach` == 'Anterior-Posterior', `Surgical Approach` := 'Correction'] %>% 
+      .[`Surgical Approach` == 'Anterior', `Surgical Approach` := 'Correction'] %>% 
+      .[, Alif := ifelse(`Surgical Approach` =='Correction', 'Yes', 'No')]
+  }
   
   ideal_ll <- sel_data[['Ideal LL']]
   lordosis_top_of_l1s1 <- sel_data[['Lordosis (top of L1-S1)']]
@@ -75,6 +86,10 @@ aggregate_data <- function(sel_data){
   # sel_data %>% 
   #   .[Site=='ANK Op', Site:='ANKZUR Op'] %>% 
   #   .[Site=='ZUR Op', Site:='ANKZUR Op'] 
+  
+  if( "Cobb LS curve (Degree)" %in% colnames(sel_data)){
+    sel_data[is.na(`Cobb LS curve (Degree)`), `Cobb LS curve (Degree)`:= 0] 
+  }
   
   if( "Levels Previously operated - Lower" %in% colnames(sel_data)){
     sel_data %>%

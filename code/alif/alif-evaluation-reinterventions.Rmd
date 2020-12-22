@@ -23,7 +23,7 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 40
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 15
+tuneLenghtATE <- 5
 modelsATE <- c('boosting')
 replicas_boot <- 200L
 propensity_trim <- 0.5

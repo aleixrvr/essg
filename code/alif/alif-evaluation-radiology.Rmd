@@ -23,13 +23,16 @@ source('code/propensity-utils.R')
 
 tuneLenghtPropensity <- 40
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 10
+tuneLenghtATE <- 5
 modelsATE <- c('boosting')
 replicas_boot <- 200L
 propensity_trim <- 0.5
 repetitions <- 50
+correction_approach <- FALSE
 
-c(sel_data, matching_vars) %<-% get_data(evaluation=TRUE)
+c(sel_data, matching_vars) %<-% get_data(
+  evaluation=TRUE, correction_approach=correction_approach, only_two_years = TRUE
+)
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
 treatment_name <- 'Alif'
 ```
@@ -37,6 +40,9 @@ treatment_name <- 'Alif'
 ### Selected Variables
 
 ```{r echo=FALSE, comment=""}
+if( correction_approach ){
+  htmltools::h3('Correction Approach Selected')
+}
 cat(matching_vars %>% as.yaml)
 ```
 

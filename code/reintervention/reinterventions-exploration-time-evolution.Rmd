@@ -39,7 +39,18 @@ time_evolution %>%
 time_evolution[, 
   quantile(hospitalization_time, na.rm=TRUE) %>% as.list, 
   reintervention]
+
+
+time_evolution[, .(hospitalization_time, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(hospitalization_time~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
 ```
+
+Note: linear model only up to 3 reinterventions (included)
 
 # Proportion of reinterventions
 
@@ -76,64 +87,116 @@ print(table_info)
 
 time_evolution %>% 
   .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
-  plot_evolution('transferred to SICU')
+  plot_evolution('transferred to SICU') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 ```
 
 
 # Evolution of surgeries
 
-```{r warning=FALSE, echo=FALSE, fig.height=4}
+```{r warning=FALSE, echo=FALSE, fig.height=4, comment=""}
 
 
 time_evolution %>% 
   .[, .(condition=co3==1, reintervention)] %>% 
-  plot_evolution('3CO')
+  plot_evolution('3CO') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Implant removal` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Implant removal')
+  plot_evolution('Implant removal') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Infection debridement` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Infection Debridement')
+  plot_evolution('Infection Debridement') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Anterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Anterior Instrumented Fusion')
+  plot_evolution('Anterior Instrumented Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Posterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Posterior Instrumented Fusion')
+  plot_evolution('Posterior Instrumented Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Decompression` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Decompression')
+  plot_evolution('Decompression') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Interbody Fusion` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Interbody Fusion')
+  plot_evolution('Interbody Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Osteotomy` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Osteotomy')
+  plot_evolution('Osteotomy') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Rod change` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Rod change')
+  plot_evolution('Rod change') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 
 time_evolution %>% 
   .[, .(condition=(`Scar revision` == 'Yes'), reintervention)] %>% 
-  plot_evolution('Scar revision')
+  plot_evolution('Scar revision') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
 ```
 
 
-```{r echo=FALSE}
+```{r echo=FALSE, comment=""}
 time_evolution %>% 
   ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
   geom_density(alpha=0.1) +
   ggtitle('Blood Loss') +
   xlim(c(0, 3000 ))+
   facet_grid(reintervention~.)
+
+time_evolution[, .(blood_loss, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(blood_loss~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
 
 time_evolution %>% 
   ggplot(aes(reintervention, blood_loss)) +
@@ -148,9 +211,19 @@ time_evolution %>%
   xlim(c(0, 1000 ))+
   facet_grid(reintervention~.)
 
+
+time_evolution[, .(surgical_time, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(surgical_time~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
+
 time_evolution %>% 
   ggplot(aes(reintervention, surgical_time)) +
   geom_boxplot() +
   ggtitle('Surgical Time')
 ```
 
+Note: linear model only up to 3 reinterventions (included)

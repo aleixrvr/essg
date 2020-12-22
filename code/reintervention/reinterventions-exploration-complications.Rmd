@@ -266,9 +266,14 @@ results %>%
 
 # By Complication type & Reintervention
 
-### Blood Loss
-```{r echo=FALSE}
+```{r echo=FALSE, comment=""}
 max_val <- category_los[, quantile(blood_loss, 0.8, na.rm=TRUE)]
+
+lm(blood_loss~reintervention*category, 
+  data=category_los[ reintervention <= 3]) %>% 
+  summary %>% 
+  coefficients %>% 
+  .[, c(1, 4)]
 
 category_los %>% 
   .[reintervention %in% c(1, 2, 3)] %>%
@@ -277,11 +282,27 @@ category_los %>%
   geom_density(alpha=0.1) +
   xlim(c(0, max_val)) +
   ggtitle('Blood Loss' %>% f) +
-  facet_grid(reintervention~category) 
+  facet_grid(reintervention~category)
 ```
 
-###
+
 ```{r echo=FALSE}
+category_los %>% 
+  .[reintervention < 4, .(reintervention, blood_loss, category)] %>% 
+  na.omit %>% 
+  .[, .(mean_=mean(blood_loss), sd_=sd(blood_loss), .N), .(reintervention, category)] %>% 
+  .[, ci := sd_/sqrt(N)] %>% 
+  setorder(-mean_) %>% 
+  na.omit() %>% 
+  .[, reintervention := as.factor(reintervention)] %>% 
+  ggplot(aes(reintervention, mean_, fill=category)) +
+  geom_col() +
+  ylab('Blood Loss') +
+  geom_errorbar(aes(ymin=mean_-1.96*ci, ymax=mean_+1.96*ci), width=.1) +
+  facet_grid(.~category)
+```
+
+```{r echo=FALSE, comment=""}
 max_val <- category_los[, quantile(surgical_time, 0.96, na.rm=TRUE)]
 # for( compl in complication_types){
 #     category_los[category==compl] %>% 
@@ -294,6 +315,13 @@ max_val <- category_los[, quantile(surgical_time, 0.96, na.rm=TRUE)]
 #     data_plot
 #   print(data_plot)
 # }
+
+lm(surgical_time~reintervention*category, 
+  data=category_los[ reintervention <= 3]) %>% 
+  summary %>% 
+  coefficients %>% 
+  .[, c(1, 4)]
+
 category_los %>% 
   .[reintervention %in% c(1, 2, 3)] %>% 
   .[, reintervention:=factor(reintervention)] %>% 
@@ -301,10 +329,27 @@ category_los %>%
   geom_density(alpha=0.1) +
   xlim(c(0, max_val)) +
   ggtitle('Surgical Time' %>% f) +
-  facet_grid(reintervention~category) 
+  facet_grid(reintervention~category)
 ```
 
+
 ```{r echo=FALSE}
+category_los %>% 
+  .[reintervention < 4, .(reintervention, surgical_time, category)] %>% 
+  na.omit %>% 
+  .[, .(mean_=mean(surgical_time), sd_=sd(surgical_time), .N), .(reintervention, category)] %>% 
+  .[, ci := sd_/sqrt(N)] %>% 
+  setorder(-mean_) %>% 
+  na.omit() %>% 
+  .[, reintervention := as.factor(reintervention)] %>% 
+  ggplot(aes(reintervention, mean_, fill=category)) +
+  geom_col() +
+  ylab('Surgical Time') +
+  geom_errorbar(aes(ymin=mean_-1.96*ci, ymax=mean_+1.96*ci), width=.1) +
+  facet_grid(.~category)
+```
+
+```{r echo=FALSE, comment=""}
 max_val <- category_los[, quantile(hospitalization_time, 0.96, na.rm=TRUE)]
 # for( compl in complication_types){
 #   reints_val <- category_los[category==compl, .N, reintervention][N>1, reintervention]
@@ -319,6 +364,13 @@ max_val <- category_los[, quantile(hospitalization_time, 0.96, na.rm=TRUE)]
 #     data_plot
 #   print(data_plot)
 # }
+
+lm(hospitalization_time~reintervention*category, 
+  data=category_los[ reintervention <= 3]) %>% 
+  summary %>% 
+  coefficients %>% 
+  .[, c(1, 4)]
+
 category_los %>% 
   .[reintervention %in% c(1, 2, 3)] %>%
   .[, reintervention:=factor(reintervention)] %>% 
@@ -326,6 +378,23 @@ category_los %>%
   geom_density(alpha=0.1) +
   xlim(c(0, max_val)) +
   ggtitle('Hospitalization Time' %>% f) +
-  facet_grid(reintervention~category) 
+  facet_grid(reintervention~category)
+```
+
+
+```{r echo=FALSE}
+category_los %>% 
+  .[reintervention < 4, .(reintervention, hospitalization_time, category)] %>% 
+  na.omit %>% 
+  .[, .(mean_=mean(hospitalization_time), sd_=sd(hospitalization_time), .N), .(reintervention, category)] %>% 
+  .[, ci := sd_/sqrt(N)] %>% 
+  setorder(-mean_) %>% 
+  na.omit() %>% 
+  .[, reintervention := as.factor(reintervention)] %>% 
+  ggplot(aes(reintervention, mean_, fill=category)) +
+  geom_col() +
+  ylab('Hospitalization Time') +
+  geom_errorbar(aes(ymin=mean_-1.96*ci, ymax=mean_+1.96*ci), width=.1) +
+  facet_grid(.~category)
 ```
 

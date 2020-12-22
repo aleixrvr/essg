@@ -193,10 +193,10 @@ plot_complications <- function(
     copy %>%
     .[, complication_before_2y:='No'] %>%
     .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
-    .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
+    .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
     .[, complication_2y_5y:='No'] %>%
     .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
-    .[ followup_5y == FALSE, complication_2y_5y:=NA]
+    .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
   
   demo_plots <- list()
   for(demo_var in demographics){
@@ -230,4 +230,95 @@ plot_complications <- function(
   }
   
   return(demo_plots)
+}
+
+rm_blanks <- . %>% gsub(' ', '_', .)
+get_model_info <- . %>% summary %>% coefficients %>% round(3)
+
+variable_effect <- function(data_set, outcome, outcome_2y, demographics){
+  
+  outcome_ <- outcome %>% rm_blanks
+  outcome_2y_ <- outcome_2y %>% rm_blanks
+  demographics_ <- sapply(demographics, rm_blanks, USE.NAMES = TRUE)
+  
+  data_ <- data_set %>% copy
+  for( colname in colnames(data_) ){
+    setnames(data_, colname, colname %>% rm_blanks)
+  }
+  
+  sel_vars <- c(
+    demographics_$demographic, 
+    outcome_, 
+    outcome_2y_
+  )
+  
+  data_ %>% 
+    .[, 
+      .SD, 
+      .SDcols= sel_vars
+    ] %>%
+    melt(id.vars=c(demographics_$demographic)) %>% 
+    na.omit %>% 
+    .[, `5y_vs_2y_effect` := ifelse(variable==outcome_, 1, 0)] %>% 
+    .[, variable := NULL ] ->
+    model_data
+  
+  vars_ <- paste(demographics_$demographic, collapse=' + ')
+  for(demo_var in demographics_$demographic){
+    vars_ <- "{vars_} + {demo_var}*`5y_vs_2y_effect`" %>% f
+  }
+  model_formula <- "value ~ {vars_}" %>% f %>% as.formula()
+  if( class( model_data[, value]) == 'numeric' ){
+    lm(model_formula, data=model_data) %>% 
+      get_model_info ->
+      model_1
+  }else{
+    model_data %>% 
+      copy %>% 
+      .[, value := ifelse(value=='Yes', 1, 0)] %>% 
+      lm(model_formula, data=.) %>% 
+      get_model_info ->
+      model_1
+  }
+  
+  sel_vars <- c(
+    demographics_$demographic, 
+    demographics_$radiologic, 
+    outcome_, 
+    outcome_2y_
+  )
+  
+  data_ %>% 
+    .[, 
+      .SD, 
+      .SDcols= sel_vars
+    ] %>%
+    melt(id.vars=c(demographics_$demographic, demographics_$radiologic)) %>% 
+    na.omit %>% 
+    .[, `5y_vs_2y_effect` := ifelse(variable==outcome_, 1, 0)] %>% 
+    .[, variable := NULL ] -> 
+    model_data
+  
+  c(demographics_$demographic, demographics_$radiologic) %>% 
+    paste(collapse=' + ') ->
+    vars_
+  for(demo_var in  demographics_$radiologic){
+    vars_ <- "{vars_} + {demo_var}*`5y_vs_2y_effect`" %>% f
+  }
+  model_formula <- "value ~ {vars_}" %>% f %>% as.formula()
+  
+  if( class( model_data[, value]) == 'numeric' ){
+    lm(model_formula, data=model_data) %>% 
+      get_model_info ->
+      model_2
+  }else{
+    model_data %>% 
+      copy %>% 
+      .[, value := ifelse(value=='Yes', 1, 0)] %>% 
+      lm(model_formula, data=.) %>% 
+      get_model_info ->
+      model_2
+  }
+  return(list(demographic=model_1, radiology=model_2))
+  
 }

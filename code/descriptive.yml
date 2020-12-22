@@ -1,0 +1,43 @@
+demographics:
+  - Age 
+  - Gender 
+  - Prior Spine Surgery 
+  - "Height (cm)_First Visit"
+  - "Weight (kgs)_First Visit"
+  - "BMI_First Visit"
+  - ASA classification 
+  - Tobacco use_First Visit 
+  - ESSG Diagnosis 
+radiology:
+  - Major curve Cobb angle
+  - Coronal Balance (C7PL to CSVL)
+  - Sagittal Balance
+  - Maximal Kyphosis Levels
+  # - T2-T5 Kyphosis 
+  # - T5-T12 Kyphosis 
+  # - T2-T12 Kyphosis 
+  - Lordosis (top of L1-S1)
+  - Pelvic Incidence 
+  - Pelvic Tilt 
+  - Sacral Slope 
+  - LGap
+  - Global Tilt 
+  - T1 Sagittal Tilt 
+quality:
+  - ODI - Score (%) 
+  - SRS22 - Function / Activity
+  - SRS22 - Pain
+  - SRS22 - Self image / Appearance
+  - SRS22 - Mental health
+  - SRS22 - SRS Subtotal score
+  - SF36 - PCS
+  - SF36 - MCS
+surgery:
+  - Total blood loss (mL) st1+st2+st3 #Mean intraoperative blood loss 
+  - Total surgical time st1+st2+st3 #Mean surgical time 
+  - Number of Posterior Instrumented Levels #Mean posterior instrumented levels 
+  - Pelvic Fixation 
+  - Decompression
+  - Number of Interbody Fusions
+  - Osteotomy 
+  - 3CO number 

@@ -28,7 +28,7 @@ replicas_boot <- 200L
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
 treatment_name <- 'Alif'
-exploration <- FALSE
+exploration <- TRUE
 ```
 
 ### Selected Variables

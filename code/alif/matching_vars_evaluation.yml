@@ -23,6 +23,10 @@ covariates:
   - Ideal LL
   - Lordosis (top of L1-S1)
   - RLL
+  # - RSA
+  # - RPV
+  # - Surgical Approach
+  - Cobb LS curve (Degree)
   # - LDI : removed
   # - Roussouly Type : removed
   - Number of Interbody Fusions
@@ -47,6 +51,12 @@ outcomes_radiology:
   - "1Y. LGap"
   - "6W. Pelvic Tilt"
   - "1Y. Pelvic Tilt"
+  - "6W. RSA"
+  - "1Y. RSA"
+  - "6W. RPV"
+  - "1Y. RPV"
+  - "6W. RLL"
+  - "1Y. RLL"
 predictive:
   - "Weight (kgs)_First Visit"
   - "Height (cm)_First Visit"

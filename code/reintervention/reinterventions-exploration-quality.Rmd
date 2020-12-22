@@ -35,271 +35,7 @@ cat(controlling_vars %>% as.yaml())
 ```
 
 
-# Quality life increment for reinterventions
-
-```{r echo=FALSE, include=FALSE}
-lapply(1:6, function(y_){
-  odi <- "{y_}Y. ODI - Score (%)" %>% f
-  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
-  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
-  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
-  mcs <- "{y_}Y. SF36 - MCS" %>% f
-  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
-  pcs <- "{y_}Y. SF36 - PCS" %>% f
-  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
-  
-  clinical_data[, .(
-    odi=get(odi) - get(odi_base), 
-    srss=get(srss) - get(srss_base), 
-    mcs=get(mcs) - get(mcs_base), 
-    pcs=get(pcs) - get(pcs_base),
-    patient_id=`Code of the patient`)] ->
-    patient_quality
-  
-  time_evolution %>% 
-    .[diff_years < y_, ] %>% 
-    .[, .(last_operation= max(diff_years)), .(patient_id)] %>% 
-    .[, last_operation := as.numeric(last_operation)] %>% 
-    merge(patient_quality, by='patient_id') %>% 
-    .[, outcome_year:=y_] ->
-    res
-  
-  get_lm_info <- function(data_, name){
-    "{name}~last_operation" %>% f %>% as.formula() %>% 
-    lm(data=data_) %>% summary %>% .$coefficients %>% 
-      .[2, c(1, 2)] %>% round(1) -> lm_info
-    
-    "{lm_info[1]}\n({lm_info[2]})" %>% f
-  }
-  
-  res %>% 
-    .[, odi_info:=get_lm_info(.SD, 'odi')] %>% 
-    .[, srss_info:=get_lm_info(.SD, 'srss')] %>% 
-    .[, mcs_info:=get_lm_info(.SD, 'mcs')] %>% 
-    .[, pcs_info:=get_lm_info(.SD, 'pcs')]
-  
-  return(res)
-}) %>% 
-  do.call(rbind, .) -> 
-  res
-```
-
-
-```{r echo=FALSE, warning=FALSE}
-info.labs <- res[, .(info=unique(odi_info)), .(outcome_year)]
-outcome_year.labs <- info.labs[, info]
-names(outcome_year.labs) <- info.labs[, outcome_year]
-
-res %>% 
-  ggplot(aes(last_operation, odi)) +
-  geom_point() +
-  geom_jitter(width=0.005) +
-  ggtitle('ODI Score increment') +
-  geom_smooth(method='lm') +
-  facet_grid(outcome_year~., 
-    labeller=labeller(outcome_year=outcome_year.labs))
-```
-
-
-```{r echo=FALSE, warning=FALSE}
-info.labs <- res[, .(info=unique(srss_info)), .(outcome_year)]
-outcome_year.labs <- info.labs[, info]
-names(outcome_year.labs) <- info.labs[, outcome_year]
-
-res %>% 
-  ggplot(aes(last_operation, srss)) +
-  geom_point() +
-  geom_jitter(width=0.005) +
-  geom_smooth(method='lm') +
-  ggtitle('SRS22 Subtotal increment') +
-  facet_grid(outcome_year~., 
-    labeller=labeller(outcome_year=outcome_year.labs))
-```
-
-
-```{r echo=FALSE, warning=FALSE}
-info.labs <- res[, .(info=unique(mcs_info)), .(outcome_year)]
-outcome_year.labs <- info.labs[, info]
-names(outcome_year.labs) <- info.labs[, outcome_year]
-
-res %>% 
-  ggplot(aes(last_operation, mcs)) +
-  geom_point() +
-  geom_jitter(width=0.005) +
-  geom_smooth(method='lm') +
-  ggtitle('SF36 - MCS increment') +
-  facet_grid(outcome_year~., 
-    labeller=labeller(outcome_year=outcome_year.labs))
-```
-
-```{r echo=FALSE, warning=FALSE}
-info.labs <- res[, .(info=unique(pcs_info)), .(outcome_year)]
-outcome_year.labs <- info.labs[, info]
-names(outcome_year.labs) <- info.labs[, outcome_year]
-
-res %>% 
-  ggplot(aes(last_operation, pcs)) +
-  geom_point() +
-  geom_jitter(width=0.005) +
-  geom_smooth(method='lm') +
-  ggtitle('SF36 - MCS increment') +
-  facet_grid(outcome_year~., 
-    labeller=labeller(outcome_year=outcome_year.labs))
-```
-
-### Had Intervention
-
-For each outcome year, whether the pacient had an intervention before the questionaire
-```{r echo=FALSE, warning=FALSE}
-res %>% 
-  ggplot(aes(last_operation, pcs)) +
-  geom_point() +
-  geom_jitter(width=0.005) +
-  geom_smooth(method='lm') +
-  ggtitle('SF36 - PCS increment') +
-  facet_grid(outcome_year~.)
-```
-
-```{r echo=FALSE, warning=FALSE}
-lapply(1:6, function(y_){
-  odi <- "{y_}Y. ODI - Score (%)" %>% f
-  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
-  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
-  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
-  mcs <- "{y_}Y. SF36 - MCS" %>% f
-  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
-  pcs <- "{y_}Y. SF36 - PCS" %>% f
-  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
-  
-  clinical_data[, .(
-    odi=get(odi) - get(odi_base), 
-    srss=get(srss) - get(srss_base), 
-    mcs=get(mcs) - get(mcs_base), 
-    pcs=get(pcs) - get(pcs_base),
-    patient_id=`Code of the patient`)] ->
-    patient_quality
-  
-  time_evolution %>% 
-    .[diff_years < y_, ] %>% 
-    .[, reint_num:=as.numeric(as.character(reintervention))] %>% 
-    .[, had_reintervention := max(reint_num) > 0, patient_id] %>% 
-    merge(patient_quality, by='patient_id') %>% 
-    .[, outcome_year:=factor(y_)] ->
-    res
-  
-  return(res)
-}) %>% 
-  do.call(rbind, .) -> 
-  res
-```
-
-
-```{r echo=FALSE}
-res %>% 
-  ggplot(aes(outcome_year, odi, fill=had_reintervention)) +
-  geom_boxplot(position = "dodge2") +
-  ggtitle('ODI Score increment')
-```
-
-
-```{r echo=FALSE}
-res %>% 
-  ggplot(aes(outcome_year, srss, fill=had_reintervention)) +
-  geom_boxplot(position = "dodge2") +
-  ggtitle('SRS22 Subtotal increment')
-```
-
-
-```{r echo=FALSE}
-res %>% 
-  ggplot(aes(outcome_year, mcs, fill=had_reintervention)) +
-  geom_boxplot(position = "dodge2") +
-  ggtitle('SF36 - MCS increment')
-```
-
-
-```{r echo=FALSE}
-res %>% 
-  ggplot(aes(outcome_year, pcs, fill=had_reintervention)) +
-  geom_boxplot(position = "dodge2") +
-  ggtitle('SF36 - PCS increment') 
-```
-
-
-# Had intervention evolution
-
-```{r echo=FALSE}
-lapply(1:6, function(y_){
-  odi <- "{y_}Y. ODI - Score (%)" %>% f
-  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
-  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
-  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
-  mcs <- "{y_}Y. SF36 - MCS" %>% f
-  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
-  pcs <- "{y_}Y. SF36 - PCS" %>% f
-  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
-  
-  clinical_data[, .(
-    odi=get(odi) - get(odi_base), 
-    srss=get(srss) - get(srss_base), 
-    mcs=get(mcs) - get(mcs_base), 
-    pcs=get(pcs) - get(pcs_base),
-    patient_id=`Code of the patient`)] ->
-    patient_quality
-  
-  time_evolution %>% 
-    .[diff_years < y_, ] %>% 
-    .[, sel_year:=y_] %>% 
-    .[, reint_num:=as.numeric(as.character(reintervention))] %>% 
-    .[, had_reintervention := max(reint_num) > 0, patient_id] %>% 
-    merge(patient_quality, by='patient_id') %>% 
-    .[, outcome_year:=factor(y_)] ->
-    res
-  
-  return(res)
-}) %>% 
-  do.call(rbind, .) -> 
-  res
-```
-
-Black lines are the mean value of the score
-
-```{r echo=FALSE}
-mean_val <- res[, mean(odi %>% na.omit)]
-ggplot(res, aes(sel_year, odi, color=had_reintervention)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  geom_abline(slope=0, intercept = mean_val, color='black') +
-  ggtitle('ODI Score increment')
-```
-
-
-```{r echo=FALSE}
-mean_val <- res[, mean(srss %>% na.omit)]
-ggplot(res, aes(sel_year, srss, color=had_reintervention)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  geom_abline(slope=0, intercept = mean_val, color='black') +
-  ggtitle('SRS22 Subtotal increment')
-```
-
-```{r echo=FALSE}
-mean_val <- res[, mean(mcs %>% na.omit)]
-ggplot(res, aes(sel_year, mcs, color=had_reintervention)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  geom_abline(slope=0, intercept = mean_val, color='black') +
-  ggtitle('SF36 - MCS increment')
-```
-
-```{r echo=FALSE}
-mean_val <- res[, mean(pcs %>% na.omit)]
-ggplot(res, aes(sel_year, pcs, color=had_reintervention)) +
-  geom_point() +
-  geom_smooth(method='lm') +
-  geom_abline(slope=0, intercept = mean_val, color='black') +
-  ggtitle('SF36 - PCS increment')
-```
+# Reinterventions Impact 
 
 
 ```{r echo=FALSE, include=FALSE}
@@ -312,45 +48,44 @@ lapply(1:6, function(y_){
   mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
   pcs <- "{y_}Y. SF36 - PCS" %>% f
   pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
-  
-  clinical_data %>% 
+
+  clinical_data %>%
     .[, .SD, .SDcols=c(controlling_vars, 'Code of the patient')] ->
     patient_quality
-  
+
   clinical_data[, .(
-    odi=get(odi) - get(odi_base), 
-    srss=get(srss) - get(srss_base), 
-    mcs=get(mcs) - get(mcs_base), 
+    odi=get(odi) - get(odi_base),
+    srss=get(srss) - get(srss_base),
+    mcs=get(mcs) - get(mcs_base),
     pcs=get(pcs) - get(pcs_base),
-    `Code of the patient`)] %>% 
-    merge(patient_quality, by='Code of the patient') %>% 
+    `Code of the patient`)] %>%
+    merge(patient_quality, by='Code of the patient') %>%
     setnames('Code of the patient', 'patient_id')->
     patient_quality
-  
-  time_evolution %>% 
-    .[diff_years < y_, ] %>% 
-    .[, reintervention:=as.numeric(as.character(reintervention))] %>% 
+
+  time_evolution %>%
+    .[diff_years < y_, ] %>%
+    .[, reintervention:=as.numeric(as.character(reintervention))] %>%
     .[, .(
       had_reintervention = max(reintervention) > 0,
       years_last_op = y_ - max(diff_years),
-      reint_n = max(reintervention), 
+      reint_n = max(reintervention),
       blood_loss = max(blood_loss),
       surgical_time = max(surgical_time),
       hospitalization_time = max(hospitalization_time)
-      ), .(patient_id)] %>% 
-    merge(patient_quality, by='patient_id') %>% 
+      ), .(patient_id, prior_group)] %>%
+    merge(patient_quality, by='patient_id') %>%
     .[, outcome_year:=y_] ->
     res
-  
-  
+
+
   return(res)
-}) %>% 
-  do.call(rbind, .) -> 
+}) %>%
+  do.call(rbind, .) ->
   res
 
 ```
 
-# Reinterventions Impact 
 
 
 
@@ -423,284 +158,640 @@ estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%
   datatable
 ```
 
-# Time Last Operation Impact 
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(years_last_op, odi, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('ODI Score increment') ->
-  data_plot
-print(data_plot)
+# Impact by prior surgery groups
 
-impact_var <- 'years_last_op'
+```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
+
+impact_var <- 'reint_n'
 outcome <- 'odi'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+controlling_vars_ <- controlling_vars
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
+prior_groups <- res[, prior_group %>% unique] %>% sort
+htmltools::h4(outcome)
+for( prior_group_name in prior_groups){
+  print(prior_group_name)
+  cat('\n')
+  res %>% 
+    .[prior_group==prior_group_name] %>% 
+    .[, prior_group := NULL] ->
+    res_group
+  
+  res_group %>% 
+    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
+}
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(years_last_op, srss, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('SRSS Score increment') ->
-  data_plot
-print(data_plot)
+```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
 
-impact_var <- 'years_last_op'
+impact_var <- 'reint_n'
 outcome <- 'srss'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+controlling_vars_ <- controlling_vars
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
+prior_groups <- res[, prior_group %>% unique] %>% sort
+htmltools::h4(outcome)
+for( prior_group_name in prior_groups){
+  print(prior_group_name)
+  cat('\n')
+  res %>% 
+    .[prior_group==prior_group_name] %>% 
+    .[, prior_group := NULL] ->
+    res_group
+  
+  res_group %>% 
+    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
+}
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(years_last_op, pcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('PCS Score increment') ->
-  data_plot
-print(data_plot)
+```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
 
-impact_var <- 'years_last_op'
+impact_var <- 'reint_n'
 outcome <- 'pcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+controlling_vars_ <- controlling_vars
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
+prior_groups <- res[, prior_group %>% unique] %>% sort
+htmltools::h4(outcome)
+for( prior_group_name in prior_groups){
+  print(prior_group_name)
+  cat('\n')
+  res %>% 
+    .[prior_group==prior_group_name] %>% 
+    .[, prior_group := NULL] ->
+    res_group
+  
+  res_group %>% 
+    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
+}
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(years_last_op, mcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('MCS Score increment') ->
-  data_plot
-print(data_plot)
 
-impact_var <- 'years_last_op'
+```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
+
+impact_var <- 'reint_n'
 outcome <- 'mcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+controlling_vars_ <- controlling_vars
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
+prior_groups <- res[, prior_group %>% unique] %>% sort
+htmltools::h4(outcome)
+for( prior_group_name in prior_groups){
+  print(prior_group_name)
+  cat('\n')
+  res %>% 
+    .[prior_group==prior_group_name] %>% 
+    .[, prior_group := NULL] ->
+    res_group
+  
+  res_group %>% 
+    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
+}
 ```
 
-# Hospitalizaion Time Impact 
+<!-- # Time Last Operation Impact  -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(hospitalization_time, odi, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('ODI Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(years_last_op, odi, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('ODI Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'hospitalization_time'
-outcome <- 'odi'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'years_last_op' -->
+<!-- outcome <- 'odi' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(hospitalization_time, srss, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('SRSS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(years_last_op, srss, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('SRSS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'hospitalization_time'
-outcome <- 'srss'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'years_last_op' -->
+<!-- outcome <- 'srss' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(hospitalization_time, pcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('PCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(years_last_op, pcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('PCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'hospitalization_time'
-outcome <- 'pcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'years_last_op' -->
+<!-- outcome <- 'pcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(hospitalization_time, mcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('MCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(years_last_op, mcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('MCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'hospitalization_time'
-outcome <- 'mcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'years_last_op' -->
+<!-- outcome <- 'mcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-# Blood Loss Impact 
+<!-- # Hospitalizaion Time Impact  -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(blood_loss, odi, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('ODI Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(hospitalization_time, odi, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('ODI Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'blood_loss'
-outcome <- 'odi'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'hospitalization_time' -->
+<!-- outcome <- 'odi' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(blood_loss, srss, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('SRSS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(hospitalization_time, srss, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('SRSS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'blood_loss'
-outcome <- 'srss'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'hospitalization_time' -->
+<!-- outcome <- 'srss' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(blood_loss, pcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('PCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(hospitalization_time, pcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('PCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'blood_loss'
-outcome <- 'pcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'hospitalization_time' -->
+<!-- outcome <- 'pcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(blood_loss, mcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('MCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(hospitalization_time, mcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('MCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'blood_loss'
-outcome <- 'mcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'hospitalization_time' -->
+<!-- outcome <- 'mcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-# Surgical Time Impact 
+<!-- # Blood Loss Impact  -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(surgical_time, odi, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('ODI Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(blood_loss, odi, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('ODI Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'surgical_time'
-outcome <- 'odi'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'blood_loss' -->
+<!-- outcome <- 'odi' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(surgical_time, srss, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('SRSS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(blood_loss, srss, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('SRSS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'surgical_time'
-outcome <- 'srss'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'blood_loss' -->
+<!-- outcome <- 'srss' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(surgical_time, pcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('PCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(blood_loss, pcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('PCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'surgical_time'
-outcome <- 'pcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'blood_loss' -->
+<!-- outcome <- 'pcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE}
-res %>% 
-  ggplot(aes(surgical_time, mcs, color=factor(outcome_year))) +
-  geom_point(aes()) +
-  geom_smooth(method='lm', se = FALSE) +
-  ggtitle('MCS Score increment') ->
-  data_plot
-print(data_plot)
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(blood_loss, mcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('MCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
 
-impact_var <- 'surgical_time'
-outcome <- 'mcs'
-controlling_vars_ <- c(controlling_vars, 'reint_n')
+<!-- impact_var <- 'blood_loss' -->
+<!-- outcome <- 'mcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
 
-estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
-  datatable
-```
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
+
+<!-- # Surgical Time Impact  -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(surgical_time, odi, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('ODI Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
+
+<!-- impact_var <- 'surgical_time' -->
+<!-- outcome <- 'odi' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
+
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(surgical_time, srss, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('SRSS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
+
+<!-- impact_var <- 'surgical_time' -->
+<!-- outcome <- 'srss' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
+
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(surgical_time, pcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('PCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
+
+<!-- impact_var <- 'surgical_time' -->
+<!-- outcome <- 'pcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
+
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(surgical_time, mcs, color=factor(outcome_year))) + -->
+<!--   geom_point(aes()) + -->
+<!--   geom_smooth(method='lm', se = FALSE) + -->
+<!--   ggtitle('MCS Score increment') -> -->
+<!--   data_plot -->
+<!-- print(data_plot) -->
+
+<!-- impact_var <- 'surgical_time' -->
+<!-- outcome <- 'mcs' -->
+<!-- controlling_vars_ <- c(controlling_vars, 'reint_n') -->
+
+<!-- estimate_impacts(res, outcome, impact_var, controlling_vars_) %>%  -->
+<!--   datatable -->
+<!-- ``` -->
+
+
+
+<!-- # Quality life increment for reinterventions -->
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- lapply(1:6, function(y_){ -->
+<!--   odi <- "{y_}Y. ODI - Score (%)" %>% f -->
+<!--   odi_base <- odi %>% get_base_outcome(first_visit=TRUE) -->
+<!--   srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f -->
+<!--   srss_base <- srss %>% get_base_outcome(first_visit=TRUE) -->
+<!--   mcs <- "{y_}Y. SF36 - MCS" %>% f -->
+<!--   mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE) -->
+<!--   pcs <- "{y_}Y. SF36 - PCS" %>% f -->
+<!--   pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE) -->
+
+<!--   clinical_data[, .( -->
+<!--     odi=get(odi) - get(odi_base),  -->
+<!--     srss=get(srss) - get(srss_base),  -->
+<!--     mcs=get(mcs) - get(mcs_base),  -->
+<!--     pcs=get(pcs) - get(pcs_base), -->
+<!--     patient_id=`Code of the patient`)] -> -->
+<!--     patient_quality -->
+
+<!--   time_evolution %>%  -->
+<!--     .[diff_years < y_, ] %>%  -->
+<!--     .[, .(last_operation= max(diff_years)), .(patient_id)] %>%  -->
+<!--     .[, last_operation := as.numeric(last_operation)] %>%  -->
+<!--     merge(patient_quality, by='patient_id') %>%  -->
+<!--     .[, outcome_year:=y_] -> -->
+<!--     res -->
+
+<!--   get_lm_info <- function(data_, name){ -->
+<!--     "{name}~last_operation" %>% f %>% as.formula() %>%  -->
+<!--     lm(data=data_) %>% summary %>% .$coefficients %>%  -->
+<!--       .[2, c(1, 2)] %>% round(1) -> lm_info -->
+
+<!--     "{lm_info[1]}\n({lm_info[2]})" %>% f -->
+<!--   } -->
+
+<!--   res %>%  -->
+<!--     .[, odi_info:=get_lm_info(.SD, 'odi')] %>%  -->
+<!--     .[, srss_info:=get_lm_info(.SD, 'srss')] %>%  -->
+<!--     .[, mcs_info:=get_lm_info(.SD, 'mcs')] %>%  -->
+<!--     .[, pcs_info:=get_lm_info(.SD, 'pcs')] -->
+
+<!--   return(res) -->
+<!-- }) %>%  -->
+<!--   do.call(rbind, .) ->  -->
+<!--   res -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- info.labs <- res[, .(info=unique(odi_info)), .(outcome_year)] -->
+<!-- outcome_year.labs <- info.labs[, info] -->
+<!-- names(outcome_year.labs) <- info.labs[, outcome_year] -->
+
+<!-- res %>%  -->
+<!--   ggplot(aes(last_operation, odi)) + -->
+<!--   geom_point() + -->
+<!--   geom_jitter(width=0.005) + -->
+<!--   ggtitle('ODI Score increment') + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   facet_grid(outcome_year~.,  -->
+<!--     labeller=labeller(outcome_year=outcome_year.labs)) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- info.labs <- res[, .(info=unique(srss_info)), .(outcome_year)] -->
+<!-- outcome_year.labs <- info.labs[, info] -->
+<!-- names(outcome_year.labs) <- info.labs[, outcome_year] -->
+
+<!-- res %>%  -->
+<!--   ggplot(aes(last_operation, srss)) + -->
+<!--   geom_point() + -->
+<!--   geom_jitter(width=0.005) + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   ggtitle('SRS22 Subtotal increment') + -->
+<!--   facet_grid(outcome_year~.,  -->
+<!--     labeller=labeller(outcome_year=outcome_year.labs)) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- info.labs <- res[, .(info=unique(mcs_info)), .(outcome_year)] -->
+<!-- outcome_year.labs <- info.labs[, info] -->
+<!-- names(outcome_year.labs) <- info.labs[, outcome_year] -->
+
+<!-- res %>%  -->
+<!--   ggplot(aes(last_operation, mcs)) + -->
+<!--   geom_point() + -->
+<!--   geom_jitter(width=0.005) + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   ggtitle('SF36 - MCS increment') + -->
+<!--   facet_grid(outcome_year~.,  -->
+<!--     labeller=labeller(outcome_year=outcome_year.labs)) -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- info.labs <- res[, .(info=unique(pcs_info)), .(outcome_year)] -->
+<!-- outcome_year.labs <- info.labs[, info] -->
+<!-- names(outcome_year.labs) <- info.labs[, outcome_year] -->
+
+<!-- res %>%  -->
+<!--   ggplot(aes(last_operation, pcs)) + -->
+<!--   geom_point() + -->
+<!--   geom_jitter(width=0.005) + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   ggtitle('SF36 - MCS increment') + -->
+<!--   facet_grid(outcome_year~.,  -->
+<!--     labeller=labeller(outcome_year=outcome_year.labs)) -->
+<!-- ``` -->
+
+<!-- ### Had Intervention -->
+
+<!-- For each outcome year, whether the pacient had an intervention before the questionaire -->
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(last_operation, pcs)) + -->
+<!--   geom_point() + -->
+<!--   geom_jitter(width=0.005) + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   ggtitle('SF36 - PCS increment') + -->
+<!--   facet_grid(outcome_year~.) -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE} -->
+<!-- lapply(1:6, function(y_){ -->
+<!--   odi <- "{y_}Y. ODI - Score (%)" %>% f -->
+<!--   odi_base <- odi %>% get_base_outcome(first_visit=TRUE) -->
+<!--   srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f -->
+<!--   srss_base <- srss %>% get_base_outcome(first_visit=TRUE) -->
+<!--   mcs <- "{y_}Y. SF36 - MCS" %>% f -->
+<!--   mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE) -->
+<!--   pcs <- "{y_}Y. SF36 - PCS" %>% f -->
+<!--   pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE) -->
+
+<!--   clinical_data[, .( -->
+<!--     odi=get(odi) - get(odi_base),  -->
+<!--     srss=get(srss) - get(srss_base),  -->
+<!--     mcs=get(mcs) - get(mcs_base),  -->
+<!--     pcs=get(pcs) - get(pcs_base), -->
+<!--     patient_id=`Code of the patient`)] -> -->
+<!--     patient_quality -->
+
+<!--   time_evolution %>%  -->
+<!--     .[diff_years < y_, ] %>%  -->
+<!--     .[, reint_num:=as.numeric(as.character(reintervention))] %>%  -->
+<!--     .[, had_reintervention := max(reint_num) > 0, patient_id] %>%  -->
+<!--     merge(patient_quality, by='patient_id') %>%  -->
+<!--     .[, outcome_year:=factor(y_)] -> -->
+<!--     res -->
+
+<!--   return(res) -->
+<!-- }) %>%  -->
+<!--   do.call(rbind, .) ->  -->
+<!--   res -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(outcome_year, odi, fill=had_reintervention)) + -->
+<!--   geom_boxplot(position = "dodge2") + -->
+<!--   ggtitle('ODI Score increment') -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(outcome_year, srss, fill=had_reintervention)) + -->
+<!--   geom_boxplot(position = "dodge2") + -->
+<!--   ggtitle('SRS22 Subtotal increment') -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(outcome_year, mcs, fill=had_reintervention)) + -->
+<!--   geom_boxplot(position = "dodge2") + -->
+<!--   ggtitle('SF36 - MCS increment') -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE} -->
+<!-- res %>%  -->
+<!--   ggplot(aes(outcome_year, pcs, fill=had_reintervention)) + -->
+<!--   geom_boxplot(position = "dodge2") + -->
+<!--   ggtitle('SF36 - PCS increment')  -->
+<!-- ``` -->
+
+
+<!-- # Had intervention evolution -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- lapply(1:6, function(y_){ -->
+<!--   odi <- "{y_}Y. ODI - Score (%)" %>% f -->
+<!--   odi_base <- odi %>% get_base_outcome(first_visit=TRUE) -->
+<!--   srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f -->
+<!--   srss_base <- srss %>% get_base_outcome(first_visit=TRUE) -->
+<!--   mcs <- "{y_}Y. SF36 - MCS" %>% f -->
+<!--   mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE) -->
+<!--   pcs <- "{y_}Y. SF36 - PCS" %>% f -->
+<!--   pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE) -->
+
+<!--   clinical_data[, .( -->
+<!--     odi=get(odi) - get(odi_base),  -->
+<!--     srss=get(srss) - get(srss_base),  -->
+<!--     mcs=get(mcs) - get(mcs_base),  -->
+<!--     pcs=get(pcs) - get(pcs_base), -->
+<!--     patient_id=`Code of the patient`)] -> -->
+<!--     patient_quality -->
+
+<!--   time_evolution %>%  -->
+<!--     .[diff_years < y_, ] %>%  -->
+<!--     .[, sel_year:=y_] %>%  -->
+<!--     .[, reint_num:=as.numeric(as.character(reintervention))] %>%  -->
+<!--     .[, had_reintervention := max(reint_num) > 0, patient_id] %>%  -->
+<!--     merge(patient_quality, by='patient_id') %>%  -->
+<!--     .[, outcome_year:=factor(y_)] -> -->
+<!--     res -->
+
+<!--   return(res) -->
+<!-- }) %>%  -->
+<!--   do.call(rbind, .) ->  -->
+<!--   res -->
+<!-- ``` -->
+
+<!-- Black lines are the mean value of the score -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- mean_val <- res[, mean(odi %>% na.omit)] -->
+<!-- ggplot(res, aes(sel_year, odi, color=had_reintervention)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   geom_abline(slope=0, intercept = mean_val, color='black') + -->
+<!--   ggtitle('ODI Score increment') -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE} -->
+<!-- mean_val <- res[, mean(srss %>% na.omit)] -->
+<!-- ggplot(res, aes(sel_year, srss, color=had_reintervention)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   geom_abline(slope=0, intercept = mean_val, color='black') + -->
+<!--   ggtitle('SRS22 Subtotal increment') -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- mean_val <- res[, mean(mcs %>% na.omit)] -->
+<!-- ggplot(res, aes(sel_year, mcs, color=had_reintervention)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   geom_abline(slope=0, intercept = mean_val, color='black') + -->
+<!--   ggtitle('SF36 - MCS increment') -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- mean_val <- res[, mean(pcs %>% na.omit)] -->
+<!-- ggplot(res, aes(sel_year, pcs, color=had_reintervention)) + -->
+<!--   geom_point() + -->
+<!--   geom_smooth(method='lm') + -->
+<!--   geom_abline(slope=0, intercept = mean_val, color='black') + -->
+<!--   ggtitle('SF36 - PCS increment') -->
+<!-- ``` -->
 
 

@@ -37,7 +37,32 @@ complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
   .[`Complication Impact` == 'Major Complication']
 
-demographics <- read_yaml('code/five_years/demographic.yml')$demographic
+
+reinterventions <- read_excel(XLS_PATH, sheet = "Rev surgeries") %>%
+  data.table
+
+data_set_0 %>% 
+  .[, .(
+    `Code of the patient`, 
+    stage_date=`st1. Date of Stage 1`
+  )]  %>% 
+  rbind(
+    reinterventions %>% 
+      .[, .(
+        `Code of the patient`, 
+        stage_date=`st1. Date of Stage 1`
+      )]    
+  ) %>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, 
+    `Code of the patient`] %>% 
+  .[diff_years > 0] ->
+  reinterventions
+
+
+demographics <- read_yaml('code/five_years/demographic.yml')
+demographics_all <- demographics %>% unlist
+
 
 outcomes %>% 
   lapply(. %>% str_replace_all('5', '2')) ->
@@ -64,7 +89,7 @@ outcome <- outcomes[[1]]
 
 
 study_vars <- c(
-  outcomes, outcomes_2y %>% unlist, demographics, base_outcomes, 'Code of the patient'
+  outcomes, outcomes_2y %>% unlist, demographics_all, base_outcomes, 'Code of the patient'
 ) %>% unique
 data_set %<>% 
   .[Study=='Op'] %>% 
@@ -88,43 +113,213 @@ complication_types <- complication_types %!in% "Central neurologic complications
 ```{r echo=FALSE}
 complication_type <- complication_types[1]
 
-demo_plots <- plot_complications(complication_type, complications, data_set, demographics)
+# demo_plots <- plot_complications(complication_type, complications, data_set, demographics_all)
 ```
 
 ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-htmltools::h1(complication_type)
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+# htmltools::h1(complication_type)
+# do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
+
+
+htmltools::h3(complication_type)
+models <- variable_effect(data_, 'complication_2y_5y', 'complication_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
 ```
 
 ```{r echo=FALSE}
 complication_type <- complication_types[2]
 
-demo_plots <- plot_complications(complication_type, complications, data_set, demographics)
+# demo_plots <- plot_complications(complication_type, complications, data_set, demographics_all)
 ```
 
 ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-htmltools::h1(complication_type)
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+# htmltools::h1(complication_type)
+# do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
 ```
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
+
+
+htmltools::h3(complication_type)
+models <- variable_effect(data_, 'complication_2y_5y', 'complication_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
 
 ```{r echo=FALSE}
 complication_type <- complication_types[3]
 
-demo_plots <- plot_complications(complication_type, complications, data_set, demographics)
+# demo_plots <- plot_complications(complication_type, complications, data_set, demographics_all)
 ```
 
 ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-htmltools::h1(complication_type)
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+# htmltools::h1(complication_type)
+# do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+```
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
+
+
+htmltools::h3(complication_type)
+models <- variable_effect(data_, 'complication_2y_5y', 'complication_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
 ```
 
 ```{r echo=FALSE}
 complication_type <- complication_types[4]
 
-demo_plots <- plot_complications(complication_type, complications, data_set, demographics)
+# demo_plots <- plot_complications(complication_type, complications, data_set, demographics_all)
 ```
 
 ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-htmltools::h1(complication_type)
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
+# htmltools::h1(complication_type)
+# do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
 ```
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` == complication_type, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
+
+
+htmltools::h3(complication_type)
+models <- variable_effect(data_, 'complication_2y_5y', 'complication_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+
+# Reinterventions
+
+```{r echo=FALSE, comment=""}
+
+reinterventions_2y <- reinterventions %>%
+  .[diff_years < 2, .(reinterventions_before_2y=.N*1.0), `Code of the patient`]
+reinterventions_5y <- reinterventions %>%
+  .[2 <= diff_years & diff_years <= 5, .(reinterventions_2y_5y=.N*1.0), `Code of the patient`]
+
+
+data_ <- data_set %>%
+  copy %>%
+  merge(reinterventions_2y, all.x=TRUE, all.y=FALSE, by="Code of the patient") %>% 
+  .[is.na(reinterventions_before_2y), reinterventions_2y:= 0] %>% 
+  merge(reinterventions_5y, all.x=TRUE, all.y=FALSE, by="Code of the patient") %>% 
+  .[is.na(reinterventions_2y_5y), reinterventions_2y_5y:= 0]
+  
+htmltools::h3('Number of reinterventions')
+models <- variable_effect(data_, 'reinterventions_2y_5y', 'reinterventions_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+
+# Impact of complications on followup
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == FALSE, complication_2y_5y:=NA]
+
+
+data_[
+  followup_2y=='has_followup'
+][,
+  .SD, .SDcols=c(demographics_all, 'complication_before_2y', 'followup_5y')
+][,
+  followup_5y := ifelse(followup_5y=='has_followup', 1, 0)
+]  %>% 
+glm(followup_5y~., data=.) %>% summary
+```
+

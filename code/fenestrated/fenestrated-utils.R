@@ -7,6 +7,7 @@ library(stringr)
 source('code/basic.R')
 source('code/utils.R')
 
+
 get_data <- function(){
   
   matching_vars <- read_yaml('code/fenestrated/matching_vars.yml')
@@ -61,3 +62,57 @@ get_data <- function(){
   ))
 }
 
+# 
+# ## Stats
+# comps <- fread('data/Fenestrated screws/Complications tots.csv')
+# 
+# comps %>%
+#   .[, `Code of the patient`] %>%
+#   unique ->
+#   patients_complications
+# 
+# comps %>%
+#   .[`Complication Impact`=='Major Complication', `Code of the patient`] %>%
+#   unique ->
+#   patients_major_complications
+# 
+# dps <- fread('data/Fenestrated screws/DPS ops.csv') %>%
+#   setnames('Fenestrated screws with or without cement', 'fenestrated') %>%
+#   .[, complication:='No'] %>%
+#   .[`Code of the patient` %in% patients_complications, complication :='Yes'] %>%
+#   .[, major_complication:='No'] %>%
+#   .[`Code of the patient` %in% patients_major_complications, major_complication :='Yes']
+# 
+# fenestrated_patients <- dps[
+#   fenestrated == 'Yes',
+#   `Code of the patient`]
+# 
+# 
+# comps[`Code of the patient` %in% fenestrated_patients, .N, `Complication Impact`]
+# 
+# comps %>%
+#   .[`Code of the patient` %in% fenestrated_patients, .N, `Name of the complication`] %>%
+#   .[, proportion := round(N/sum(N)*100, 1)]  %>%
+#   fwrite('code/fenestrated/stats_complications.csv')
+# 
+# dps[, .(
+#   .N,
+#   complications=mean(complication=='Yes') * 100,
+#   complications_sd=sd(complication=='Yes') * 100,
+#   major_complications=mean(major_complication=='Yes') *100,
+#   major_complications_sd=sd(major_complication=='Yes') * 100
+# ), fenestrated]
+# 
+# dps[fenestrated=='Yes', complication]
+# 
+# dps[, .(complications=sum(complication=='Yes'), .N), fenestrated] %>%
+#   as.data.frame %>% .[, c(2, 3)] %>% t -> res
+# 
+# res_test <- prop.test(x = res[1, ], n = res[2, ])
+# res_test$p.value
+# 
+# dps[, .(complications=sum(major_complication=='Yes'), .N), fenestrated] %>%
+#   as.data.frame %>% .[, c(2, 3)] %>% t -> res
+# 
+# res_test <- prop.test(x = res[1, ], n = res[2, ])
+# res_test$p.value

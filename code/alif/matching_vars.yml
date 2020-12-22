@@ -24,6 +24,10 @@ covariates:
   - Ideal LL
   - Lordosis (top of L1-S1)
   - RLL
+  - RSA
+  - RPV
+  # - Surgical Approach
+  - Cobb LS curve (Degree)
   # - LDI : removed
   # - Roussouly Type : removed
   - Number of Interbody Fusions

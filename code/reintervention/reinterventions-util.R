@@ -4,6 +4,7 @@ library(data.table)
 library(stringr)
 library(yaml)
 library(ggplot2)
+library(Hmisc)
 
 
 get_data <- function(only_two_years=TRUE){
@@ -33,6 +34,18 @@ get_data <- function(only_two_years=TRUE){
   complications <- get_complications(complications)
   category_los <- get_category_los(clinical_data, rev_patient_data, complications)
   
+  groups <- get_prior_groups()
+  
+  time_evolution[, prior_group:='none']
+  complications[, prior_group:='none']
+  category_los[, prior_group:='none']
+  for(group_name in groups %>% names){
+    group <- groups[[group_name]]
+    time_evolution[patient_id %in% group, prior_group:=group_name]
+    complications[patient_id %in% group, prior_group:=group_name]
+    category_los[patient_id %in% group, prior_group:=group_name]
+  }
+  
   return(list(
     time_evolution, 
     complications, 
@@ -40,6 +53,36 @@ get_data <- function(only_two_years=TRUE){
     clinical_data
   ))
 }
+
+get_prior_groups <- function(){
+  prev_surgeries <- read_excel('data/Previous surgeries.xlsx') %>% 
+    as.data.table
+  
+  groups <- list()
+  
+  groups[['a']] <- prev_surgeries[, any(`Decompression (yes/no)` == 'Yes') & all(`Fusion (yes/no)` == 'No'), 
+    `Code of the patient`] %>% 
+    .[V1==TRUE] %>% 
+    .[, `Code of the patient`]
+    
+  groups[['b']] <- prev_surgeries[, max(`Fusion nb`, na.rm = TRUE), `Code of the patient`] %>% 
+    .[0 < V1 & V1 < 4] %>% 
+    .[, `Code of the patient`]
+  
+  groups[['c']] <- prev_surgeries[, max(`Fusion nb`, na.rm = TRUE), `Code of the patient`] %>% 
+    .[V1 >= 4] %>% 
+    .[, `Code of the patient`]
+  
+  # groups[['c_1']] <- prev_surgeries[`Code of the patient` %in% groups[['c']]] %>% 
+  #   .[grepl('Iliac', `Fusion upper-lower levels`) | 
+  #       `Pedicle subtraction osteotomy yes/no` == 'Yes', ]
+  # 
+  # groups[['c_2']] <- prev_surgeries[`Code of the patient` %in% groups[['c']]] %>% 
+  #   .[!(`Code of the patient` %in% groups[['c_1']]), ]
+  
+  return(groups)
+}
+    
 
 get_category_los <- function(clinical_data, rev_patient_data, complications){
   rev_patient_data[, 
@@ -168,13 +211,17 @@ plot_evolution <- function(dt, value_title=''){
   dt %>% 
     .[, .(
       prop=mean(condition),
+      x = sum(condition),
       N=.N),
       reintervention] %>% 
     .[, ci:=1.96*sqrt(prop*(1-prop)/N)] ->
     res
+  
   res %>% 
-    .[, ymin:=max(prop-ci, 0), 1:nrow(res)] %>% 
-    .[, ymax:=min(prop+ci, 1), 1:nrow(res)] %>% 
+    .[, ymin:=binconf(x, N)[2], 1:nrow(res)] %>% 
+    .[, ymax:=binconf(x, N)[3], 1:nrow(res)] %>% 
+    # .[, ymin:=max(prop-ci, 0), 1:nrow(res)] %>% 
+    # .[, ymax:=min(prop+ci, 1), 1:nrow(res)] %>% 
     ggplot(aes(reintervention, y=prop, group=1)) +
     geom_line() +
     geom_ribbon(
@@ -186,23 +233,53 @@ plot_evolution <- function(dt, value_title=''){
     xlab('Reintervention') ->
     res_plot
   
-  return(res_plot)
+  dt %>%
+    copy() %>% 
+    .[, reintervention:= as.numeric(as.character(reintervention))] %>% 
+    .[reintervention <= 3] %>% 
+    .[, condition:=ifelse(condition == TRUE, 1, 0)] ->
+    lm_data
+  
+  glm(condition~reintervention, data=lm_data) %>% 
+    summary %>% coefficients ->
+    res_lm
+  
+  return(list(
+    res_plot=res_plot,
+    res_lm=res_lm
+  ))
 }
 
-estimate_impacts <- function(res, outcome, impact_var, controlling_vars_){
+estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_years=1:6){
   reg_formula <- "{outcome} ~ ." %>% f %>% formula
   coef_res <- data.frame()
-  for( y_ in 1:6 ){
-    res[outcome_year==y_] %>% 
+  for( y_ in sel_years ){
+    res_[outcome_year==y_] %>% 
       .[, .SD, .SDcols=c(outcome, impact_var, controlling_vars_)] %>% 
+      na.omit ->
+      res_cols
+    
+    cols <- colnames(res_cols)
+    inds <- which(res_cols[, sapply(.SD, . %>% na.omit %>% uniqueN)] > 1)
+    res_cols %>% 
+      .[, .SD, .SDcols = cols[inds]] %>% 
       lm(reg_formula, data=.) %>% summary %>% coefficients() ->
       lm_res
     
     ind <- which(row.names(lm_res) == impact_var)
     stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] %>% round(3)
-    colnames(stat_res) <- c('Estimate', 'StdError', 'p_value')
-    row.names(stat_res) <- NULL
-    stat_res$outcome_year <- y_
+    if(nrow(stat_res) > 0 ){
+      colnames(stat_res) <- c('Estimate', 'StdError', 'p_value')
+      row.names(stat_res) <- NULL
+    }else{
+      stat_res <- data.frame(
+        Estimate=NA,
+        StdError=NA,
+        p_value=NA
+      )
+    }
+    stat_res$outcome_year <- y_      
+    
     coef_res %<>% rbind(stat_res)
   }
   

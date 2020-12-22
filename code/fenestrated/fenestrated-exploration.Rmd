@@ -1,6 +1,8 @@
 ---
 title: "FENESTRATED SCREWS EXPLORATION"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -16,12 +18,12 @@ library(yaml)
 source('code/fenestrated/fenestrated-utils.R')
 source('code/propensity-utils.R')
 
-tuneLenghtPropensity <- 25
+tuneLenghtPropensity <- 1
 modelsPropensity <- c('elastic')
-tuneLenghtATE <- 10
+tuneLenghtATE <- 1
 modelsATE <- c('boosting')
-replicas_boot <- 200L
-repetitions <- 300
+replicas_boot <- 2L
+repetitions <- 1
 
 
 c(sel_data, matching_vars) %<-% get_data()
