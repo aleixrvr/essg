@@ -9,7 +9,8 @@ source('code/basic.R')
 source('code/utils.R')
 source('code/train.R')
 
-XLS_PATH <- 'data/ESSG extraction July 2020_3.xlsx'
+# XLS_PATH <- 'data/ESSG extraction July 2020_3.xlsx'
+XLS_PATH <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 # outcome <- 'had_complication'
 # k_fold <- 10
@@ -76,7 +77,7 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE, 
   clinical_data <- read_excel(XLS_PATH) %>% 
     data.table
   
-  reinterventions <- read_excel(XLS_PATH, sheet = "Rev surgeries") %>%
+  reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
     data.table %>%
     .[, .(reinterventions=.N*1.0), `Code of the patient`]
   
@@ -88,7 +89,7 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE, 
   
   if( only_two_years ){
     valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
       `Code of the patient` %>% unique
     ]
     clinical_data %<>% .[`Code of the patient` %in% valid_patients]

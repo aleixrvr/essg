@@ -1,0 +1,342 @@
+---
+title: "5y complications analysis"
+output: html_document
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+library(DiagrammeR)
+
+source('code/five_years/five_years-utils.R')
+
+ncols_plots <- 2
+
+outcomes <- c(
+  '5Y. ODI - Score (%)', '5Y. SRS22 - SRS Subtotal score', '5Y. SF36 - PCS', '5Y. SF36 - MCS'
+)
+
+c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+
+complications <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>%
+  .[`Complication Impact` == 'Major Complication']
+
+
+reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
+  data.table
+
+data_set_0 %>% 
+  .[, .(
+    `Code of the patient`, 
+    stage_date=`st1. Date of Stage 1`
+  )]  %>% 
+  rbind(
+    reinterventions %>% 
+      .[, .(
+        `Code of the patient`, 
+        stage_date=`st1. Date of Stage`
+      )]    
+  ) %>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, 
+    `Code of the patient`] %>% 
+  .[diff_years > 0] ->
+  reinterventions
+
+
+demographics <- read_yaml('code/five_years/demographic.yml')
+demographics_all <- demographics %>% unlist
+
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '2')) ->
+  outcomes_2y
+names(outcomes_2y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '6')) ->
+  outcomes_6y
+names(outcomes_6y) <- outcomes
+
+outcomes %>% 
+  sapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes 
+
+for( outcome in names(outcomes_6y)){
+  outcome_6y <- outcomes_6y[[outcome]]
+  data_set %<>%
+    .[is.na(get(outcome)), c(outcome_6y) := get(outcome)]
+}
+
+outcome_2y <- outcomes_2y[[1]]
+outcome <- outcomes[[1]]
+
+
+study_vars <- c(
+  outcomes, outcomes_2y %>% unlist, demographics_all, base_outcomes, 'Code of the patient'
+) %>% unique
+data_set %<>% 
+  .[Study=='Op'] %>% 
+  .[, .SD, .SDcols=study_vars] %>% 
+  .[, followup_2y := 'has_followup'] %>% 
+  .[is.na(get(outcome_2y)), followup_2y := 'no_followup'] %>% 
+  .[, followup_5y := 'has_followup'] %>% 
+  .[is.na(get(outcome)), followup_5y := 'no_followup'] 
+
+
+```
+
+#### Only Major Complications
+
+```{r echo=FALSE}
+grViz('
+digraph rmarkdown {
+
+  graph [
+    rankdir = UD
+  ]
+  
+  node [
+    shape=circle,
+    fixedsize=true,
+    width=1.2,
+    style=filled,
+    fillcolor=aquamarine2,
+    fontsize=15
+    ]
+
+ 
+  D[label="Demographic"]
+  P[label="Personality", style="dashed"]
+  R[label="Radiologic\n(Deformity)"]
+  O[label="Outcome"]
+  H[label="Quality of\nLife"]
+  T[label="Treatment"]
+  C[label="Complications"]
+  
+  D -> R 
+  D -> O
+  R -> O
+  P -> R
+  P -> H
+  D -> H
+  H -> O
+  H -> T
+  T -> O
+  R -> T
+  T -> C
+  H -> C
+  D -> C
+  C -> O
+  R -> C
+  
+  
+  {rank=same; P;D}
+  {rank=same; R;H}
+  {rank=same; T}
+  {rank=same; C}
+  {rank=same; O}
+}                  
+')
+```
+
+
+```{r echo=FALSE}
+complication_types <- complications[, `Category of the complication` %>% unique]
+complication_types <- complication_types %!in% "Central neurologic complications"
+
+
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes']
+
+```
+
+# Stats
+
+```{r echo=FALSE,  comment=""}
+data_[, .(has_followup_2y=mean(followup_2y=='has_followup') %>% round(3)),  complication_before_2y]
+```
+
+```{r echo=FALSE,  comment=""}
+data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_before_2y]
+```
+
+<!-- ```{r echo=FALSE} -->
+<!-- data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_2y_5y] -->
+<!-- ``` -->
+
+```{r echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table
+```
+
+
+### Major Complications before 2y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+
+### Major Complications between 2y and 5y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+
+### Minor Complications before 2y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+
+### Minor Complications between 2y and 5y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+
+
+### Reinterventions before 2 years
+```{r echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+
+reinterventions %>% 
+  .[diff_years < 2] ->
+  reints_2y
+
+patients_2y <- reints_2y[, `Code of the patient` %>% unique]
+
+reinterventions %>% 
+  .[2 <= diff_years] %>% 
+  .[diff_years < 5] ->
+  reints_2y_5y
+
+patients_2y_5y <- reints_2y_5y[, `Code of the patient` %>% unique]
+
+```
+
+- Reinterventions before 2 years: `r reints_2y[, .N]`
+- Proportion of patients with reintervention before 2 years: `r len(patients_2y) / len(patients_all)`
+
+- Reinterventions between 2y and 5y: `r reints_2y_5y[, .N]`
+- Proportion of patients with reintervention between 2y and 5y: `r len(patients_2y_5y) / len(patients_all)`
+
+### Do complications before 2y affect 2y followup?
+
+```{r echo=FALSE, comment=""}
+
+conf_vars_ <- c(
+  demographics$demographic,
+  demographics$radiologic,
+  base_outcomes
+)
+
+vars_ <- c(
+  conf_vars_,
+  "complication_before_2y",
+  "followup_2y"
+)
+
+data_ %>% 
+  .[, .SD, .SDcols=vars_] %>% 
+  na.omit %>% 
+  .[, followup_2y := ifelse(followup_2y=='has_followup', 1, 0)]  %>% 
+  lm(followup_2y~., data=.) %>% summary %>% coefficients %>%  .[, c(1, 4)] %>% round(3)
+```
+
+### Do complications before 2y affect 5y followup?
+
+```{r echo=FALSE, comment=""}
+
+conf_vars_ <- c(
+  demographics$demographic,
+  demographics$radiologic,
+  base_outcomes
+)
+
+vars_ <- c(
+  conf_vars_,
+  "complication_before_2y",
+  "followup_5y"
+)
+
+data_ %>% 
+  .[, .SD, .SDcols=vars_] %>% 
+  na.omit %>% 
+  .[, followup_5y := ifelse(followup_5y=='has_followup', 1, 0)]  %>% 
+  lm(followup_5y~., data=.) %>% summary %>% coefficients %>%  .[, c(1, 4)] %>% round(3)
+```
+
+
+<!-- ### Do complications between 2y and 5y affect 5y followup? -->
+
+<!-- ```{r echo=FALSE, comment=""} -->
+
+<!-- conf_vars_ <- c( -->
+<!--   demographics$demographic, -->
+<!--   demographics$radiologic, -->
+<!--   base_outcomes -->
+<!-- ) -->
+
+<!-- vars_ <- c( -->
+<!--   conf_vars_, -->
+<!--   "complication_2y_5y", -->
+<!--   "followup_5y" -->
+<!-- ) -->
+
+<!-- data_ %>%  -->
+<!--   .[, .SD, .SDcols=vars_] %>%  -->
+<!--   na.omit %>%  -->
+<!--   .[, followup_5y := ifelse(followup_5y=='has_followup', 1, 0)]  %>%  -->
+<!--   lm(followup_5y~., data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(3) -->
+<!-- ``` -->
+
+
+

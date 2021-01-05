@@ -19,13 +19,14 @@ library(glue)
 f <- glue
 
 
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+# xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 clinical_data <- read_excel(xls_path) %>% 
   as.data.table()
 
 valid_patients <- clinical_data[
-  `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+  `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
   `Code of the patient` %>% unique
 ]
 clinical_data %<>% .[`Code of the patient` %in% valid_patients]
@@ -52,8 +53,9 @@ clinical_data[,
     `Posterior Instrumented Fusion: Upper / Lower Levels`, 
     fixed=TRUE
   )] %>% 
-  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')]
+  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')] 
 
+clinical_data[, `ASA classification` := as.factor(`ASA classification`)]
 
 vars <- read_yaml('code/descriptive.yml')
 
@@ -77,7 +79,7 @@ total_patients <- clinical_data[, `Code of the patient` %>% uniqueN]
 ```
 
 
-Number of Patients with 'st1. Date of Stage 1' < '2018-07-31':
+Number of Patients with 'st1. Date of Stage 1' < '2018-12-15':
 `r total_patients`
 
 ### Demographics

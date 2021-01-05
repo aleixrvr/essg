@@ -34,7 +34,7 @@ data_set <- data_set_0 %>%
   .[Site != "MAD Op"] %>% 
   copy
 
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%

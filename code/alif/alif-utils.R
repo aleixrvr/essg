@@ -10,11 +10,17 @@ source('code/utils.R')
 
 
 get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=FALSE){
-  xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+  # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+  xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
   
   clinical_data <- read_excel(xls_path) %>% 
     as.data.table()
+  
+  for(colname in colnames(clinical_data)){
+    clean_name <- gsub('\r\n\r\n', '', colname, fixed=TRUE)
+    setnames(clinical_data, colname, clean_name)
+  }
   
   if(evaluation==TRUE){
     matching_vars <- read_yaml('code/alif/matching_vars_evaluation.yml')
@@ -29,7 +35,7 @@ get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=
   
   if( only_two_years == TRUE ){
     valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
       `Code of the patient` %>% unique
     ]
     clinical_data %<>% .[`Code of the patient` %in% valid_patients]
@@ -58,14 +64,14 @@ get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=
       .[, Alif := ifelse(`Surgical Approach` =='Correction', 'Yes', 'No')]
   }
   
-  ideal_ll <- sel_data[['Ideal LL']]
+  ideal_ll <- sel_data[['ideal LL']]
   lordosis_top_of_l1s1 <- sel_data[['Lordosis (top of L1-S1)']]
   sel_data[, `LL-Lordosis Difference`:=ideal_ll - lordosis_top_of_l1s1]
   # sel_data[, `Ideal LL`:=NULL]
   # sel_data[, `Lordosis (top of L1-S1)`:=NULL]
   
   matching_vars$covariates %<>% c('LL-Lordosis Difference')
-  matching_vars$covariates %!in% c('Ideal LL', 'Lordosis (top of L1-S1)') ->
+  matching_vars$covariates %!in% c('ideal LL', 'Lordosis (top of L1-S1)') ->
     matching_vars$covariates
   
   matching_vars$expanded <- c(

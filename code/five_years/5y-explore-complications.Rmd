@@ -31,14 +31,14 @@ outcomes <- c(
 c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
 data_set <- data_set_0 %>% copy
 
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
   .[`Complication Impact` == 'Major Complication']
 
 
-reinterventions <- read_excel(XLS_PATH, sheet = "Rev surgeries") %>%
+reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
   data.table
 
 data_set_0 %>% 
@@ -50,7 +50,7 @@ data_set_0 %>%
     reinterventions %>% 
       .[, .(
         `Code of the patient`, 
-        stage_date=`st1. Date of Stage 1`
+        stage_date=`st1. Date of Stage`
       )]    
   ) %>% 
   .[!is.na(stage_date)] %>% 
@@ -104,11 +104,76 @@ data_set %<>%
 
 #### Only Major Complications
 
+
 ```{r echo=FALSE}
 complication_types <- complications[, `Category of the complication` %>% unique]
 complication_types <- complication_types %!in% "Central neurologic complications"
 ```
 
+## All complications
+```{r echo=FALSE, comment=""}
+
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == 'no_followup', complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == 'no_followup', complication_2y_5y:=NA]
+
+
+htmltools::h3('Major Complications')
+models <- variable_effect(data_, 'complication_2y_5y', 'complication_before_2y', demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+
+# Impact of complications on followup
+
+```{r echo=FALSE, comment=""}
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
+  .[ followup_5y == FALSE, complication_2y_5y:=NA]
+
+
+data_[
+  followup_2y=='has_followup'
+][,
+  .SD, .SDcols=c(demographics_all, 'complication_before_2y', 'followup_5y')
+][,
+  followup_5y := ifelse(followup_5y=='has_followup', 1, 0)
+]  %>% 
+glm(followup_5y~., data=.) %>% summary
+```
+
+
+## Complication Types
 
 ```{r echo=FALSE}
 complication_type <- complication_types[1]
@@ -290,36 +355,4 @@ htmltools::h5('Radiology')
 models$radiology %>% print
 ```
 
-
-
-# Impact of complications on followup
-
-```{r echo=FALSE, comment=""}
-patients_complications_5y <- complications %>%
-  .[`Days since surgery` >= 365*2 ] %>% 
-  .[`Days since surgery` < 365*5 ] %>% 
-  .[, `Code of the patient`]
-patients_complications_2y <- complications %>%
-  .[`Days since surgery` < 365*2 ] %>% 
-  .[, `Code of the patient`]
-
-data_ <- data_set %>%
-  copy %>%
-  .[, complication_before_2y:='No'] %>%
-  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
-  .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
-  .[, complication_2y_5y:='No'] %>%
-  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
-  .[ followup_5y == FALSE, complication_2y_5y:=NA]
-
-
-data_[
-  followup_2y=='has_followup'
-][,
-  .SD, .SDcols=c(demographics_all, 'complication_before_2y', 'followup_5y')
-][,
-  followup_5y := ifelse(followup_5y=='has_followup', 1, 0)
-]  %>% 
-glm(followup_5y~., data=.) %>% summary
-```
 

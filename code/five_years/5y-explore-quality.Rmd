@@ -128,13 +128,13 @@ data_set[,
   theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
 ```
 
-```{r echo=FALSE, include=FALSE}
-demo_plots <- plot_scores(data_set, outcome, demographics_all)
-```
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
 
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
 
 ```{r echo=FALSE, comment=""}
 htmltools::h3(outcome)
@@ -164,14 +164,14 @@ data_set[,
   theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
 ```
 
-```{r echo=FALSE, include=FALSE}
-demo_plots <- plot_scores(data_set, outcome, demographics_all)
-```
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
 
 
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
 
 
 ```{r echo=FALSE, comment=""}
@@ -202,14 +202,14 @@ data_set[,
   theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
 ```
 
-```{r echo=FALSE, include=FALSE}
-demo_plots <- plot_scores(data_set, outcome, demographics_all)
-```
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
 
 
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
 
 ```{r echo=FALSE, comment=""}
 htmltools::h3(outcome)
@@ -240,14 +240,14 @@ data_set[,
   theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
 ```
 
-```{r echo=FALSE, include=FALSE}
-demo_plots <- plot_scores(data_set, outcome, demographics_all)
-```
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
 
 
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
 
 ```{r echo=FALSE, comment=""}
 htmltools::h3(outcome)
@@ -277,14 +277,14 @@ data_set[,
   theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
 ```
 
-```{r echo=FALSE, include=FALSE}
-demo_plots <- plot_scores(data_set, outcome, demographics_all)
-```
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
 
 
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
 
 ```{r echo=FALSE, comment=""}
 htmltools::h3(outcome)

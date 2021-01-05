@@ -12,7 +12,9 @@ radiology:
   - Major curve Cobb angle
   - Coronal Balance (C7PL to CSVL)
   - Sagittal Balance
-  - Maximal Kyphosis Levels
+  - Sagittal T2-T5
+  - Sagittal T5-T12
+  - Sagittal T2-T12
   # - T2-T5 Kyphosis 
   # - T5-T12 Kyphosis 
   # - T2-T12 Kyphosis 
@@ -33,11 +35,11 @@ quality:
   - SF36 - PCS
   - SF36 - MCS
 surgery:
-  - Total blood loss (mL) st1+st2+st3 #Mean intraoperative blood loss 
+  - Total Operative Blood Loss st1+st2+st3 #Mean intraoperative blood loss 
   - Total surgical time st1+st2+st3 #Mean surgical time 
   - Number of Posterior Instrumented Levels #Mean posterior instrumented levels 
   - Pelvic Fixation 
   - Decompression
-  - Number of Interbody Fusions
+  - Interbody Fusion
   - Osteotomy 
-  - 3CO number 
+  - 3CO

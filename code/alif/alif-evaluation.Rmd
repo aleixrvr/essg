@@ -228,7 +228,8 @@ for(outcome in outcomes){
 # Average Treatment Effects - Reintervention Number
 
 ```{r ate_reintervention, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+# xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 # excel_sheets(xls_path)
 
 rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>%
@@ -263,7 +264,8 @@ print_ates(treatment_name, outcome, results, is_classification, propensity_trim,
 # Average Treatment Effects - Had Reintervention
 
 ```{r ate_reintervention_bool, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+# xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 # excel_sheets(xls_path)
 
 rev_patients <- read_excel(xls_path, sheet = "Rev surgeries") %>%

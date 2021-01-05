@@ -107,11 +107,10 @@ predictive_variates <- c(treatment_name, 'Propensity', demographics) %>% unique
 
 # Average Treatment Effects - Complications
 
-- Complications Type: Primary
-- Reoperation Due to Complication: Yes
 
 ```{r ate_complication, warning=FALSE, echo=FALSE, comment="", include=FALSE}
-xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+# xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 # excel_sheets(xls_path)
 
 complications <- read_excel(xls_path, sheet='Complications') %>%

@@ -6,8 +6,8 @@ demographic:
   - BMI_First Visit
 radiologic:
   - LGap
-  - Global Tilt
-  - Ideal LL
+  - Global Tilt 
+  - Major curve Cobb angle
 # qualitylife:
 #   - "ODI - Score (%)_First Visit"
 #   - "SRS22 - SRS Total score_First Visit"

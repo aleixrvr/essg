@@ -8,21 +8,25 @@ library(Hmisc)
 
 
 get_data <- function(only_two_years=TRUE){
-  xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
+  xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
   
   vars_ <- read_yaml('code/reintervention/treatment_vars.yml')
   
-  rev_patient_data <- read_excel(xls_path, sheet = "Rev surgeries") %>% 
+  rev_patient_data <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
     data.table 
   clinical_data <- read_excel(xls_path) %>% 
     data.table() 
   complications <- read_excel(xls_path, sheet = "Complications") %>% 
     data.table 
   
+  setnames(clinical_data, 'ideal LL\r\n\r\n', 'ideal LL')
+  setnames(clinical_data, 'RLL\r\n\r\n', 'RLL')
+  
+  
   if( only_two_years ){
     valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-07-31'), 
+      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
       `Code of the patient` %>% unique
     ]
     clinical_data %<>% .[`Code of the patient` %in% valid_patients]
@@ -88,9 +92,9 @@ get_category_los <- function(clinical_data, rev_patient_data, complications){
   rev_patient_data[, 
     .(patient_id=`Code of the patient`, 
       hospitalization_time=`Hospitalization time`, 
-      blood_loss=`Total blood loss (mL) st1+st2+st3`,
+      blood_loss=`Total blood loss (mL)`,
       surgical_time=`Total surgical time st1+st2+st3`,
-      date=`st1. Date of Stage 1`,
+      date=`st1. Date of Stage`,
       sicu_transferred=`Patient transferred to SICU post op`)] %>% 
     .[, hospitalization_time:=gsub(' days', '', hospitalization_time) %>% as.numeric] ->
     rev_patient_data_
@@ -126,16 +130,16 @@ get_complications <- function(complications){
 
 get_time_evolution <- function(clinical_data, rev_patient_data){
   rev_patient_data %>% 
-    .[, `Number of Schwab Type 3` := `Number of Schwab Type 3` %>%  as.numeric] %>% 
-    .[, `Number of Schwab Type 4` := `Number of Schwab Type 4` %>%  as.numeric] %>% 
-    .[, `Number of Schwab Type 5` := `Number of Schwab Type 5` %>%  as.numeric] %>% 
+    .[, `Schwab Type 3: Number` := `Schwab Type 3: Number` %>%  as.numeric] %>% 
+    .[, `Schwab Type 4: Number` := `Schwab Type 4: Number` %>%  as.numeric] %>% 
+    .[, `Schwab Type 5: Number` := `Schwab Type 5: Number` %>%  as.numeric] %>% 
     .[, co3 := 0] %>% 
-    .[`Number of Schwab Type 3` + `Number of Schwab Type 4` + `Number of Schwab Type 5` > 0, co3 := 1] %>% 
+    .[`Schwab Type 3: Number` + `Schwab Type 4: Number` + `Schwab Type 5: Number` > 0, co3 := 1] %>% 
     .[, .(
       patient_id=`Code of the patient`, 
-      stage_date=`st1. Date of Stage 1`,
+      stage_date=`st1. Date of Stage`,
       surgical_time=`Total surgical time st1+st2+st3`,
-      blood_loss=`Total blood loss (mL) st1+st2+st3`,
+      blood_loss=`Total blood loss (mL)`,
       hospitalization_time=`Hospitalization time`,
       sicu_transferred=`Patient transferred to SICU post op`,
       sicu_los=`SICU length of stay`,
@@ -164,7 +168,7 @@ get_time_evolution <- function(clinical_data, rev_patient_data){
       patient_id=`Code of the patient`, 
       stage_date=`st1. Date of Stage 1`,
       surgical_time=`Total surgical time st1+st2+st3`,
-      blood_loss= `Total blood loss (mL) st1+st2+st3`,
+      blood_loss= `Total Operative Blood Loss st1+st2+st3`,
       hospitalization_time=`Hospitalization time`,
       sicu_transferred=`Patient transferred to SICU post op`,
       sicu_los=`SICU length of stay`,

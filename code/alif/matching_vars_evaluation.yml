@@ -15,12 +15,13 @@ covariates:
   - BMI_First Visit
   - Tobacco use_First Visit
   - Osteoporosis / osteopenia
-  - "Levels Previously operated - Lower"
+  - "Previous surgery - LEV"
+#  - "Levels Previously operated - Lower"
   # - Other previous surgeries : removed
   # - Lower GI
   # - Peripheral vascular disease
   - LGap
-  - Ideal LL
+  - ideal LL
   - Lordosis (top of L1-S1)
   - RLL
   # - RSA
@@ -100,7 +101,7 @@ demographic:
   # - "Levels Previously operated - Lower"
   # - LGap
   - Global Tilt
-  - Ideal LL
+  - ideal LL
   - Lordosis (top of L1-S1)
   # - RLL
   - "ODI - Score (%)_First Visit"
