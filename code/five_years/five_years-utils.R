@@ -72,7 +72,7 @@ show_stats <- function(best_model, predictive_vars, validation_results, show_var
   return(invisible())
 }
 
-get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE, only_two_years=TRUE){
+get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE){
   
   clinical_data <- read_excel(XLS_PATH) %>% 
     data.table
@@ -87,13 +87,12 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE, 
     .[`Reoperation Due to Complication`=='Yes'] %>% 
     .[, unique(`Code of the patient`)]
   
-  if( only_two_years ){
-    valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
-      `Code of the patient` %>% unique
-    ]
-    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
-  }
+  valid_patients <- clinical_data %>% 
+    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-12-15')] %>% 
+    .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+    .[, `Code of the patient` %>% unique]
+  
+  clinical_data %<>% .[`Code of the patient` %in% valid_patients]
   
   clinical_data %<>% 
     .[, had_complication := 'No'] %>% 

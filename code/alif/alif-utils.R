@@ -9,7 +9,7 @@ source('code/basic.R')
 source('code/utils.R')
 
 
-get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=FALSE){
+get_data <- function(evaluation=FALSE, correction_approach=FALSE){
   # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
   xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
@@ -33,13 +33,12 @@ get_data <- function(evaluation=FALSE, only_two_years=TRUE, correction_approach=
   outcome_radiology_index <- matching_vars$outcomes_radiology %>% get_base_outcome(first_visit=FALSE)
   all_vars <- c(matching_vars %>% unlist, outcomes_ql_index, outcome_radiology_index) %>% unique
   
-  if( only_two_years == TRUE ){
-    valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
-      `Code of the patient` %>% unique
-    ]
-    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
-  }
+  valid_patients <- clinical_data %>% 
+    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15')] %>% 
+    .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+    .[, `Code of the patient` %>% unique]
+  
+  clinical_data %<>% .[`Code of the patient` %in% valid_patients]
   
   if( correction_approach == TRUE){
     all_vars <- c(all_vars, 'Surgical Approach')
@@ -97,12 +96,12 @@ aggregate_data <- function(sel_data){
     sel_data[is.na(`Cobb LS curve (Degree)`), `Cobb LS curve (Degree)`:= 0] 
   }
   
-  if( "Levels Previously operated - Lower" %in% colnames(sel_data)){
+  if( "Previous surgery - LEV" %in% colnames(sel_data)){
     sel_data %>%
-      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'C', `Levels Previously operated - Lower`:='C'] %>%
-      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'L', `Levels Previously operated - Lower`:='L'] %>%
-      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'T', `Levels Previously operated - Lower`:='T'] %>%
-      .[substr(`Levels Previously operated - Lower`, 1, 1) == 'S', `Levels Previously operated - Lower`:='S']
+      .[substr(`Previous surgery - LEV`, 1, 1) == 'C', `Previous surgery - LEV`:='C'] %>%
+      .[substr(`Previous surgery - LEV`, 1, 1) == 'L', `Previous surgery - LEV`:='L'] %>%
+      .[substr(`Previous surgery - LEV`, 1, 1) == 'T', `Previous surgery - LEV`:='T'] %>%
+      .[substr(`Previous surgery - LEV`, 1, 1) == 'S', `Previous surgery - LEV`:='S']
   }
   
   if( "1st surgeon: experience in ASD surgery" %in% colnames(sel_data)){

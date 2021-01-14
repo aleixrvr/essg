@@ -18,17 +18,10 @@ library(yaml)
 library(glue)
 f <- glue
 
-
 xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 clinical_data <- read_excel(xls_path) %>% 
   as.data.table()
-
-valid_patients <- clinical_data[
-  `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
-  `Code of the patient` %>% unique
-]
-clinical_data %<>% .[`Code of the patient` %in% valid_patients]
 
 setnames(
   clinical_data, 
@@ -74,19 +67,26 @@ stats_fun <- function(variable){
 
 ```
 
-
+## Filters
 ```{r}
 clinical_data %<>% 
+  .[as.Date(`st1. Date of Stage 1`) < as.Date('2018-12-15')] %>% 
   .[ALIF + TLIF + PLIF > 0] %>% 
   .[`Posterior Instrumented Fusion`!='No'] %>% 
   .[, Alif := ifelse(ALIF > 0, 'Yes', 'No')]
 
+alif_data <- clinical_data %>% 
+  .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)]
+
 total_patients <- clinical_data[, `Code of the patient` %>% uniqueN]
+patients_visited <- alif_data[, `Code of the patient` %>% uniqueN]
+patients_visited_6w <- clinical_data %>% 
+  .[!is.na(`6 WEEKS VISIT - Date of visit`), `Code of the patient` %>% uniqueN]
 ```
 
-
-Number of Patients with 'st1. Date of Stage 1' < '2018-12-15':
-`r total_patients`
+- Number of Patients with 'st1. Date of Stage 1' < '2018-12-15': `r total_patients`
+- Number of patients with visit in 6 weeks: `r patients_visited_6w`
+- Number of patients with visit in 2 or 3 years: `r patients_visited`
 
 ### Demographics
 ```{r echo=FALSE, comment=""}
@@ -94,16 +94,24 @@ for(var_ in vars$demographics ){
   cat(var_)
   cat('\n')
   
-  cat('Alif')
-  res <- stats_fun(clinical_data[Alif=='Yes', get(var_)])
+  cat('All\n')
+  res <- stats_fun(alif_data[, get(var_)])
   for( res_name in names(res) ){
     print(res_name)
     print(res[[res_name]])
   }
   cat('\n\n')
   
-  cat('Plif/Tlif')
-  res <- stats_fun(clinical_data[Alif=='No', get(var_)])
+  cat('Alif\n')
+  res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Plif/Tlif\n')
+  res <- stats_fun(alif_data[Alif=='No', get(var_)])
   for( res_name in names(res) ){
     print(res_name)
     print(res[[res_name]])
@@ -123,16 +131,24 @@ for(var_ in vars$radiology ){
     cat(var_y)
     cat('\n')
     
-    cat('Alif')
-    res <- stats_fun(clinical_data[Alif=='Yes', get(var_)])
+    cat('All\n')
+    res <- stats_fun(alif_data[, get(var_)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
     }
     cat('\n\n')
     
-    cat('Plif/Tlif')
-    res <- stats_fun(clinical_data[Alif=='No', get(var_)])
+    cat('Alif\n')
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Plif/Tlif\n')
+    res <- stats_fun(alif_data[Alif=='No', get(var_)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -154,16 +170,24 @@ for(var_0 in vars$quality ){
     cat(var_y)
     cat('\n')
     
-    cat('Alif')
-    res <- stats_fun(clinical_data[Alif=='Yes', get(var_)])
+    cat('All\n')
+    res <- stats_fun(alif_data[, get(var_)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
     }
     cat('\n\n')
     
-    cat('Plif/Tlif')
-    res <- stats_fun(clinical_data[Alif=='No', get(var_)])
+    cat('Alif\n')
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Plif/Tlif\n')
+    res <- stats_fun(alif_data[Alif=='No', get(var_)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -180,16 +204,24 @@ for(var_ in vars$surgery ){
   cat(var_)
   cat('\n')
   
-  cat('Alif')
-  res <- stats_fun(clinical_data[Alif=='Yes', get(var_)])
+  cat('All\n')
+  res <- stats_fun(alif_data[, get(var_)])
   for( res_name in names(res) ){
     print(res_name)
     print(res[[res_name]])
   }
   cat('\n\n')
   
-  cat('Plif/Tlif')
-  res <- stats_fun(clinical_data[Alif=='No', get(var_)])
+  cat('Alif\n')
+  res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Plif/Tlif\n')
+  res <- stats_fun(alif_data[Alif=='No', get(var_)])
   for( res_name in names(res) ){
     print(res_name)
     print(res[[res_name]])

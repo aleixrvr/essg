@@ -31,7 +31,7 @@ repetitions <- 50
 correction_approach <- FALSE
 
 c(sel_data, matching_vars) %<-% get_data(
-  evaluation=TRUE, correction_approach=correction_approach, only_two_years = TRUE
+  evaluation=TRUE, correction_approach=correction_approach
 )
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
 treatment_name <- 'Alif'

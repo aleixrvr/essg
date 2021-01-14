@@ -34,11 +34,14 @@ data_set <- data_set_0 %>%
   .[Site != "MAD Op"] %>% 
   copy
 
+valid_patients <- data_set[, `Code of the patient`] %>% unique
+
 xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
-  .[`Complication Impact` == 'Major Complication']
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Code of the patient` %in% valid_patients]
 
 
 demographics <- read_yaml('code/five_years/demographic.yml')

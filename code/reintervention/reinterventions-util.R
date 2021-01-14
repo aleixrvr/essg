@@ -7,7 +7,7 @@ library(ggplot2)
 library(Hmisc)
 
 
-get_data <- function(only_two_years=TRUE){
+get_data <- function(){
   xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
   
@@ -23,16 +23,14 @@ get_data <- function(only_two_years=TRUE){
   setnames(clinical_data, 'ideal LL\r\n\r\n', 'ideal LL')
   setnames(clinical_data, 'RLL\r\n\r\n', 'RLL')
   
+  valid_patients <- clinical_data %>% 
+    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-12-15')] %>% 
+    .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+    .[, `Code of the patient` %>% unique]
   
-  if( only_two_years ){
-    valid_patients <- clinical_data[
-      `st1. Date of Stage 1` %>% as.Date() < as.Date('2018-12-15'), 
-      `Code of the patient` %>% unique
-    ]
-    clinical_data %<>% .[`Code of the patient` %in% valid_patients]
-    rev_patient_data %<>% .[`Code of the patient` %in% valid_patients]
-    complications %<>% .[`Code of the patient` %in% valid_patients]
-  }
+  clinical_data %<>% .[`Code of the patient` %in% valid_patients]
+  rev_patient_data %<>% .[`Code of the patient` %in% valid_patients]
+  complications %<>% .[`Code of the patient` %in% valid_patients]
   
   time_evolution <- get_time_evolution(clinical_data, rev_patient_data)
   complications <- get_complications(complications)
@@ -254,8 +252,45 @@ plot_evolution <- function(dt, value_title=''){
   ))
 }
 
-estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_years=1:6){
+estimate_dilution <- function(res_, outcome, controlling_vars_, sel_years=1:3){
   reg_formula <- "{outcome} ~ ." %>% f %>% formula
+  
+  res_ %>% 
+    .[outcome_year %in% sel_years] %>% 
+    .[, .SD, .SDcols=c(
+      outcome, controlling_vars_, 'reint_n',
+      'outcome_year', 'years_last_op')
+    ] %>% 
+    na.omit ->
+    res_cols
+  
+  cols <- colnames(res_cols)
+  inds <- which(res_cols[, sapply(.SD, . %>% na.omit %>% uniqueN)] > 1)
+  res_cols %>% 
+    .[, .SD, .SDcols = cols[inds]] %>% 
+    lm(reg_formula, data=.) %>% summary %>% coefficients() ->
+    lm_res
+  
+  ind <- which(row.names(lm_res) == 'years_last_op')
+  stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] %>% round(3)
+  if(nrow(stat_res) > 0 ){
+    colnames(stat_res) <- c('Estimate', 'StdError', 'p_value')
+    row.names(stat_res) <- NULL
+  }else{
+    stat_res <- data.frame(
+      Estimate=NA,
+      StdError=NA,
+      p_value=NA
+    )
+  }
+  
+  return(stat_res)
+}
+
+estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_years=1:5){
+  
+  reg_formula <- "{outcome} ~ ." %>% f %>% formula
+  
   coef_res <- data.frame()
   for( y_ in sel_years ){
     res_[outcome_year==y_] %>% 

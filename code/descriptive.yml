@@ -39,6 +39,8 @@ surgery:
   - Total surgical time st1+st2+st3 #Mean surgical time 
   - Number of Posterior Instrumented Levels #Mean posterior instrumented levels 
   - Pelvic Fixation 
+  - Surgical Approach
+  - Number of Interbody Fusions
   - Decompression
   - Interbody Fusion
   - Osteotomy 

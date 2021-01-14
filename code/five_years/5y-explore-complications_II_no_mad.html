@@ -1584,17 +1584,17 @@ summary {
 
 <div id="only-major-complications" class="section level4">
 <h4>Only Major Complications</h4>
-<div id="htmlwidget-dfe3acb6c5f26849c595" style="width:672px;height:480px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-dfe3acb6c5f26849c595">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  P[label=\"Personality\", style=\"dashed\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  H[label=\"Quality of\nLife\"]\n  T[label=\"Treatment\"]\n  C[label=\"Complications\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  P -> R\n  P -> H\n  D -> H\n  H -> O\n  H -> T\n  T -> O\n  R -> T\n  T -> C\n  H -> C\n  D -> C\n  C -> O\n  R -> C\n  \n  \n  {rank=same; P;D}\n  {rank=same; R;H}\n  {rank=same; T}\n  {rank=same; C}\n  {rank=same; O}\n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-c79329384b8a437f281f" style="width:672px;height:480px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-c79329384b8a437f281f">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  P[label=\"Personality\", style=\"dashed\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  H[label=\"Quality of\nLife\"]\n  T[label=\"Treatment\"]\n  C[label=\"Complications\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  P -> R\n  P -> H\n  D -> H\n  H -> O\n  H -> T\n  T -> O\n  R -> T\n  T -> C\n  H -> C\n  D -> C\n  C -> O\n  R -> C\n  \n  \n  {rank=same; P;D}\n  {rank=same; R;H}\n  {rank=same; T}\n  {rank=same; C}\n  {rank=same; O}\n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 <div id="stats" class="section level2">
 <h2>Stats</h2>
 <pre><code>   complication_before_2y has_followup_2y
-1:                    Yes           0.794
-2:                     No           0.734</code></pre>
+1:                    Yes           0.909
+2:                     No           0.907</code></pre>
 <pre><code>   complication_before_2y has_followup_5y
-1:                    Yes           0.280
-2:                     No           0.245</code></pre>
+1:                    Yes           0.492
+2:                     No           0.502</code></pre>
 <!-- ```{r echo=FALSE} -->
 <!-- data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_2y_5y] -->
 <!-- ``` -->
@@ -1602,106 +1602,102 @@ summary {
 <h3>Major Complications before 2y</h3>
 <pre><code>Category of the complication
    Central neurologic complications            Infectious complications 
-                                  1                                  85 
+                                  1                                  36 
            Mechanical complications                 Other complications 
-                                304                                 137 
+                                162                                  77 
 Peripheral neurologic complications 
-                                 75 </code></pre>
+                                 25 </code></pre>
 <pre><code>Category of the complication
    Central neurologic complications            Infectious complications 
-                         0.00166113                          0.14119601 
+                        0.003322259                         0.119601329 
            Mechanical complications                 Other complications 
-                         0.50498339                          0.22757475 
+                        0.538205980                         0.255813953 
 Peripheral neurologic complications 
-                         0.12458472 </code></pre>
+                        0.083056478 </code></pre>
 </div>
 <div id="major-complications-between-2y-and-5y" class="section level3">
 <h3>Major Complications between 2y and 5y</h3>
 <pre><code>Category of the complication
            Infectious complications            Mechanical complications 
-                                  4                                 102 
+                                  4                                  74 
                 Other complications Peripheral neurologic complications 
-                                 14                                   4 </code></pre>
+                                 12                                   3 </code></pre>
 <pre><code>Category of the complication
            Infectious complications            Mechanical complications 
-                         0.03225806                          0.82258065 
+                         0.04301075                          0.79569892 
                 Other complications Peripheral neurologic complications 
-                         0.11290323                          0.03225806 </code></pre>
+                         0.12903226                          0.03225806 </code></pre>
 </div>
 <div id="minor-complications-before-2y" class="section level3">
 <h3>Minor Complications before 2y</h3>
 <pre><code>Category of the complication
-   Central neurologic complications            Infectious complications 
-                                  4                                  31 
-           Mechanical complications                 Other complications 
-                                234                                 313 
-Peripheral neurologic complications 
-                                112 </code></pre>
+           Infectious complications            Mechanical complications 
+                                 10                                 134 
+                Other complications Peripheral neurologic complications 
+                                127                                  57 </code></pre>
 <pre><code>Category of the complication
-   Central neurologic complications            Infectious complications 
-                        0.005763689                         0.044668588 
-           Mechanical complications                 Other complications 
-                        0.337175793                         0.451008646 
-Peripheral neurologic complications 
-                        0.161383285 </code></pre>
+           Infectious complications            Mechanical complications 
+                          0.0304878                           0.4085366 
+                Other complications Peripheral neurologic complications 
+                          0.3871951                           0.1737805 </code></pre>
 </div>
 <div id="minor-complications-between-2y-and-5y" class="section level3">
 <h3>Minor Complications between 2y and 5y</h3>
 <pre><code>Category of the complication
            Mechanical complications                 Other complications 
-                                 72                                   3 
+                                 50                                   2 
 Peripheral neurologic complications 
                                   1 </code></pre>
 <pre><code>Category of the complication
            Mechanical complications                 Other complications 
-                         0.94736842                          0.03947368 
+                         0.94339623                          0.03773585 
 Peripheral neurologic complications 
-                         0.01315789 </code></pre>
+                         0.01886792 </code></pre>
 </div>
 <div id="reinterventions-before-2-years" class="section level3">
 <h3>Reinterventions before 2 years</h3>
 <ul>
-<li><p>Reinterventions before 2 years: 290</p></li>
-<li><p>Proportion of patients with reintervention before 2 years: 0.2366738</p></li>
-<li><p>Reinterventions between 2y and 5y: 110</p></li>
-<li><p>Proportion of patients with reintervention between 2y and 5y: 0.0959488</p></li>
+<li><p>Reinterventions before 2 years: 145</p></li>
+<li><p>Proportion of patients with reintervention before 2 years: 0.2471132</p></li>
+<li><p>Reinterventions between 2y and 5y: 69</p></li>
+<li><p>Proportion of patients with reintervention between 2y and 5y: 0.1362587</p></li>
 </ul>
 </div>
 <div id="do-complications-before-2y-affect-2y-followup" class="section level3">
 <h3>Do complications before 2y affect 2y followup?</h3>
 <pre><code>                                         Estimate Pr(&gt;|t|)
-(Intercept)                                 0.819    0.000
-Age                                         0.003    0.007
-GenderMale                                 -0.026    0.501
-`Prior Spine Surgery`Yes                   -0.013    0.712
-`ASA classification`                       -0.012    0.673
-`BMI_First Visit`                           0.003    0.456
-LGap                                        0.002    0.073
-`Global Tilt`                              -0.004    0.012
-`Major curve Cobb angle`                    0.001    0.164
-`ODI - Score (%)_First Visit`              -0.004    0.003
-`SRS22 - SRS Subtotal score_First Visit`   -0.061    0.143
-`SF36 - PCS_First Visit`                   -0.002    0.415
-`SF36 - MCS_First Visit`                    0.003    0.097
-complication_before_2yYes                   0.079    0.032</code></pre>
+(Intercept)                                 0.538    0.005
+Age                                         0.003    0.016
+GenderMale                                 -0.009    0.805
+`Prior Spine Surgery`Yes                    0.005    0.874
+`ASA classification`                       -0.012    0.669
+`BMI_First Visit`                           0.003    0.413
+LGap                                        0.001    0.627
+`Global Tilt`                              -0.001    0.359
+`Major curve Cobb angle`                    0.001    0.309
+`ODI - Score (%)_First Visit`               0.000    0.997
+`SRS22 - SRS Subtotal score_First Visit`   -0.048    0.225
+`SF36 - PCS_First Visit`                    0.006    0.020
+`SF36 - MCS_First Visit`                    0.002    0.195
+complication_before_2yYes                   0.014    0.659</code></pre>
 </div>
 <div id="do-complications-before-2y-affect-5y-followup" class="section level3">
 <h3>Do complications before 2y affect 5y followup?</h3>
 <pre><code>                                         Estimate Pr(&gt;|t|)
-(Intercept)                                 0.931    0.000
-Age                                         0.004    0.000
-GenderMale                                 -0.038    0.338
-`Prior Spine Surgery`Yes                    0.003    0.932
-`ASA classification`                       -0.093    0.001
-`BMI_First Visit`                          -0.003    0.466
-LGap                                        0.001    0.466
-`Global Tilt`                              -0.001    0.299
-`Major curve Cobb angle`                    0.000    0.719
-`ODI - Score (%)_First Visit`              -0.006    0.000
-`SRS22 - SRS Subtotal score_First Visit`   -0.094    0.027
-`SF36 - PCS_First Visit`                   -0.004    0.095
-`SF36 - MCS_First Visit`                    0.000    0.804
-complication_before_2yYes                   0.056    0.134</code></pre>
+(Intercept)                                 0.829    0.015
+Age                                         0.008    0.000
+GenderMale                                 -0.079    0.218
+`Prior Spine Surgery`Yes                   -0.043    0.450
+`ASA classification`                       -0.047    0.345
+`BMI_First Visit`                           0.000    0.936
+LGap                                        0.001    0.700
+`Global Tilt`                              -0.002    0.374
+`Major curve Cobb angle`                    0.002    0.073
+`ODI - Score (%)_First Visit`              -0.007    0.002
+`SRS22 - SRS Subtotal score_First Visit`   -0.204    0.004
+`SF36 - PCS_First Visit`                    0.000    0.925
+`SF36 - MCS_First Visit`                    0.006    0.076
+complication_before_2yYes                  -0.003    0.954</code></pre>
 <!-- ### Do complications between 2y and 5y affect 2y followup? -->
 <!-- ```{r echo=FALSE, comment=""} -->
 <!-- conf_vars_ <- c( -->

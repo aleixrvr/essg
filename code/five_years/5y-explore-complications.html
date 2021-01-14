@@ -373,33 +373,33 @@ summary {
 <h2>All complications</h2>
 <p><h3>Major Complications</h3><h5>Demographics</h5></p>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.274      0.081  -3.398    0.001
-Age                                         0.003      0.001   3.531    0.000
-GenderMale                                  0.008      0.035   0.234    0.815
-Prior_Spine_SurgeryYes                      0.148      0.032   4.633    0.000
-ASA_classification                          0.027      0.025   1.072    0.284
-BMI_First_Visit                             0.011      0.003   3.233    0.001
-`5y_vs_2y_effect`                           0.188      0.163   1.160    0.246
-Age:`5y_vs_2y_effect`                      -0.001      0.002  -0.602    0.547
-GenderMale:`5y_vs_2y_effect`               -0.004      0.071  -0.057    0.954
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.154      0.063  -2.454    0.014
-ASA_classification:`5y_vs_2y_effect`        0.025      0.053   0.479    0.632
-BMI_First_Visit:`5y_vs_2y_effect`          -0.010      0.007  -1.531    0.126</code></pre>
+(Intercept)                                -0.257      0.108  -2.375    0.018
+Age                                         0.003      0.001   2.698    0.007
+GenderMale                                 -0.012      0.047  -0.264    0.792
+Prior_Spine_SurgeryYes                      0.161      0.042   3.827    0.000
+ASA_classification                          0.024      0.035   0.671    0.502
+BMI_First_Visit                             0.011      0.004   2.521    0.012
+`5y_vs_2y_effect`                           0.148      0.185   0.803    0.422
+Age:`5y_vs_2y_effect`                      -0.001      0.002  -0.477    0.634
+GenderMale:`5y_vs_2y_effect`                0.000      0.081   0.006    0.995
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.177      0.072  -2.466    0.014
+ASA_classification:`5y_vs_2y_effect`        0.025      0.060   0.420    0.674
+BMI_First_Visit:`5y_vs_2y_effect`          -0.009      0.007  -1.275    0.203</code></pre>
 <h5>Radiology</h5>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.313      0.090  -3.484    0.001
-Age                                         0.003      0.001   2.731    0.006
-GenderMale                                  0.024      0.032   0.746    0.456
-Prior_Spine_SurgeryYes                      0.106      0.029   3.612    0.000
-ASA_classification                          0.028      0.023   1.206    0.228
-BMI_First_Visit                             0.007      0.003   2.504    0.012
-LGap                                        0.000      0.001  -0.091    0.928
-Global_Tilt                                 0.003      0.001   2.329    0.020
-Major_curve_Cobb_angle                      0.002      0.001   2.390    0.017
-`5y_vs_2y_effect`                           0.023      0.083   0.278    0.781
-LGap:`5y_vs_2y_effect`                     -0.001      0.002  -0.479    0.632
-Global_Tilt:`5y_vs_2y_effect`              -0.003      0.002  -1.371    0.171
-Major_curve_Cobb_angle:`5y_vs_2y_effect`   -0.001      0.001  -0.739    0.460</code></pre>
+(Intercept)                                -0.229      0.113  -2.024    0.043
+Age                                         0.002      0.001   1.839    0.066
+GenderMale                                 -0.005      0.041  -0.124    0.902
+Prior_Spine_SurgeryYes                      0.080      0.037   2.173    0.030
+ASA_classification                          0.029      0.030   0.974    0.330
+BMI_First_Visit                             0.007      0.004   1.861    0.063
+LGap                                        0.000      0.002   0.164    0.870
+Global_Tilt                                 0.004      0.002   2.019    0.044
+Major_curve_Cobb_angle                      0.001      0.001   1.212    0.226
+`5y_vs_2y_effect`                          -0.017      0.096  -0.174    0.862
+LGap:`5y_vs_2y_effect`                     -0.001      0.002  -0.577    0.564
+Global_Tilt:`5y_vs_2y_effect`              -0.003      0.003  -1.119    0.264
+Major_curve_Cobb_angle:`5y_vs_2y_effect`   -0.001      0.001  -0.391    0.696</code></pre>
 </div>
 <div id="impact-of-complications-on-followup" class="section level1">
 <h1>Impact of complications on followup</h1>
@@ -409,186 +409,186 @@ glm(formula = followup_5y ~ ., data = .)
 
 Deviance Residuals: 
     Min       1Q   Median       3Q      Max  
--0.4918  -0.3268  -0.2635   0.6174   0.9191  
+-0.8873  -0.5019   0.2557   0.4301   0.8102  
 
 Coefficients:
-                                   Estimate Std. Error t value Pr(&gt;|t|)   
-(Intercept)                       0.8014281  0.2590157   3.094  0.00205 **
-Age                               0.0017428  0.0013436   1.297  0.19503   
-GenderMale                       -0.0383277  0.0437385  -0.876  0.38117   
-`Prior Spine Surgery`Yes         -0.0293699  0.0403120  -0.729  0.46651   
-`ASA classification`             -0.0421123  0.0309783  -1.359  0.17445   
-`BMI_First Visit`                -0.0042334  0.0040848  -1.036  0.30039   
-LGap                              0.0013294  0.0013710   0.970  0.33253   
-`Global Tilt`                    -0.0018671  0.0017005  -1.098  0.27261   
-`Major curve Cobb angle`         -0.0001663  0.0008441  -0.197  0.84388   
-`2Y. ODI - Score (%)`            -0.0034706  0.0018658  -1.860  0.06328 . 
-`2Y. SRS22 - SRS Subtotal score` -0.1278281  0.0523269  -2.443  0.01481 * 
-`2Y. SF36 - MCS`                  0.0044750  0.0022455   1.993  0.04666 * 
-`2Y. SF36 - PCS`                 -0.0007256  0.0032058  -0.226  0.82099   
-complication_before_2yYes         0.0612195  0.0418807   1.462  0.14425   
+                                   Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)                       0.3740640  0.3568499   1.048 0.295176    
+Age                               0.0045776  0.0019411   2.358 0.018853 *  
+GenderMale                       -0.0787245  0.0616217  -1.278 0.202167    
+`Prior Spine Surgery`Yes         -0.0632425  0.0554782  -1.140 0.255004    
+`ASA classification`              0.0177104  0.0457557   0.387 0.698918    
+`BMI_First Visit`                -0.0021055  0.0057396  -0.367 0.713940    
+LGap                              0.0009723  0.0018585   0.523 0.601176    
+`Global Tilt`                    -0.0026616  0.0023601  -1.128 0.260122    
+`Major curve Cobb angle`          0.0014751  0.0011814   1.249 0.212558    
+`2Y. ODI - Score (%)`            -0.0023322  0.0026627  -0.876 0.381646    
+`2Y. SRS22 - SRS Subtotal score` -0.1692207  0.0688352  -2.458 0.014391 *  
+`2Y. SF36 - MCS`                  0.0108861  0.0030956   3.517 0.000488 ***
+`2Y. SF36 - PCS`                  0.0029802  0.0044056   0.676 0.499148    
+complication_before_2yYes         0.0175936  0.0582352   0.302 0.762727    
 ---
 Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 
-(Dispersion parameter for gaussian family taken to be 0.2125452)
+(Dispersion parameter for gaussian family taken to be 0.2371713)
 
-    Null deviance: 154.60  on 722  degrees of freedom
-Residual deviance: 150.69  on 709  degrees of freedom
-  (87 observations deleted due to missingness)
-AIC: 948.01
+    Null deviance: 100.405  on 404  degrees of freedom
+Residual deviance:  92.734  on 391  degrees of freedom
+  (47 observations deleted due to missingness)
+AIC: 582.31
 
 Number of Fisher Scoring iterations: 2</code></pre>
 <div id="complication-types" class="section level2">
 <h2>Complication Types</h2>
 <p><h3>Peripheral neurologic complications</h3><h5>Demographics</h5></p>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.061      0.037  -1.651    0.099
-Age                                         0.001      0.000   1.916    0.056
-GenderMale                                  0.005      0.016   0.282    0.778
-Prior_Spine_SurgeryYes                      0.034      0.015   2.309    0.021
-ASA_classification                         -0.002      0.012  -0.149    0.882
-BMI_First_Visit                             0.002      0.002   1.472    0.141
-`5y_vs_2y_effect`                           0.098      0.075   1.309    0.191
-Age:`5y_vs_2y_effect`                       0.000      0.001  -0.473    0.636
-GenderMale:`5y_vs_2y_effect`               -0.010      0.033  -0.311    0.756
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.042      0.029  -1.462    0.144
-ASA_classification:`5y_vs_2y_effect`        0.005      0.024   0.187    0.852
-BMI_First_Visit:`5y_vs_2y_effect`          -0.004      0.003  -1.427    0.154</code></pre>
+(Intercept)                                -0.026      0.043  -0.614    0.539
+Age                                         0.001      0.000   2.100    0.036
+GenderMale                                 -0.024      0.018  -1.327    0.185
+Prior_Spine_SurgeryYes                      0.033      0.017   1.954    0.051
+ASA_classification                         -0.018      0.014  -1.283    0.200
+BMI_First_Visit                             0.002      0.002   0.861    0.389
+`5y_vs_2y_effect`                           0.064      0.073   0.873    0.383
+Age:`5y_vs_2y_effect`                      -0.001      0.001  -0.740    0.459
+GenderMale:`5y_vs_2y_effect`                0.018      0.032   0.567    0.571
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.041      0.028  -1.448    0.148
+ASA_classification:`5y_vs_2y_effect`        0.021      0.024   0.864    0.388
+BMI_First_Visit:`5y_vs_2y_effect`          -0.004      0.003  -1.244    0.214</code></pre>
 <h5>Radiology</h5>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.052      0.042  -1.234    0.217
-Age                                         0.001      0.000   1.155    0.248
-GenderMale                                  0.007      0.015   0.436    0.663
-Prior_Spine_SurgeryYes                      0.021      0.014   1.526    0.127
-ASA_classification                          0.000      0.011  -0.027    0.979
-BMI_First_Visit                             0.001      0.001   0.673    0.501
-LGap                                        0.000      0.001  -0.824    0.410
-Global_Tilt                                 0.001      0.001   2.088    0.037
-Major_curve_Cobb_angle                      0.000      0.000   0.846    0.398
-`5y_vs_2y_effect`                           0.019      0.039   0.494    0.621
-LGap:`5y_vs_2y_effect`                      0.001      0.001   0.937    0.349
-Global_Tilt:`5y_vs_2y_effect`              -0.002      0.001  -2.056    0.040
-Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.000      0.001  -0.567    0.571</code></pre>
+(Intercept)                                 0.036      0.046   0.784    0.433
+Age                                         0.000      0.001   0.236    0.814
+GenderMale                                 -0.022      0.016  -1.371    0.171
+Prior_Spine_SurgeryYes                      0.009      0.015   0.587    0.557
+ASA_classification                         -0.010      0.012  -0.858    0.391
+BMI_First_Visit                             0.000      0.002  -0.200    0.842
+LGap                                        0.000      0.001  -0.576    0.565
+Global_Tilt                                 0.002      0.001   2.549    0.011
+Major_curve_Cobb_angle                      0.000      0.000  -1.214    0.225
+`5y_vs_2y_effect`                           0.010      0.039   0.270    0.788
+LGap:`5y_vs_2y_effect`                      0.001      0.001   0.845    0.399
+Global_Tilt:`5y_vs_2y_effect`              -0.002      0.001  -2.139    0.033
+Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.000      0.001   0.261    0.794</code></pre>
 <p><h3>Mechanical complications</h3><h5>Demographics</h5></p>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.156      0.071  -2.201    0.028
-Age                                         0.003      0.001   3.204    0.001
-GenderMale                                 -0.012      0.031  -0.400    0.689
-Prior_Spine_SurgeryYes                      0.065      0.028   2.336    0.020
-ASA_classification                         -0.004      0.022  -0.194    0.846
-BMI_First_Visit                             0.007      0.003   2.422    0.016
-`5y_vs_2y_effect`                           0.026      0.143   0.182    0.856
-Age:`5y_vs_2y_effect`                      -0.001      0.002  -0.924    0.356
-GenderMale:`5y_vs_2y_effect`               -0.005      0.062  -0.085    0.932
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.054      0.055  -0.970    0.332
-ASA_classification:`5y_vs_2y_effect`        0.051      0.046   1.094    0.274
-BMI_First_Visit:`5y_vs_2y_effect`          -0.003      0.006  -0.530    0.596</code></pre>
+(Intercept)                                -0.213      0.098  -2.176    0.030
+Age                                         0.003      0.001   2.792    0.005
+GenderMale                                 -0.038      0.042  -0.914    0.361
+Prior_Spine_SurgeryYes                      0.065      0.038   1.692    0.091
+ASA_classification                         -0.005      0.032  -0.151    0.880
+BMI_First_Visit                             0.010      0.004   2.452    0.014
+`5y_vs_2y_effect`                           0.061      0.167   0.365    0.715
+Age:`5y_vs_2y_effect`                      -0.002      0.002  -1.003    0.316
+GenderMale:`5y_vs_2y_effect`                0.002      0.073   0.028    0.978
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.062      0.065  -0.958    0.339
+ASA_classification:`5y_vs_2y_effect`        0.048      0.055   0.878    0.381
+BMI_First_Visit:`5y_vs_2y_effect`          -0.005      0.007  -0.696    0.486</code></pre>
 <h5>Radiology</h5>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.194      0.079  -2.443    0.015
-Age                                         0.002      0.001   2.292    0.022
-GenderMale                                 -0.005      0.028  -0.168    0.866
-Prior_Spine_SurgeryYes                      0.043      0.026   1.668    0.096
-ASA_classification                          0.011      0.020   0.558    0.577
-BMI_First_Visit                             0.006      0.003   2.318    0.021
-LGap                                        0.000      0.001  -0.242    0.809
-Global_Tilt                                 0.002      0.001   1.385    0.166
-Major_curve_Cobb_angle                      0.001      0.001   0.957    0.339
-`5y_vs_2y_effect`                          -0.026      0.073  -0.358    0.720
-LGap:`5y_vs_2y_effect`                     -0.002      0.002  -0.821    0.412
-Global_Tilt:`5y_vs_2y_effect`               0.000      0.002   0.011    0.991
-Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.000      0.001   0.075    0.940</code></pre>
-<p><h3>Other complications</h3><h5>Demographics</h5></p>
-<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.111      0.051  -2.172    0.030
-Age                                         0.001      0.001   2.351    0.019
-GenderMale                                  0.006      0.022   0.286    0.775
-Prior_Spine_SurgeryYes                      0.069      0.020   3.427    0.001
-ASA_classification                          0.017      0.016   1.054    0.292
-BMI_First_Visit                             0.003      0.002   1.379    0.168
-`5y_vs_2y_effect`                           0.117      0.102   1.137    0.256
-Age:`5y_vs_2y_effect`                      -0.001      0.001  -0.468    0.640
-GenderMale:`5y_vs_2y_effect`                0.036      0.045   0.804    0.422
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.073      0.040  -1.829    0.068
-ASA_classification:`5y_vs_2y_effect`       -0.012      0.033  -0.360    0.719
-BMI_First_Visit:`5y_vs_2y_effect`          -0.004      0.004  -1.075    0.283</code></pre>
-<h5>Radiology</h5>
-<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.105      0.057  -1.834    0.067
-Age                                         0.001      0.001   1.574    0.116
-GenderMale                                  0.025      0.020   1.204    0.229
-Prior_Spine_SurgeryYes                      0.050      0.019   2.670    0.008
-ASA_classification                          0.013      0.015   0.903    0.367
-BMI_First_Visit                             0.001      0.002   0.603    0.546
-LGap                                        0.000      0.001  -0.601    0.548
-Global_Tilt                                 0.002      0.001   2.128    0.034
-Major_curve_Cobb_angle                      0.001      0.000   1.345    0.179
-`5y_vs_2y_effect`                          -0.009      0.053  -0.173    0.863
-LGap:`5y_vs_2y_effect`                      0.001      0.001   0.631    0.528
-Global_Tilt:`5y_vs_2y_effect`              -0.003      0.002  -1.756    0.079
-Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.000      0.001  -0.013    0.990</code></pre>
+(Intercept)                                -0.185      0.102  -1.808    0.071
+Age                                         0.002      0.001   1.621    0.105
+GenderMale                                 -0.026      0.037  -0.705    0.481
+Prior_Spine_SurgeryYes                      0.023      0.033   0.690    0.491
+ASA_classification                          0.018      0.027   0.656    0.512
+BMI_First_Visit                             0.008      0.003   2.286    0.023
+LGap                                       -0.001      0.001  -0.546    0.585
+Global_Tilt                                 0.003      0.002   1.761    0.079
+Major_curve_Cobb_angle                      0.000      0.001  -0.093    0.926
+`5y_vs_2y_effect`                          -0.073      0.086  -0.842    0.400
+LGap:`5y_vs_2y_effect`                     -0.001      0.002  -0.474    0.636
+Global_Tilt:`5y_vs_2y_effect`              -0.001      0.003  -0.331    0.741
+Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.001      0.001   0.592    0.554</code></pre>
 <p><h3>Infectious complications</h3><h5>Demographics</h5></p>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.202      0.043  -4.726    0.000
-Age                                         0.000      0.000   0.736    0.462
-GenderMale                                 -0.002      0.019  -0.110    0.912
-Prior_Spine_SurgeryYes                      0.034      0.017   2.030    0.043
-ASA_classification                          0.028      0.013   2.119    0.034
-BMI_First_Visit                             0.007      0.002   4.155    0.000
-`5y_vs_2y_effect`                           0.212      0.086   2.472    0.014
-Age:`5y_vs_2y_effect`                       0.000      0.001  -0.356    0.722
-GenderMale:`5y_vs_2y_effect`               -0.006      0.038  -0.165    0.869
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.044      0.033  -1.335    0.182
-ASA_classification:`5y_vs_2y_effect`       -0.025      0.028  -0.884    0.377
-BMI_First_Visit:`5y_vs_2y_effect`          -0.008      0.003  -2.149    0.032</code></pre>
+(Intercept)                                -0.193      0.055  -3.484    0.001
+Age                                         0.001      0.001   0.919    0.358
+GenderMale                                  0.024      0.024   1.003    0.316
+Prior_Spine_SurgeryYes                      0.060      0.022   2.781    0.006
+ASA_classification                          0.034      0.018   1.852    0.064
+BMI_First_Visit                             0.006      0.002   2.608    0.009
+`5y_vs_2y_effect`                           0.204      0.095   2.149    0.032
+Age:`5y_vs_2y_effect`                      -0.001      0.001  -0.533    0.594
+GenderMale:`5y_vs_2y_effect`               -0.033      0.041  -0.798    0.425
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.071      0.037  -1.936    0.053
+ASA_classification:`5y_vs_2y_effect`       -0.030      0.031  -0.976    0.329
+BMI_First_Visit:`5y_vs_2y_effect`          -0.006      0.004  -1.607    0.108</code></pre>
 <h5>Radiology</h5>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                -0.128      0.048  -2.696    0.007
-Age                                         0.000      0.001  -0.025    0.980
-GenderMale                                  0.000      0.017   0.006    0.995
-Prior_Spine_SurgeryYes                      0.018      0.016   1.150    0.250
-ASA_classification                          0.016      0.012   1.280    0.201
-BMI_First_Visit                             0.005      0.002   3.125    0.002
-LGap                                       -0.001      0.001  -1.277    0.202
-Global_Tilt                                 0.002      0.001   2.634    0.009
-Major_curve_Cobb_angle                      0.000      0.000  -0.361    0.718
-`5y_vs_2y_effect`                          -0.047      0.044  -1.068    0.286
-LGap:`5y_vs_2y_effect`                      0.001      0.001   0.674    0.501
-Global_Tilt:`5y_vs_2y_effect`              -0.002      0.001  -1.477    0.140
-Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.001      0.001   1.071    0.285</code></pre>
+(Intercept)                                -0.125      0.059  -2.111    0.035
+Age                                         0.000      0.001   0.561    0.575
+GenderMale                                  0.013      0.021   0.615    0.539
+Prior_Spine_SurgeryYes                      0.029      0.019   1.527    0.127
+ASA_classification                          0.019      0.016   1.225    0.221
+BMI_First_Visit                             0.004      0.002   1.895    0.058
+LGap                                       -0.001      0.001  -1.608    0.108
+Global_Tilt                                 0.002      0.001   2.215    0.027
+Major_curve_Cobb_angle                      0.000      0.000   0.314    0.753
+`5y_vs_2y_effect`                          -0.052      0.050  -1.052    0.293
+LGap:`5y_vs_2y_effect`                      0.001      0.001   0.984    0.325
+Global_Tilt:`5y_vs_2y_effect`              -0.002      0.001  -1.565    0.118
+Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.001      0.001   0.739    0.460</code></pre>
+<p><h3>Other complications</h3><h5>Demographics</h5></p>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                -0.112      0.069  -1.632    0.103
+Age                                         0.002      0.001   2.064    0.039
+GenderMale                                  0.006      0.030   0.193    0.847
+Prior_Spine_SurgeryYes                      0.118      0.027   4.407    0.000
+ASA_classification                          0.011      0.023   0.482    0.630
+BMI_First_Visit                             0.003      0.003   1.039    0.299
+`5y_vs_2y_effect`                           0.116      0.117   0.992    0.322
+Age:`5y_vs_2y_effect`                      -0.001      0.001  -0.579    0.563
+GenderMale:`5y_vs_2y_effect`                0.042      0.051   0.826    0.409
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.120      0.046  -2.625    0.009
+ASA_classification:`5y_vs_2y_effect`       -0.006      0.038  -0.148    0.882
+BMI_First_Visit:`5y_vs_2y_effect`          -0.005      0.005  -0.971    0.332</code></pre>
+<h5>Radiology</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                -0.084      0.073  -1.158    0.247
+Age                                         0.001      0.001   1.710    0.088
+GenderMale                                  0.025      0.026   0.964    0.336
+Prior_Spine_SurgeryYes                      0.074      0.023   3.167    0.002
+ASA_classification                          0.003      0.019   0.169    0.866
+BMI_First_Visit                             0.001      0.002   0.229    0.819
+LGap                                       -0.001      0.001  -1.103    0.270
+Global_Tilt                                 0.003      0.001   2.198    0.028
+Major_curve_Cobb_angle                      0.001      0.001   0.901    0.368
+`5y_vs_2y_effect`                          -0.022      0.061  -0.366    0.715
+LGap:`5y_vs_2y_effect`                      0.001      0.002   0.940    0.348
+Global_Tilt:`5y_vs_2y_effect`              -0.004      0.002  -2.030    0.043
+Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.000      0.001   0.168    0.867</code></pre>
 </div>
 </div>
 <div id="reinterventions" class="section level1">
 <h1>Reinterventions</h1>
 <p><h3>Number of reinterventions</h3><h5>Demographics</h5></p>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                 0.661      0.191   3.457    0.001
-Age                                         0.004      0.002   1.634    0.103
-GenderMale                                 -0.071      0.072  -0.980    0.327
-Prior_Spine_SurgeryYes                      0.075      0.059   1.264    0.207
-ASA_classification                          0.010      0.054   0.184    0.854
-BMI_First_Visit                             0.013      0.006   2.311    0.021
-`5y_vs_2y_effect`                          -0.755      0.204  -3.701    0.000
-Age:`5y_vs_2y_effect`                      -0.003      0.003  -1.019    0.309
-GenderMale:`5y_vs_2y_effect`                0.009      0.079   0.113    0.910
-Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.051      0.066  -0.772    0.441
-ASA_classification:`5y_vs_2y_effect`       -0.017      0.059  -0.295    0.768
-BMI_First_Visit:`5y_vs_2y_effect`          -0.007      0.007  -1.149    0.251</code></pre>
+(Intercept)                                 0.650      0.286   2.268    0.024
+Age                                         0.008      0.003   2.433    0.015
+GenderMale                                 -0.110      0.115  -0.958    0.339
+Prior_Spine_SurgeryYes                      0.119      0.094   1.269    0.205
+ASA_classification                         -0.076      0.084  -0.904    0.366
+BMI_First_Visit                             0.012      0.009   1.254    0.210
+`5y_vs_2y_effect`                          -0.786      0.313  -2.515    0.012
+Age:`5y_vs_2y_effect`                      -0.007      0.004  -1.748    0.081
+GenderMale:`5y_vs_2y_effect`                0.027      0.127   0.216    0.829
+Prior_Spine_SurgeryYes:`5y_vs_2y_effect`   -0.057      0.106  -0.537    0.592
+ASA_classification:`5y_vs_2y_effect`        0.089      0.093   0.958    0.338
+BMI_First_Visit:`5y_vs_2y_effect`          -0.005      0.011  -0.469    0.639</code></pre>
 <h5>Radiology</h5>
 <pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                                 1.136      0.128   8.867    0.000
-Age                                         0.002      0.001   1.866    0.062
-GenderMale                                 -0.059      0.032  -1.849    0.065
-Prior_Spine_SurgeryYes                      0.038      0.028   1.351    0.177
-ASA_classification                         -0.005      0.023  -0.205    0.838
-BMI_First_Visit                             0.007      0.003   2.368    0.018
-LGap                                       -0.004      0.002  -2.171    0.030
-Global_Tilt                                 0.000      0.003   0.185    0.853
-Major_curve_Cobb_angle                      0.000      0.001  -0.328    0.743
-`5y_vs_2y_effect`                          -1.327      0.101 -13.156    0.000
-LGap:`5y_vs_2y_effect`                      0.002      0.002   1.024    0.306
-Global_Tilt:`5y_vs_2y_effect`               0.001      0.003   0.471    0.638
-Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.001      0.002   0.737    0.461</code></pre>
+(Intercept)                                 1.197      0.205   5.847    0.000
+Age                                         0.003      0.002   1.795    0.073
+GenderMale                                 -0.080      0.052  -1.532    0.126
+Prior_Spine_SurgeryYes                      0.069      0.047   1.482    0.139
+ASA_classification                         -0.011      0.039  -0.288    0.773
+BMI_First_Visit                             0.008      0.005   1.583    0.114
+LGap                                       -0.010      0.003  -3.025    0.003
+Global_Tilt                                 0.003      0.004   0.772    0.440
+Major_curve_Cobb_angle                     -0.001      0.002  -0.640    0.523
+`5y_vs_2y_effect`                          -1.467      0.154  -9.503    0.000
+LGap:`5y_vs_2y_effect`                      0.005      0.004   1.333    0.183
+Global_Tilt:`5y_vs_2y_effect`               0.003      0.004   0.713    0.476
+Major_curve_Cobb_angle:`5y_vs_2y_effect`    0.002      0.002   1.068    0.286</code></pre>
 </div>
 
 

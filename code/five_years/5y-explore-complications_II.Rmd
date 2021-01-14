@@ -34,13 +34,18 @@ data_set <- data_set_0 %>% copy
 
 xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
+valid_patients <- data_set[, `Code of the patient`] %>% unique
+
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
-  .[`Complication Impact` == 'Major Complication']
-
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Code of the patient` %in% valid_patients]
 
 reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
-  data.table
+  data.table %>% 
+  .[`Code of the patient` %in% valid_patients]
+
+
 
 data_set_0 %>% 
   .[, .(
@@ -196,7 +201,8 @@ data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  comp
 
 ```{r echo=FALSE}
 complications_all <- read_excel(xls_path, sheet='Complications') %>%
-  as.data.table
+  as.data.table %>% 
+  .[`Code of the patient` %in% valid_patients]
 ```
 
 

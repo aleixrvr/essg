@@ -34,6 +34,17 @@ controlling_vars <- read_yaml('code/reintervention/controling_vars.yml')
 cat(controlling_vars %>% as.yaml())
 ```
 
+# Proportion of reinterventions by year
+
+```{r comment='', echo=FALSE}
+time_evolution %>% 
+  .[reintervention != '0'] %>% 
+  .[, .N, .(year=floor(diff_years) + 1)] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  setorder(year) %>% 
+  print
+```
+
 
 # Reinterventions Impact 
 
@@ -87,8 +98,6 @@ lapply(1:6, function(y_){
 ```
 
 
-
-
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 res %>% 
   ggplot(aes(reint_n, odi, color=factor(outcome_year))) +
@@ -103,9 +112,23 @@ impact_var <- 'reint_n'
 outcome <- 'odi'
 controlling_vars_ <- controlling_vars
 
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% 
   datatable
 ```
+
+Dilution effect of `r outcome`: time since last operation (controlling by same variables plus number of reinterventions and outcome year) in first 6 years.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+estimate_dilution(res, outcome, controlling_vars_, sel_years=1:5) %>% 
+  datatable
+```
+
 
 ```{r echo=FALSE, warning=FALSE, message=FALSE}
 res %>% 
@@ -120,7 +143,20 @@ impact_var <- 'reint_n'
 outcome <- 'srss'
 controlling_vars_ <- controlling_vars
 
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% 
+  datatable
+```
+
+Dilution effect of `r outcome`: time since last operation (controlling by same variables plus number of reinterventions and outcome year) in first 5 years.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+estimate_dilution(res, outcome, controlling_vars_, sel_years=1:5) %>% 
   datatable
 ```
 
@@ -137,7 +173,20 @@ impact_var <- 'reint_n'
 outcome <- 'pcs'
 controlling_vars_ <- controlling_vars
 
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% 
+  datatable
+```
+
+Dilution effect of `r outcome`: time since last operation (controlling by same variables plus number of reinterventions and outcome year) in first 6 years.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+estimate_dilution(res, outcome, controlling_vars_, sel_years=1:5) %>% 
   datatable
 ```
 
@@ -154,97 +203,109 @@ impact_var <- 'reint_n'
 outcome <- 'mcs'
 controlling_vars_ <- controlling_vars
 
+mean_outcome <- res[, .(mean_outcome=mean(odi, na.rm = TRUE)),.(outcome_year)]
+
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% 
   datatable
 ```
 
+Dilution effect of `r outcome`: time since last operation (controlling by same variables plus number of reinterventions and outcome year) in first  years.
 
-# Impact by prior surgery groups
-
-```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
-
-impact_var <- 'reint_n'
-outcome <- 'odi'
-controlling_vars_ <- controlling_vars
-
-prior_groups <- res[, prior_group %>% unique] %>% sort
-htmltools::h4(outcome)
-for( prior_group_name in prior_groups){
-  print(prior_group_name)
-  cat('\n')
-  res %>% 
-    .[prior_group==prior_group_name] %>% 
-    .[, prior_group := NULL] ->
-    res_group
-  
-  res_group %>% 
-    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
-}
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+estimate_dilution(res, outcome, controlling_vars_, sel_years=1:5) %>% 
+  datatable
 ```
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
+<!-- # Impact by prior surgery groups -->
 
-impact_var <- 'reint_n'
-outcome <- 'srss'
-controlling_vars_ <- controlling_vars
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""} -->
 
-prior_groups <- res[, prior_group %>% unique] %>% sort
-htmltools::h4(outcome)
-for( prior_group_name in prior_groups){
-  print(prior_group_name)
-  cat('\n')
-  res %>% 
-    .[prior_group==prior_group_name] %>% 
-    .[, prior_group := NULL] ->
-    res_group
-  
-  res_group %>% 
-    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
-}
-```
+<!-- impact_var <- 'reint_n' -->
+<!-- outcome <- 'odi' -->
+<!-- controlling_vars_ <- controlling_vars -->
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
+<!-- prior_groups <- res[, prior_group %>% unique] %>% sort -->
+<!-- htmltools::h4(outcome) -->
+<!-- for( prior_group_name in prior_groups){ -->
+<!--   print(prior_group_name) -->
+<!--   cat('\n') -->
+<!--   res %>%  -->
+<!--     .[prior_group==prior_group_name] %>%  -->
+<!--     .[, prior_group := NULL] -> -->
+<!--     res_group -->
 
-impact_var <- 'reint_n'
-outcome <- 'pcs'
-controlling_vars_ <- controlling_vars
+<!--   res_group %>%  -->
+<!--     estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print -->
+<!-- } -->
+<!-- ``` -->
 
-prior_groups <- res[, prior_group %>% unique] %>% sort
-htmltools::h4(outcome)
-for( prior_group_name in prior_groups){
-  print(prior_group_name)
-  cat('\n')
-  res %>% 
-    .[prior_group==prior_group_name] %>% 
-    .[, prior_group := NULL] ->
-    res_group
-  
-  res_group %>% 
-    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
-}
-```
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""} -->
+
+<!-- impact_var <- 'reint_n' -->
+<!-- outcome <- 'srss' -->
+<!-- controlling_vars_ <- controlling_vars -->
+
+<!-- prior_groups <- res[, prior_group %>% unique] %>% sort -->
+<!-- htmltools::h4(outcome) -->
+<!-- for( prior_group_name in prior_groups){ -->
+<!--   print(prior_group_name) -->
+<!--   cat('\n') -->
+<!--   res %>%  -->
+<!--     .[prior_group==prior_group_name] %>%  -->
+<!--     .[, prior_group := NULL] -> -->
+<!--     res_group -->
+
+<!--   res_group %>%  -->
+<!--     estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""} -->
+
+<!-- impact_var <- 'reint_n' -->
+<!-- outcome <- 'pcs' -->
+<!-- controlling_vars_ <- controlling_vars -->
+
+<!-- prior_groups <- res[, prior_group %>% unique] %>% sort -->
+<!-- htmltools::h4(outcome) -->
+<!-- for( prior_group_name in prior_groups){ -->
+<!--   print(prior_group_name) -->
+<!--   cat('\n') -->
+<!--   res %>%  -->
+<!--     .[prior_group==prior_group_name] %>%  -->
+<!--     .[, prior_group := NULL] -> -->
+<!--     res_group -->
+
+<!--   res_group %>%  -->
+<!--     estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print -->
+<!-- } -->
+<!-- ``` -->
 
 
-```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""}
+<!-- ```{r echo=FALSE, warning=FALSE, message=FALSE, comment=""} -->
 
-impact_var <- 'reint_n'
-outcome <- 'mcs'
-controlling_vars_ <- controlling_vars
+<!-- impact_var <- 'reint_n' -->
+<!-- outcome <- 'mcs' -->
+<!-- controlling_vars_ <- controlling_vars -->
 
-prior_groups <- res[, prior_group %>% unique] %>% sort
-htmltools::h4(outcome)
-for( prior_group_name in prior_groups){
-  print(prior_group_name)
-  cat('\n')
-  res %>% 
-    .[prior_group==prior_group_name] %>% 
-    .[, prior_group := NULL] ->
-    res_group
-  
-  res_group %>% 
-    estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print
-}
-```
+<!-- prior_groups <- res[, prior_group %>% unique] %>% sort -->
+<!-- htmltools::h4(outcome) -->
+<!-- for( prior_group_name in prior_groups){ -->
+<!--   print(prior_group_name) -->
+<!--   cat('\n') -->
+<!--   res %>%  -->
+<!--     .[prior_group==prior_group_name] %>%  -->
+<!--     .[, prior_group := NULL] -> -->
+<!--     res_group -->
+
+<!--   res_group %>%  -->
+<!--     estimate_impacts(outcome, impact_var, controlling_vars_, sel_years=1:3)  %>% print -->
+<!-- } -->
+<!-- ``` -->
 
 <!-- # Time Last Operation Impact  -->
 
