@@ -23,9 +23,23 @@ get_data <- function(){
   setnames(clinical_data, 'ideal LL\r\n\r\n', 'ideal LL')
   setnames(clinical_data, 'RLL\r\n\r\n', 'RLL')
   
+  
+  discarded_patients <- readLines('code/five_years/discarded_patients')
+  
+  clinical_data %<>% 
+    .[, followup_2y := 
+        !is.na(`2 YEAR VISIT - Date of visit`) | 
+        !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+    .[, followup_5y := 
+        !is.na(`5 YEAR VISIT - Date of visit`) | 
+        !is.na(`6 YEAR VISIT - Date of visit`)]
+  
   valid_patients <- clinical_data %>% 
-    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-12-15')] %>% 
-    .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+    .[followup_2y==TRUE] %>% 
+    .[Site != 'ANK Op'] %>% 
+    .[`Vital status` == 'Alive'] %>% 
+    .[!(`Code of the patient` %in% discarded_patients)] %>% 
+    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-3-15')] %>% 
     .[, `Code of the patient` %>% unique]
   
   clinical_data %<>% .[`Code of the patient` %in% valid_patients]

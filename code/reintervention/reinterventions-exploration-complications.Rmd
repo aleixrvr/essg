@@ -302,6 +302,32 @@ category_los %>%
   facet_grid(.~category)
 ```
 
+### Stats and p-vals Blood Loss
+```{r echo=FALSE, comment=''}
+var_ <- 'blood_loss'
+cats <- category_los[, category %>% unique]
+
+res <- data.table()
+
+for( cat_ in cats){
+  vals_cat <- category_los[category == cat_, get(var_)]
+  vals_not_cat <- category_los[category != cat_, get(var_)]
+  p_val <- t.test(vals_cat, vals_not_cat)$p.val 
+  res %<>% rbind(
+    data.frame(
+      complication=cat_, 
+      mean=mean(vals_cat, na.rm=TRUE) %>% round(3),
+      sd=sd(vals_cat, na.rm=TRUE) %>% round(3),
+      p_val_vs_others=p_val %>% round(3))
+  ) 
+}
+
+setorder(res, -mean)
+res
+```
+
+
+
 ```{r echo=FALSE, comment=""}
 max_val <- category_los[, quantile(surgical_time, 0.96, na.rm=TRUE)]
 # for( compl in complication_types){
@@ -347,6 +373,29 @@ category_los %>%
   ylab('Surgical Time') +
   geom_errorbar(aes(ymin=mean_-1.96*ci, ymax=mean_+1.96*ci), width=.1) +
   facet_grid(.~category)
+```
+
+### Stats and p-vals Surgical Time
+```{r echo=FALSE, comment=''}
+var_ <- 'surgical_time'
+cats <- category_los[, category %>% unique]
+
+res <- data.table()
+
+for( cat_ in cats){
+  vals_cat <- category_los[category == cat_, get(var_)]
+  vals_not_cat <- category_los[category != cat_, get(var_)]
+  p_val <- t.test(vals_cat, vals_not_cat)$p.val 
+  res %<>% rbind(
+    data.frame(
+      complication=cat_, 
+      mean=mean(vals_cat, na.rm=TRUE) %>% round(3),
+      sd=sd(vals_cat, na.rm=TRUE) %>% round(3),
+      p_val_vs_others=p_val %>% round(3))
+  ) 
+}
+setorder(res, -mean)
+res
 ```
 
 ```{r echo=FALSE, comment=""}
@@ -398,3 +447,25 @@ category_los %>%
   facet_grid(.~category)
 ```
 
+### Stats and p-vals Hospitalization Time
+```{r echo=FALSE, comment=''}
+var_ <- 'hospitalization_time'
+cats <- category_los[, category %>% unique]
+
+res <- data.table()
+
+for( cat_ in cats){
+  vals_cat <- category_los[category == cat_, get(var_)]
+  vals_not_cat <- category_los[category != cat_, get(var_)]
+  p_val <- t.test(vals_cat, vals_not_cat)$p.val 
+  res %<>% rbind(
+    data.frame(
+      complication=cat_, 
+      mean=mean(vals_cat, na.rm=TRUE) %>% round(3),
+      sd=sd(vals_cat, na.rm=TRUE) %>% round(3),
+      p_val_vs_others=p_val %>% round(3))
+  ) 
+}
+setorder(res, -mean)
+res
+```

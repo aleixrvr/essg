@@ -33,14 +33,11 @@ outcomes <- c(
 c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
 data_set <- data_set_0 %>% copy
 
-valid_patients <- data_set[, `Code of the patient`] %>% unique
-
 xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
-  .[`Complication Impact` == 'Major Complication'] %>% 
-  .[`Code of the patient` %in% valid_patients]
+  .[`Complication Impact` == 'Major Complication'] 
 
 demographics <- read_yaml('code/five_years/demographic.yml')
 demographics_all <- demographics %>% unlist
@@ -50,6 +47,11 @@ outcomes %>%
   lapply(. %>% str_replace_all('5', '2')) ->
   outcomes_2y
 names(outcomes_2y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '3')) ->
+  outcomes_3y
+names(outcomes_3y) <- outcomes
 
 outcomes %>% 
   lapply(. %>% str_replace_all('5', '6')) ->
@@ -62,33 +64,101 @@ outcomes %>%
 
 for( outcome in names(outcomes_6y)){
   outcome_6y <- outcomes_6y[[outcome]]
+  outcome_2y <- outcomes_2y[[outcome]]
+  outcome_3y <- outcomes_3y[[outcome]]
   data_set %<>%
-    .[is.na(get(outcome)), c(outcome_6y) := get(outcome)]
+    .[is.na(get(outcome)), c(outcome) := get(outcome_6y)] %>% 
+    .[is.na(get(outcome_2y)), c(outcome_2y) := get(outcome_3y)]
 }
 
-outcome_2y <- outcomes_2y[[1]]
-outcome <- outcomes[[1]]
-
-if( 'SRS22 - Satisfaction_First Visit' %in% colnames(data_set) ){
-  setnames(data_set, 'SRS22 - Satisfaction_First Visit', 'SRS22 - Satisfaction with management_First Visit')
-}
+# outcome_2y <- outcomes_2y[[1]]
+# outcome <- outcomes[[1]]
 
 study_vars <- c(
-  outcomes, outcomes_2y %>% unlist, demographics_all, base_outcomes, 'Code of the patient'
+  outcomes, outcomes_2y %>% unlist, 
+  demographics_all, base_outcomes, 
+  'Code of the patient', 
+  'Site', 
+  'Study', 
+  'Vital status', 
+  'st1. Date of Stage 1', 
+  '2 YEAR VISIT - Date of visit',
+  '3 YEAR VISIT - Date of visit',
+  '5 YEAR VISIT - Date of visit',
+  '6 YEAR VISIT - Date of visit'
 ) %>% unique
 data_set %<>% 
+  .[, .SD, .SDcols=study_vars] 
+```
+
+### Filters
+```{r warning=FALSE }
+discarded_patients <- readLines('code/five_years/discarded_patients')
+
+data_set %<>% 
+  .[Site != 'ANK Op'] %>% 
   .[Study=='Op'] %>% 
-  .[, .SD, .SDcols=study_vars] %>% 
-  .[, followup_2y := 'has_followup'] %>% 
-  .[is.na(get(outcome_2y)), followup_2y := 'no_followup'] %>% 
-  .[, followup_5y := 'has_followup'] %>% 
-  .[is.na(get(outcome)), followup_5y := 'no_followup'] 
+  .[`Vital status` == 'Alive'] %>% 
+  .[!(`Code of the patient` %in% discarded_patients)] %>% 
+  .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-3-15')]
 
 ```
 
-- Patients with at least 2 year from intervention: `r "{data_set[, .N]}" %>% f`
-- Patients with 2y info: `r "{data_set[followup_2y == 'has_followup', .N]}" %>% f`
-- Patients with 5y info: `r "{data_set[followup_5y == 'has_followup', .N]}" %>% f`
+
+### FU Stats
+```{r}
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)] 
+
+followup_2y <- data_set %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient` %>% uniqueN]
+
+followup_5y <- data_set %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient` %>% uniqueN]
+
+total <- data_set[, .N]
+total_with_followup_2y <- data_set[followup_2y==TRUE, .N]
+perc_followup_2y <- round(followup_2y/total, 3)
+perc_followup_5y <- round(followup_5y/total, 3)
+perc_followup_5y_with_2y <- round(followup_5y/total_with_followup_2y, 3)
+```
+
+- Patients with at least 5 year from intervention (total variable): `r total`
+- Patients with 2y number (followup_2y variable): `r followup_2y`
+- Patients with 2y % (perc_followup_2y variable): `r perc_followup_2y*100`
+- Patients with 5y number (followup_5y variable): `r followup_5y`
+- Patients with 5y % (perc_followup_5y variable): `r perc_followup_5y*100`
+- Patients (among 2y FU) with 5y % (perc_followup_5y_with_2y variable): `r perc_followup_5y_with_2y*100`
+
+### 2Y FU follow per Site
+```{r comment='', echo=FALSE}
+data_set[, .(eligible=.N, fu_2y=sum(followup_2y==TRUE)/.N), Site]
+```
+
+### 5Y FU follow per Site
+```{r  comment='', echo=FALSE}
+data_set[, .(eligible=.N, fu_5y=sum(followup_5y==TRUE)/.N), Site]
+```
+
+We finally stick to those with 2y FU
+```{r}
+data_set %<>% 
+  .[followup_2y==TRUE]
+```
+
+
+```{r echo=FALSE}
+data_set %<>% 
+  .[, followup_2y := ifelse(followup_2y == TRUE, 'has_followup', 'no_followup')] %>% 
+  .[, followup_5y := ifelse(followup_5y == TRUE, 'has_followup', 'no_followup')] 
+```
 
 
 ```{r echo=FALSE}
@@ -148,7 +218,6 @@ for( outcome in outcomes ){
   
 }
 ```
-
 
 
 # Follow up

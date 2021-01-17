@@ -19,6 +19,7 @@ library(stringr)
 library(ggplot2)
 library(zeallot)
 library(gridExtra)
+library(DiagrammeR)
 
 source('code/five_years/five_years-utils.R')
 
@@ -31,19 +32,14 @@ outcomes <- c(
 c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
 data_set <- data_set_0 %>% copy
 
-valid_patients <- data_set[, `Code of the patient`] %>% unique
-
 xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 complications <- read_excel(xls_path, sheet='Complications') %>%
   as.data.table %>%
-  .[`Complication Impact` == 'Major Complication'] %>% 
-  .[`Code of the patient` %in% valid_patients]
-
+  .[`Complication Impact` == 'Major Complication'] 
 
 reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
-  data.table %>% 
-  .[`Code of the patient` %in% valid_patients]
+  data.table 
 
 data_set_0 %>% 
   .[, .(
@@ -74,6 +70,11 @@ outcomes %>%
 names(outcomes_2y) <- outcomes
 
 outcomes %>% 
+  lapply(. %>% str_replace_all('5', '3')) ->
+  outcomes_3y
+names(outcomes_3y) <- outcomes
+
+outcomes %>% 
   lapply(. %>% str_replace_all('5', '6')) ->
   outcomes_6y
 names(outcomes_6y) <- outcomes
@@ -84,26 +85,63 @@ outcomes %>%
 
 for( outcome in names(outcomes_6y)){
   outcome_6y <- outcomes_6y[[outcome]]
+  outcome_2y <- outcomes_2y[[outcome]]
+  outcome_3y <- outcomes_3y[[outcome]]
   data_set %<>%
-    .[is.na(get(outcome)), c(outcome_6y) := get(outcome)]
+    .[is.na(get(outcome)), c(outcome) := get(outcome_6y)] %>% 
+    .[is.na(get(outcome_2y)), c(outcome_2y) := get(outcome_3y)]
 }
 
-outcome_2y <- outcomes_2y[[1]]
-outcome <- outcomes[[1]]
-
+# outcome_2y <- outcomes_2y[[1]]
+# outcome <- outcomes[[1]]
 
 study_vars <- c(
-  outcomes, outcomes_2y %>% unlist, demographics_all, base_outcomes, 'Code of the patient'
+  outcomes, outcomes_2y %>% unlist, 
+  demographics_all, base_outcomes, 
+  'Code of the patient', 
+  'Site', 
+  'Study', 
+  'Vital status', 
+  'st1. Date of Stage 1', 
+  '2 YEAR VISIT - Date of visit',
+  '3 YEAR VISIT - Date of visit',
+  '5 YEAR VISIT - Date of visit',
+  '6 YEAR VISIT - Date of visit'
 ) %>% unique
 data_set %<>% 
+  .[, .SD, .SDcols=study_vars] 
+```
+
+### Filters
+```{r warning=FALSE }
+discarded_patients <- readLines('code/five_years/discarded_patients')
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+data_set %<>% 
+  .[followup_2y==TRUE] %>% 
+  .[Site != 'ANK Op'] %>% 
   .[Study=='Op'] %>% 
-  .[, .SD, .SDcols=study_vars] %>% 
-  .[, followup_2y := 'has_followup'] %>% 
-  .[is.na(get(outcome_2y)), followup_2y := 'no_followup'] %>% 
-  .[, followup_5y := 'has_followup'] %>% 
-  .[is.na(get(outcome)), followup_5y := 'no_followup'] 
+  .[`Vital status` == 'Alive'] %>% 
+  .[!(`Code of the patient` %in% discarded_patients)] %>% 
+  .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-3-15')]
 
+```
 
+```{r echo=FALSE}
+data_set %<>% 
+  .[, followup_2y := ifelse(followup_2y == TRUE, 'has_followup', 'no_followup')] %>% 
+  .[, followup_5y := ifelse(followup_5y == TRUE, 'has_followup', 'no_followup')] 
+
+patients_all <- data_set[, `Code of the patient` %>% unique]
+complications %<>% .[`Code of the patient` %in% patients_all]
+reinterventions %<>% .[`Code of the patient` %in% patients_all]
 ```
 
 #### Only Major Complications
@@ -146,6 +184,8 @@ models$radiology %>% print
 
 
 # Impact of complications on followup
+
+Only considering those with 2 FU
 
 ```{r echo=FALSE, comment=""}
 patients_complications_5y <- complications %>%

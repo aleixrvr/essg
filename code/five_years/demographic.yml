@@ -4,6 +4,7 @@ demographic:
   - Prior Spine Surgery
   - ASA classification
   - BMI_First Visit
+  - Site
 radiologic:
   - LGap
   - Global Tilt 

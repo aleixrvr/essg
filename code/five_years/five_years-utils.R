@@ -87,13 +87,6 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE){
     .[`Reoperation Due to Complication`=='Yes'] %>% 
     .[, unique(`Code of the patient`)]
   
-  valid_patients <- clinical_data %>% 
-    .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-12-15')] %>% 
-    .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
-    .[, `Code of the patient` %>% unique]
-  
-  clinical_data %<>% .[`Code of the patient` %in% valid_patients]
-  
   clinical_data %<>% 
     .[, had_complication := 'No'] %>% 
     .[`Code of the patient` %in% complication_patients, had_complication := 'Yes'] %>%
@@ -118,6 +111,10 @@ get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE){
       data_set
   }else{
     data_set <- clinical_data
+  }
+  
+  if( 'SRS22 - Satisfaction_First Visit' %in% colnames(data_set) ){
+    setnames(data_set, 'SRS22 - Satisfaction_First Visit', 'SRS22 - Satisfaction with management_First Visit')
   }
   
   return(list(
@@ -234,6 +231,50 @@ plot_complications <- function(
 
 rm_blanks <- . %>% gsub(' ', '_', .)
 get_model_info <- . %>% summary %>% coefficients %>% round(3)
+
+
+
+basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics){
+  data_ <- data_set %>% 
+    copy %>% 
+    .[, outcome := get(outcome) - get(base_outcome)]
+  
+  # model_age_gender <- lm(outcome~Age + Gender, data = data_)  %>% get_model_info
+  
+  sel_vars <- c(demographics$demographic, 'outcome')
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_demo
+
+  sel_vars <- c(demographics$demographic, demographics$radiologic, 'outcome')
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_radio
+  
+  sel_vars <- c(
+    demographics$demographic, 
+    demographics$radiologic, 
+    demographics$qualitylife,
+    'outcome'
+  )
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_quality
+  
+  return(list(
+    # model_age_gender = model_age_gender,
+    model_demo=model_demo,
+    model_radio=model_radio,
+    model_quality=model_quality
+  ))  
+  
+}
 
 variable_effect <- function(data_set, outcome, outcome_2y, demographics){
   

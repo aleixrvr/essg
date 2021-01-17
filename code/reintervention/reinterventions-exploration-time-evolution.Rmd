@@ -28,30 +28,6 @@ c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 ```
 
 
-# Hospitalization Time
-
-```{r warning=FALSE, echo=FALSE, fig.height=4}
-time_evolution %>% 
-  ggplot(aes(reintervention, hospitalization_time)) +
-  geom_boxplot() +
-  ylim(c(0, 250))
-
-time_evolution[, 
-  quantile(hospitalization_time, na.rm=TRUE) %>% as.list, 
-  reintervention]
-
-
-time_evolution[, .(hospitalization_time, reintervention)] %>% 
-  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
-  .[ reintervention <= 3] %>% 
-  lm(hospitalization_time~reintervention, data= .) %>% 
-  summary %>% 
-  coefficients %>% 
-  print
-```
-
-Note: linear model only up to 3 reinterventions (included)
-
 # Proportion of reinterventions
 
 ```{r warning=FALSE, echo=FALSE, fig.height=3.5}
@@ -182,6 +158,67 @@ print(evol_res$res_lm)
 ```
 
 
+# Hospitalization Time
+
+### Basic stats hospitalization time
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', hospitalization_time]
+val_ur <- time_evolution[reintervention!='0', hospitalization_time]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val %>% round(5)
+```
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+time_evolution %>% 
+  ggplot(aes(reintervention, hospitalization_time)) +
+  geom_boxplot() +
+  ylim(c(0, 250))
+
+time_evolution[, 
+  quantile(hospitalization_time, na.rm=TRUE) %>% as.list, 
+  reintervention]
+
+
+time_evolution[, .(hospitalization_time, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(hospitalization_time~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
+```
+
+Note: linear model only up to 3 reinterventions (included)
+
+# Blood Loss
+
+### Basic stats blood loss
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', blood_loss]
+val_ur <- time_evolution[reintervention!='0', blood_loss]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val %>% round(5)
+```
+
 ```{r echo=FALSE, comment=""}
 time_evolution %>% 
   ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
@@ -202,8 +239,28 @@ time_evolution %>%
   ggplot(aes(reintervention, blood_loss)) +
   geom_boxplot() +
   ggtitle('Blood Loss')
+```
 
+# Surgical Time
 
+### Basic stats surgical time
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', surgical_time]
+val_ur <- time_evolution[reintervention!='0', surgical_time]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val %>% round(5)
+```
+
+```{r echo=FALSE, comment=""}
 time_evolution %>% 
   ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
   geom_density(alpha=0.1) +
@@ -227,3 +284,9 @@ time_evolution %>%
 ```
 
 Note: linear model only up to 3 reinterventions (included)
+
+
+
+
+
+
