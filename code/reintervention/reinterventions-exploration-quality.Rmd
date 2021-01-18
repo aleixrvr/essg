@@ -203,7 +203,7 @@ impact_var <- 'reint_n'
 outcome <- 'mcs'
 controlling_vars_ <- controlling_vars
 
-mean_outcome <- res[, .(mean_outcome=mean(odi, na.rm = TRUE)),.(outcome_year)]
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
 
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 

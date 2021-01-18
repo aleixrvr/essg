@@ -1603,8 +1603,8 @@ data_set %&lt;&gt;%
   .[`st1. Date of Stage 1` %&gt;% as.Date() &lt; as.Date(&#39;2015-3-15&#39;)]</code></pre>
 <div id="only-major-complications" class="section level4">
 <h4>Only Major Complications</h4>
-<div id="htmlwidget-09875cf04ae6d7e1cf55" style="width:672px;height:480px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-09875cf04ae6d7e1cf55">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  P[label=\"Personality\", style=\"dashed\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  H[label=\"Quality of\nLife\"]\n  T[label=\"Treatment\"]\n  C[label=\"Complications\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  P -> R\n  P -> H\n  D -> H\n  H -> O\n  H -> T\n  T -> O\n  R -> T\n  T -> C\n  H -> C\n  D -> C\n  C -> O\n  R -> C\n  \n  \n  {rank=same; P;D}\n  {rank=same; R;H}\n  {rank=same; T}\n  {rank=same; C}\n  {rank=same; O}\n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-db61d102fdb84f2b9c4a" style="width:672px;height:480px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-db61d102fdb84f2b9c4a">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  P[label=\"Personality\", style=\"dashed\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  H[label=\"Quality of\nLife\"]\n  T[label=\"Treatment\"]\n  C[label=\"Complications\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  P -> R\n  P -> H\n  D -> H\n  H -> O\n  H -> T\n  T -> O\n  R -> T\n  T -> C\n  H -> C\n  D -> C\n  C -> O\n  R -> C\n  \n  \n  {rank=same; P;D}\n  {rank=same; R;H}\n  {rank=same; T}\n  {rank=same; C}\n  {rank=same; O}\n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 </div>
 </div>
 <div id="stats" class="section level1">
@@ -1618,6 +1618,16 @@ data_set %&lt;&gt;%
 <!-- ```{r echo=FALSE} -->
 <!-- data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_2y_5y] -->
 <!-- ``` -->
+<div id="complications-stats" class="section level3">
+<h3>Complications stats</h3>
+<ul>
+<li><p>Complications before 2 years: 209</p></li>
+<li><p>Proportion of patients with complications before 2 years: 0.2493075</p></li>
+<li><p>Complications between 2y and 5y: 70</p></li>
+<li><p>Proportion of patients with complications between 2y and 5y: 0.1052632</p></li>
+<li><p>p-value testing equality between proportions of complications: 6.701544910^{-7}</p></li>
+</ul>
+</div>
 <div id="major-complications-before-2y" class="section level3">
 <h3>Major Complications before 2y</h3>
 <pre><code>Category of the complication
@@ -1677,6 +1687,7 @@ Mechanical complications      Other complications
 <li><p>Proportion of patients with reintervention before 2 years: 0.1883657</p></li>
 <li><p>Reinterventions between 2y and 5y: 56</p></li>
 <li><p>Proportion of patients with reintervention between 2y and 5y: 0.1218837</p></li>
+<li><p>p-value testing equality between proportions of reinterventions: 0.0180589</p></li>
 </ul>
 </div>
 <div id="do-complications-before-2y-affect-2y-followup" class="section level3">

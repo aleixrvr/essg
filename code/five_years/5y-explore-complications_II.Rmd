@@ -245,6 +245,38 @@ complications_all <- read_excel(xls_path, sheet='Complications') %>%
 ```
 
 
+### Complications stats
+```{r echo=FALSE}
+
+complications_all %>%
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == 'Major Complication'] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
 ### Major Complications before 2y
 ```{r echo=FALSE, comment=""}
 complications_all %>%
@@ -306,13 +338,19 @@ reinterventions %>%
 
 patients_2y_5y <- reints_2y_5y[, `Code of the patient` %>% unique]
 
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
 ```
 
 - Reinterventions before 2 years: `r reints_2y[, .N]`
-- Proportion of patients with reintervention before 2 years: `r len(patients_2y) / len(patients_all)`
+- Proportion of patients with reintervention before 2 years: `r patients_2y_n / patients_n`
 
 - Reinterventions between 2y and 5y: `r reints_2y_5y[, .N]`
-- Proportion of patients with reintervention between 2y and 5y: `r len(patients_2y_5y) / len(patients_all)`
+- Proportion of patients with reintervention between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of reinterventions: `r p_val`
 
 ### Do complications before 2y affect 2y followup?
 

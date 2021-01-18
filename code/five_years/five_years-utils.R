@@ -255,10 +255,13 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     get_model_info ->
     model_radio
   
+  
+  base_qualities <- demographics$qualitylife %>% 
+    sapply(. %>% get_base_outcome(first_visit=TRUE)) 
   sel_vars <- c(
     demographics$demographic, 
     demographics$radiologic, 
-    demographics$qualitylife,
+    base_qualities,
     'outcome'
   )
   data_ %>% 
@@ -267,11 +270,25 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     get_model_info ->
     model_quality
   
+  sel_vars <- c(
+    demographics$demographic, 
+    demographics$radiologic, 
+    base_qualities,
+    'had_complications', 
+    'outcome'
+  )
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_complications
+  
   return(list(
     # model_age_gender = model_age_gender,
     model_demo=model_demo,
     model_radio=model_radio,
-    model_quality=model_quality
+    model_quality=model_quality,
+    model_complications=model_complications
   ))  
   
 }

@@ -1601,8 +1601,8 @@ data_set %&lt;&gt;%
   .[`Vital status` == &#39;Alive&#39;] %&gt;% 
   .[!(`Code of the patient` %in% discarded_patients)] %&gt;% 
   .[`st1. Date of Stage 1` %&gt;% as.Date() &lt; as.Date(&#39;2015-3-15&#39;)]</code></pre>
-<div id="htmlwidget-e28344a49192f1d76c95" style="width:672px;height:480px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-e28344a49192f1d76c95">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  \n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<div id="htmlwidget-eb2f8a6451fd4cf7f40b" style="width:672px;height:480px;" class="grViz html-widget"></div>
+<script type="application/json" data-for="htmlwidget-eb2f8a6451fd4cf7f40b">{"x":{"diagram":"\ndigraph rmarkdown {\n\n  graph [\n    rankdir = UD\n  ]\n  \n  node [\n    shape=circle,\n    fixedsize=true,\n    width=1.2,\n    style=filled,\n    fillcolor=aquamarine2,\n    fontsize=15\n    ]\n\n \n  D[label=\"Demographic\"]\n  R[label=\"Radiologic\n(Deformity)\"]\n  O[label=\"Outcome\"]\n  \n  D -> R \n  D -> O\n  R -> O\n  \n}                  \n","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <pre><code>demographic:
 - Age
 - Gender
@@ -1674,24 +1674,44 @@ LGap                       -0.254      0.089  -2.858    0.005
 `Global Tilt`               0.390      0.114   3.405    0.001
 `Major curve Cobb angle`    0.006      0.064   0.093    0.926</code></pre>
 <h5>HRQL</h5>
-<pre><code>                                 Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                       -17.470     18.663  -0.936    0.350
-Age                                -0.329      0.099  -3.326    0.001
-GenderMale                         -1.424      3.140  -0.454    0.651
-`Prior Spine Surgery`Yes           -0.412      2.803  -0.147    0.883
-`ASA classification`               -2.149      2.349  -0.915    0.361
-`BMI_First Visit`                  -0.254      0.292  -0.871    0.385
-SiteBOR Op                          4.806      3.599   1.335    0.183
-SiteIST Op                        -12.262      5.121  -2.394    0.018
-SiteMAD Op                          0.335      3.924   0.085    0.932
-SiteZUR Op                          2.874      4.035   0.712    0.477
-LGap                               -0.239      0.088  -2.703    0.008
-`Global Tilt`                       0.333      0.114   2.911    0.004
-`Major curve Cobb angle`            0.042      0.063   0.663    0.508
-`2Y. ODI - Score (%)`               0.433      0.137   3.168    0.002
-`2Y. SRS22 - SRS Subtotal score`    3.466      4.297   0.806    0.421
-`2Y. SF36 - MCS`                   -0.015      0.176  -0.084    0.933
-`2Y. SF36 - PCS`                    0.161      0.228   0.708    0.480</code></pre>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 2.609     17.103   0.153    0.879
+Age                                        -0.132      0.104  -1.275    0.204
+GenderMale                                 -5.665      3.079  -1.840    0.067
+`Prior Spine Surgery`Yes                    2.294      2.722   0.843    0.400
+`ASA classification`                        1.485      2.392   0.621    0.536
+`BMI_First Visit`                           0.205      0.295   0.697    0.487
+SiteBOR Op                                  3.050      3.543   0.861    0.390
+SiteIST Op                                 -7.294      5.152  -1.416    0.159
+SiteMAD Op                                  3.564      3.877   0.919    0.359
+SiteZUR Op                                 -0.718      3.945  -0.182    0.856
+LGap                                       -0.178      0.087  -2.050    0.042
+`Global Tilt`                               0.318      0.110   2.891    0.004
+`Major curve Cobb angle`                   -0.024      0.063  -0.377    0.707
+`ODI - Score (%)_First Visit`              -0.399      0.129  -3.097    0.002
+`SRS22 - SRS Subtotal score_First Visit`   -3.497      3.774  -0.927    0.355
+`SF36 - MCS_First Visit`                    0.031      0.145   0.216    0.829
+`SF36 - PCS_First Visit`                    0.195      0.216   0.904    0.367</code></pre>
+<h5>Complications</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 2.028     16.668   0.122    0.903
+Age                                        -0.161      0.101  -1.589    0.114
+GenderMale                                 -5.890      3.001  -1.963    0.051
+`Prior Spine Surgery`Yes                    1.995      2.654   0.752    0.453
+`ASA classification`                        1.448      2.331   0.621    0.535
+`BMI_First Visit`                           0.242      0.288   0.841    0.402
+SiteBOR Op                                  3.018      3.453   0.874    0.383
+SiteIST Op                                 -7.906      5.025  -1.573    0.117
+SiteMAD Op                                  3.869      3.780   1.024    0.307
+SiteZUR Op                                  0.258      3.857   0.067    0.947
+LGap                                       -0.171      0.084  -2.026    0.044
+`Global Tilt`                               0.273      0.108   2.528    0.012
+`Major curve Cobb angle`                   -0.041      0.062  -0.663    0.508
+`ODI - Score (%)_First Visit`              -0.424      0.126  -3.367    0.001
+`SRS22 - SRS Subtotal score_First Visit`   -3.455      3.678  -0.940    0.349
+`SF36 - MCS_First Visit`                    0.040      0.141   0.281    0.779
+`SF36 - PCS_First Visit`                    0.211      0.210   1.001    0.318
+had_complicationsYes                        8.029      2.456   3.269    0.001</code></pre>
 </div>
 <div id="y-vs-2y-effects" class="section level3">
 <h3>5Y vs 2Y Effects</h3>
@@ -1792,24 +1812,44 @@ LGap                        0.003      0.004   0.766    0.444
 `Global Tilt`              -0.011      0.005  -2.158    0.032
 `Major curve Cobb angle`   -0.001      0.003  -0.348    0.728</code></pre>
 <h5>HRQL</h5>
-<pre><code>                                 Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                        -0.523      0.810  -0.646    0.519
-Age                                 0.007      0.004   1.539    0.126
-GenderMale                          0.022      0.137   0.158    0.875
-`Prior Spine Surgery`Yes            0.050      0.123   0.404    0.687
-`ASA classification`                0.014      0.103   0.134    0.894
-`BMI_First Visit`                   0.003      0.012   0.235    0.814
-SiteBOR Op                          0.101      0.159   0.632    0.528
-SiteIST Op                          0.196      0.230   0.851    0.396
-SiteMAD Op                         -0.177      0.170  -1.041    0.299
-SiteZUR Op                         -0.349      0.175  -1.991    0.048
-LGap                                0.002      0.004   0.602    0.548
-`Global Tilt`                      -0.009      0.005  -1.837    0.068
-`Major curve Cobb angle`           -0.002      0.003  -0.786    0.433
-`2Y. ODI - Score (%)`               0.002      0.006   0.323    0.747
-`2Y. SRS22 - SRS Subtotal score`    0.190      0.188   1.013    0.312
-`2Y. SF36 - MCS`                    0.000      0.008  -0.013    0.990
-`2Y. SF36 - PCS`                    0.007      0.010   0.666    0.506</code></pre>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 3.828      0.742   5.159    0.000
+Age                                         0.005      0.005   1.200    0.232
+GenderMale                                  0.209      0.135   1.550    0.123
+`Prior Spine Surgery`Yes                   -0.006      0.119  -0.051    0.960
+`ASA classification`                       -0.093      0.105  -0.890    0.375
+`BMI_First Visit`                          -0.018      0.013  -1.419    0.158
+SiteBOR Op                                  0.084      0.155   0.539    0.590
+SiteIST Op                                  0.354      0.225   1.572    0.118
+SiteMAD Op                                 -0.147      0.168  -0.874    0.383
+SiteZUR Op                                 -0.102      0.173  -0.587    0.558
+LGap                                        0.004      0.004   1.090    0.277
+`Global Tilt`                              -0.012      0.005  -2.552    0.012
+`Major curve Cobb angle`                   -0.001      0.003  -0.197    0.844
+`ODI - Score (%)_First Visit`              -0.014      0.006  -2.563    0.011
+`SRS22 - SRS Subtotal score_First Visit`   -0.665      0.163  -4.090    0.000
+`SF36 - MCS_First Visit`                    0.002      0.006   0.355    0.723
+`SF36 - PCS_First Visit`                   -0.010      0.009  -1.092    0.276</code></pre>
+<h5>Complications</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 3.849      0.726   5.303    0.000
+Age                                         0.007      0.004   1.490    0.138
+GenderMale                                  0.218      0.132   1.650    0.101
+`Prior Spine Surgery`Yes                    0.002      0.116   0.014    0.989
+`ASA classification`                       -0.095      0.102  -0.925    0.356
+`BMI_First Visit`                          -0.019      0.013  -1.528    0.128
+SiteBOR Op                                  0.079      0.152   0.521    0.603
+SiteIST Op                                  0.374      0.220   1.695    0.092
+SiteMAD Op                                 -0.168      0.164  -1.022    0.308
+SiteZUR Op                                 -0.144      0.170  -0.848    0.398
+LGap                                        0.004      0.004   0.999    0.319
+`Global Tilt`                              -0.010      0.005  -2.209    0.028
+`Major curve Cobb angle`                    0.000      0.003   0.098    0.922
+`ODI - Score (%)_First Visit`              -0.013      0.005  -2.432    0.016
+`SRS22 - SRS Subtotal score_First Visit`   -0.670      0.159  -4.215    0.000
+`SF36 - MCS_First Visit`                    0.002      0.006   0.331    0.741
+`SF36 - PCS_First Visit`                   -0.011      0.009  -1.172    0.243
+had_complicationsYes                       -0.329      0.107  -3.078    0.002</code></pre>
 </div>
 <div id="y-vs-2y-effects-1" class="section level3">
 <h3>5Y vs 2Y Effects</h3>
@@ -1907,24 +1947,44 @@ LGap                        0.070      0.053   1.318    0.189
 `Global Tilt`              -0.113      0.068  -1.647    0.101
 `Major curve Cobb angle`    0.003      0.039   0.074    0.941</code></pre>
 <h5>HRQL</h5>
-<pre><code>                                 Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                        12.653     11.496   1.101    0.273
-Age                                 0.140      0.061   2.286    0.023
-GenderMale                          0.345      1.934   0.178    0.859
-`Prior Spine Surgery`Yes            0.945      1.676   0.564    0.574
-`ASA classification`               -1.375      1.494  -0.921    0.358
-`BMI_First Visit`                   0.084      0.174   0.482    0.630
-SiteBOR Op                         -1.707      2.163  -0.789    0.431
-SiteIST Op                         -0.216      3.527  -0.061    0.951
-SiteMAD Op                         -1.280      2.373  -0.539    0.590
-SiteZUR Op                         -1.447      2.392  -0.605    0.546
-LGap                                0.059      0.053   1.119    0.264
-`Global Tilt`                      -0.081      0.068  -1.179    0.240
-`Major curve Cobb angle`           -0.019      0.038  -0.488    0.626
-`2Y. ODI - Score (%)`              -0.206      0.087  -2.375    0.019
-`2Y. SRS22 - SRS Subtotal score`   -0.623      2.713  -0.230    0.819
-`2Y. SF36 - MCS`                   -0.028      0.110  -0.250    0.803
-`2Y. SF36 - PCS`                   -0.078      0.139  -0.561    0.576</code></pre>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                44.101      9.783   4.508    0.000
+Age                                         0.043      0.059   0.732    0.465
+GenderMale                                  1.945      1.748   1.113    0.267
+`Prior Spine Surgery`Yes                    0.375      1.528   0.246    0.806
+`ASA classification`                       -1.809      1.367  -1.323    0.187
+`BMI_First Visit`                          -0.214      0.167  -1.279    0.203
+SiteBOR Op                                  1.645      2.016   0.816    0.416
+SiteIST Op                                  3.262      3.054   1.068    0.287
+SiteMAD Op                                 -0.904      2.194  -0.412    0.681
+SiteZUR Op                                  1.730      2.222   0.779    0.437
+LGap                                        0.030      0.049   0.624    0.534
+`Global Tilt`                              -0.093      0.062  -1.498    0.136
+`Major curve Cobb angle`                   -0.029      0.036  -0.807    0.421
+`ODI - Score (%)_First Visit`              -0.179      0.072  -2.487    0.014
+`SRS22 - SRS Subtotal score_First Visit`    0.693      2.099   0.330    0.742
+`SF36 - MCS_First Visit`                    0.010      0.080   0.125    0.901
+`SF36 - PCS_First Visit`                   -0.751      0.119  -6.294    0.000</code></pre>
+<h5>Complications</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                43.611      9.665   4.512    0.000
+Age                                         0.057      0.058   0.970    0.334
+GenderMale                                  1.910      1.727   1.106    0.270
+`Prior Spine Surgery`Yes                    0.409      1.509   0.271    0.787
+`ASA classification`                       -1.884      1.350  -1.395    0.165
+`BMI_First Visit`                          -0.210      0.165  -1.273    0.205
+SiteBOR Op                                  1.572      1.992   0.789    0.431
+SiteIST Op                                  3.428      3.017   1.136    0.257
+SiteMAD Op                                 -1.038      2.168  -0.479    0.633
+SiteZUR Op                                  1.362      2.200   0.619    0.537
+LGap                                        0.025      0.048   0.530    0.597
+`Global Tilt`                              -0.072      0.062  -1.173    0.242
+`Major curve Cobb angle`                   -0.022      0.035  -0.613    0.541
+`ODI - Score (%)_First Visit`              -0.166      0.071  -2.330    0.021
+`SRS22 - SRS Subtotal score_First Visit`    0.715      2.073   0.345    0.731
+`SF36 - MCS_First Visit`                    0.008      0.079   0.096    0.923
+`SF36 - PCS_First Visit`                   -0.752      0.118  -6.386    0.000
+had_complicationsYes                       -3.306      1.407  -2.350    0.020</code></pre>
 </div>
 <div id="y-vs-2y-effects-2" class="section level3">
 <h3>5Y vs 2Y Effects</h3>
@@ -2022,24 +2082,44 @@ LGap                       -0.006      0.061  -0.105    0.916
 `Global Tilt`              -0.115      0.079  -1.458    0.147
 `Major curve Cobb angle`   -0.106      0.044  -2.391    0.018</code></pre>
 <h5>HRQL</h5>
-<pre><code>                                 Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                       -11.154     13.531  -0.824    0.411
-Age                                -0.062      0.072  -0.866    0.387
-GenderMale                         -4.083      2.276  -1.794    0.074
-`Prior Spine Surgery`Yes           -0.237      1.974  -0.120    0.905
-`ASA classification`                3.539      1.759   2.012    0.046
-`BMI_First Visit`                   0.224      0.205   1.092    0.276
-SiteBOR Op                          3.973      2.549   1.559    0.121
-SiteIST Op                         12.088      4.159   2.906    0.004
-SiteMAD Op                          1.131      2.797   0.404    0.686
-SiteZUR Op                         -1.696      2.811  -0.603    0.547
-LGap                               -0.011      0.062  -0.182    0.855
-`Global Tilt`                      -0.118      0.081  -1.464    0.145
-`Major curve Cobb angle`           -0.119      0.045  -2.666    0.008
-`2Y. ODI - Score (%)`               0.018      0.102   0.175    0.861
-`2Y. SRS22 - SRS Subtotal score`   -0.534      3.182  -0.168    0.867
-`2Y. SF36 - MCS`                    0.118      0.130   0.911    0.363
-`2Y. SF36 - PCS`                    0.210      0.164   1.283    0.201</code></pre>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                31.453     10.595   2.969    0.003
+Age                                        -0.029      0.063  -0.466    0.642
+GenderMale                                 -1.160      1.889  -0.614    0.540
+`Prior Spine Surgery`Yes                   -1.363      1.654  -0.824    0.411
+`ASA classification`                        1.526      1.478   1.032    0.303
+`BMI_First Visit`                           0.115      0.181   0.634    0.527
+SiteBOR Op                                  0.851      2.181   0.390    0.697
+SiteIST Op                                  3.061      3.307   0.926    0.356
+SiteMAD Op                                 -0.987      2.375  -0.415    0.678
+SiteZUR Op                                 -2.698      2.401  -1.124    0.263
+LGap                                        0.061      0.053   1.154    0.250
+`Global Tilt`                              -0.105      0.067  -1.568    0.119
+`Major curve Cobb angle`                   -0.057      0.039  -1.488    0.138
+`ODI - Score (%)_First Visit`              -0.061      0.078  -0.782    0.435
+`SRS22 - SRS Subtotal score_First Visit`    6.023      2.268   2.656    0.009
+`SF36 - MCS_First Visit`                   -0.752      0.087  -8.662    0.000
+`SF36 - PCS_First Visit`                   -0.242      0.129  -1.876    0.062</code></pre>
+<h5>Complications</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                30.886     10.419   2.964    0.003
+Age                                        -0.014      0.063  -0.218    0.827
+GenderMale                                 -1.186      1.858  -0.639    0.524
+`Prior Spine Surgery`Yes                   -1.312      1.626  -0.807    0.421
+`ASA classification`                        1.445      1.454   0.994    0.321
+`BMI_First Visit`                           0.120      0.178   0.672    0.502
+SiteBOR Op                                  0.776      2.145   0.362    0.718
+SiteIST Op                                  3.277      3.252   1.008    0.315
+SiteMAD Op                                 -1.140      2.336  -0.488    0.626
+SiteZUR Op                                 -3.175      2.367  -1.341    0.182
+LGap                                        0.055      0.052   1.062    0.290
+`Global Tilt`                              -0.080      0.067  -1.201    0.231
+`Major curve Cobb angle`                   -0.048      0.038  -1.272    0.205
+`ODI - Score (%)_First Visit`              -0.045      0.077  -0.593    0.554
+`SRS22 - SRS Subtotal score_First Visit`    6.028      2.230   2.703    0.008
+`SF36 - MCS_First Visit`                   -0.755      0.085  -8.837    0.000
+`SF36 - PCS_First Visit`                   -0.245      0.127  -1.926    0.056
+had_complicationsYes                       -4.082      1.515  -2.693    0.008</code></pre>
 </div>
 <div id="y-vs-2y-effects-3" class="section level3">
 <h3>5Y vs 2Y Effects</h3>
@@ -2143,24 +2223,44 @@ LGap                        0.015      0.008   1.844    0.068
 `Global Tilt`              -0.011      0.010  -1.028    0.306
 `Major curve Cobb angle`   -0.012      0.006  -2.087    0.040</code></pre>
 <h5>HRQL</h5>
-<pre><code>                                 Estimate Std. Error t value Pr(&gt;|t|)
-(Intercept)                        -0.649      1.826  -0.355    0.723
-Age                                 0.008      0.009   0.870    0.387
-GenderMale                         -0.154      0.347  -0.445    0.658
-`Prior Spine Surgery`Yes            0.174      0.263   0.663    0.509
-`ASA classification`               -0.439      0.210  -2.088    0.040
-`BMI_First Visit`                   0.016      0.028   0.587    0.559
-SiteBOR Op                          0.768      0.518   1.482    0.142
-SiteIST Op                          0.753      0.575   1.308    0.194
-SiteMAD Op                          0.000      0.317   0.000    1.000
-SiteZUR Op                         -0.269      0.343  -0.786    0.434
-LGap                                0.012      0.009   1.343    0.183
-`Global Tilt`                      -0.009      0.011  -0.806    0.422
-`Major curve Cobb angle`           -0.013      0.006  -2.145    0.035
-`2Y. ODI - Score (%)`               0.014      0.013   1.076    0.285
-`2Y. SRS22 - SRS Subtotal score`    0.770      0.424   1.816    0.073
-`2Y. SF36 - MCS`                   -0.008      0.018  -0.454    0.651
-`2Y. SF36 - PCS`                   -0.014      0.025  -0.559    0.577</code></pre>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 6.025      1.403   4.294    0.000
+Age                                         0.012      0.009   1.348    0.181
+GenderMale                                 -0.089      0.312  -0.287    0.775
+`Prior Spine Surgery`Yes                    0.305      0.237   1.287    0.202
+`ASA classification`                       -0.445      0.216  -2.063    0.042
+`BMI_First Visit`                           0.005      0.028   0.195    0.846
+SiteBOR Op                                  0.941      0.460   2.045    0.044
+SiteIST Op                                  1.464      0.610   2.401    0.018
+SiteMAD Op                                  0.201      0.294   0.682    0.497
+SiteZUR Op                                  0.061      0.308   0.200    0.842
+LGap                                        0.013      0.008   1.565    0.121
+`Global Tilt`                              -0.014      0.010  -1.424    0.158
+`Major curve Cobb angle`                   -0.014      0.006  -2.414    0.018
+`ODI - Score (%)_First Visit`              -0.026      0.011  -2.349    0.021
+`SRS22 - SRS Subtotal score_First Visit`   -0.062      0.337  -0.184    0.855
+`SF36 - MCS_First Visit`                   -0.024      0.013  -1.932    0.057
+`SF36 - PCS_First Visit`                   -0.067      0.019  -3.457    0.001</code></pre>
+<h5>Complications</h5>
+<pre><code>                                         Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)                                 5.849      1.340   4.365    0.000
+Age                                         0.011      0.009   1.340    0.184
+GenderMale                                 -0.064      0.297  -0.216    0.829
+`Prior Spine Surgery`Yes                    0.296      0.226   1.309    0.194
+`ASA classification`                       -0.394      0.207  -1.906    0.060
+`BMI_First Visit`                           0.012      0.027   0.454    0.651
+SiteBOR Op                                  0.745      0.443   1.680    0.096
+SiteIST Op                                  1.631      0.584   2.791    0.006
+SiteMAD Op                                  0.178      0.281   0.634    0.528
+SiteZUR Op                                 -0.041      0.296  -0.140    0.889
+LGap                                        0.014      0.008   1.765    0.081
+`Global Tilt`                              -0.010      0.010  -0.996    0.322
+`Major curve Cobb angle`                   -0.013      0.005  -2.443    0.017
+`ODI - Score (%)_First Visit`              -0.024      0.011  -2.205    0.030
+`SRS22 - SRS Subtotal score_First Visit`   -0.063      0.322  -0.197    0.845
+`SF36 - MCS_First Visit`                   -0.024      0.012  -2.016    0.047
+`SF36 - PCS_First Visit`                   -0.067      0.019  -3.638    0.000
+had_complicationsYes                       -0.679      0.219  -3.107    0.003</code></pre>
 </div>
 <div id="y-vs-2y-effects-4" class="section level3">
 <h3>5Y vs 2Y Effects</h3>

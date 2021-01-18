@@ -33,6 +33,13 @@ c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 
 
 ```{r warning=FALSE, echo=FALSE, fig.height=4}
+total <- complications[, .N]
+complications %>% 
+  .[, .(.N, prop=.N/total) , .(category)]
+```
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
 complications %>% 
   .[, .N , .(reintervention, category)] %T>%
   print %>% 
