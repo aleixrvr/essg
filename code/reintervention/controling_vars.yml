@@ -3,10 +3,12 @@
   - Site
   - Prior Spine Surgery
   - ASA classification
-  - "3CO"
+  - 3CO
+  - Pelvic Fixation
+  - Number of Posterior Instrumented Levels
   - SPOs
   - BMI_First Visit
-  - Tobacco use_First Visit
+  # - Tobacco use_First Visit
   - Osteoporosis / osteopenia
   # - "Previous surgery - LEV"
 #  - "Levels Previously operated - Lower"

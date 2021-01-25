@@ -1,6 +1,8 @@
 ---
 title: "Descriptive Stats"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -98,11 +100,11 @@ patients_5y <- clinical_data[followup_5y==TRUE, `Code of the patient` %>% unique
 - Number of patients with visit in 2 years: `r patients_2y`
 - Number of patients with visit in 5 years: `r patients_5y`
 
-We finally stick to those with 2y FU
-```{r}
-clinical_data %<>% 
-  .[followup_2y==TRUE]
-```
+<!-- We finally stick to those with 2y FU -->
+<!-- ```{r} -->
+<!-- clinical_data %<>%  -->
+<!--   .[followup_2y==TRUE] -->
+<!-- ``` -->
 
 
 ### Demographics
@@ -123,9 +125,10 @@ for(var_ in vars$demographics ){
 ### Radiology
 ```{r echo=FALSE, comment=""}
 for(var_ in vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
   var_2y <- "2Y. {var_}" %>% f
   var_5y <- "5Y. {var_}" %>% f
-  vars_years <- c(var_, var_2y, var_5y)
+  vars_years <- c(var_, var_6w, var_2y, var_5y)
   for(var_y in vars_years){
     cat(var_y)
     cat('\n')
@@ -136,6 +139,18 @@ for(var_ in vars$radiology ){
     }
     cat('\n\n')
   }
+
+    
+  cat('{var_} tests\n' %>% f)
+  rad_6w <- clinical_data[[var_6w]]
+  rad_2y <- clinical_data[[var_2y]]
+  rad_5y <- clinical_data[[var_5y]]
+  cat('\n6w vs 2y p-value\n')
+  cat(t.test(rad_6w, rad_2y)$p.val)
+  cat('\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(rad_2y, rad_5y)$p.val)
+  cat('\n\n')
 }
 ```
 

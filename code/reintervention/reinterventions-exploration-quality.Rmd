@@ -1,6 +1,9 @@
 ---
 title: "Reinterventions exploration"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -81,6 +84,7 @@ lapply(1:6, function(y_){
       had_reintervention = max(reintervention) > 0,
       years_last_op = y_ - max(diff_years),
       reint_n = max(reintervention),
+      # reint_n = uniqueN(diff_years),
       blood_loss = max(blood_loss),
       surgical_time = max(surgical_time),
       hospitalization_time = max(hospitalization_time)

@@ -34,6 +34,14 @@ get_data <- function(){
         !is.na(`5 YEAR VISIT - Date of visit`) | 
         !is.na(`6 YEAR VISIT - Date of visit`)]
   
+  clinical_data %>% 
+    .[, `Pelvic Fixation` := grepl(
+      'Iliac',
+      `Posterior Instrumented Fusion: Upper / Lower Levels`,
+      fixed=TRUE
+    )] %>%
+  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')]
+
   valid_patients <- clinical_data %>% 
     .[followup_2y==TRUE] %>% 
     .[Site != 'ANK Op'] %>% 

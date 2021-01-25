@@ -93,3 +93,8 @@ check_list_equal <- function(a, b, path=NULL, are_equal=TRUE, precision=1e-6){
   
   return(are_equal)
 }
+
+suggest_cols <- function(colname, dt){
+  cols <- colnames(dt)
+  cols[ grepl(colname %>% tolower, cols %>% tolower)]
+}

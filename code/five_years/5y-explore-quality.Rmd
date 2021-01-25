@@ -1,6 +1,9 @@
 ---
 title: "5y quality life analysis"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: true
 ---
 
   
@@ -93,12 +96,17 @@ for( outcome in names(outcomes_6y)){
     .[is.na(get(outcome_2y)), c(outcome_2y) := get(outcome_3y)]
 }
 
+
+radio_6w <- demographics$radiologic %>% 
+  sapply(function(x) '6W. {x}' %>% f)
+
 # outcome_2y <- outcomes_2y[[1]]
 # outcome <- outcomes[[1]]
 
 study_vars <- c(
   outcomes, outcomes_2y %>% unlist, 
   demographics_all, base_outcomes, 
+  radio_6w, 
   'Code of the patient', 
   'Site', 
   'Study', 
@@ -144,8 +152,24 @@ patients_all <- data_set[, `Code of the patient` %>% unique]
 complications %<>% .[`Code of the patient` %in% patients_all]
 patiens_complications <- complications[, `Code of the patient`] %>% unique
 
-data_set[, had_complications := 'No']
-data_set[`Code of the patient` %in% patiens_complications, had_complications := 'Yes']
+data_set %>% 
+  .[, had_major_complications := 'No'] %>% 
+  .[`Code of the patient` %in% patiens_complications, 
+    had_major_complications := 'Yes'] 
+```
+
+
+```{r echo=FALSE}
+reinterventions %>%  
+  .[diff_years < 5] %>% 
+  .[, `Code of the patient`] ->
+  patients_reinterventions 
+
+data_set %>% 
+  .[, had_reinterventions := 'No'] %>% 
+  .[`Code of the patient` %in% patients_reinterventions, 
+    had_reinterventions := 'Yes']
+
 ```
 
 
@@ -249,7 +273,7 @@ data.table(
 ```
 
 
-### 5 Years Gain Factors
+### 5 Years Gain Gain (odi neg / others pos) Factors 
 ```{r echo=FALSE, comment=""}
 base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
 htmltools::h5('Demographics')
@@ -258,8 +282,12 @@ htmltools::h5('Radiology')
 base_factors$model_radio %>% print
 htmltools::h5('HRQL')
 base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
 htmltools::h5('Complications')
 base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
 ```
 
 
@@ -338,7 +366,7 @@ data.table(
 ```
 
 
-### 5 Years Gain Factors
+### 5 Years Gain Gain (odi neg / others pos) Factors 
 ```{r echo=FALSE, comment=""}
 base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
 htmltools::h5('Demographics')
@@ -347,8 +375,12 @@ htmltools::h5('Radiology')
 base_factors$model_radio %>% print
 htmltools::h5('HRQL')
 base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
 htmltools::h5('Complications')
 base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
 ```
 
 
@@ -427,7 +459,7 @@ data.table(
 
 
 
-### 5 Years Gain Factors
+### 5 Years Gain Gain (odi neg / others pos) Factors 
 ```{r echo=FALSE, comment=""}
 base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
 htmltools::h5('Demographics')
@@ -436,8 +468,12 @@ htmltools::h5('Radiology')
 base_factors$model_radio %>% print
 htmltools::h5('HRQL')
 base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
 htmltools::h5('Complications')
 base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
 ```
 
 
@@ -516,7 +552,7 @@ data.table(
 ```
 
 
-### 5 Years Gain Factors
+### 5 Years Gain Gain (odi neg / others pos) Factors 
 ```{r echo=FALSE, comment=""}
 base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
 htmltools::h5('Demographics')
@@ -525,8 +561,12 @@ htmltools::h5('Radiology')
 base_factors$model_radio %>% print
 htmltools::h5('HRQL')
 base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
 htmltools::h5('Complications')
 base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
 ```
 
 
@@ -604,7 +644,7 @@ data.table(
 ```
 
 
-### 5 Years Gain Factors
+### 5 Years Gain Gain (odi neg / others pos) Factors 
 ```{r echo=FALSE, comment=""}
 base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
 htmltools::h5('Demographics')
@@ -613,8 +653,12 @@ htmltools::h5('Radiology')
 base_factors$model_radio %>% print
 htmltools::h5('HRQL')
 base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
 htmltools::h5('Complications')
 base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
 ```
 
 

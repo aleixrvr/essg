@@ -1,6 +1,9 @@
 ---
 title: "Reinterventions exploration"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: yes
 ---
 
 ```{r setup, include=FALSE}
@@ -174,7 +177,7 @@ data.table(type=c('Mean', 'Sd'),
 
 ### t-test mean comparison p-values index vs ur
 ```{r echo=FALSE, comment=""}
-t.test(val_index, val_ur)$p.val %>% round(5)
+t.test(val_index, val_ur)$p.val
 ```
 
 
@@ -216,7 +219,7 @@ data.table(type=c('Mean', 'Sd'),
 
 ### t-test mean comparison p-values index vs ur
 ```{r echo=FALSE, comment=""}
-t.test(val_index, val_ur)$p.val %>% round(5)
+t.test(val_index, val_ur)$p.val
 ```
 
 ```{r echo=FALSE, comment=""}
@@ -257,7 +260,7 @@ data.table(type=c('Mean', 'Sd'),
 
 ### t-test mean comparison p-values index vs ur
 ```{r echo=FALSE, comment=""}
-t.test(val_index, val_ur)$p.val %>% round(5)
+t.test(val_index, val_ur)$p.val
 ```
 
 ```{r echo=FALSE, comment=""}

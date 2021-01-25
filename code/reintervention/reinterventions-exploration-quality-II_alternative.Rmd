@@ -1,0 +1,212 @@
+---
+title: "Impact of Reinterventions solution"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../../'),
+  comment=""
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+library(DT)
+
+source('code/basic.R')
+source('code/utils.R')
+source('code/reintervention/reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+controlling_vars <- read_yaml('code/reintervention/controling_vars.yml')
+```
+
+
+```{r echo=FALSE}
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+revision_0 <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
+  data.table 
+complications_0 <- read_excel(xls_path, sheet = "Complications") %>% 
+  data.table 
+```
+
+# Controling Variables
+
+```{r comment=''}
+cat(controlling_vars %>% as.yaml())
+```
+
+
+```{r echo=FALSE}
+y_ <- 5
+outcomes <- c(
+  "{y_}Y. ODI - Score (%)" %>% f, 
+  "{y_}Y. SRS22 - SRS Subtotal score" %>% f,
+  "{y_}Y. SF36 - MCS" %>% f,
+  "{y_}Y. SF36 - PCS" %>% f
+)
+
+outcomes %>% 
+  lapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes
+names(base_outcomes) <- outcomes
+
+index_surgeries <- clinical_data[, `Surgery number`] %>% unique
+valid_patients <-  clinical_data[, `Code of the patient`] %>% unique
+```
+
+Definition of final_status
+```{r}
+get_surgery_status <- function(status){
+  final_status <- 'Resolved without sequelae'
+  if( 'Not resolved' %in% status){
+    final_status <- 'Not resolved or with sequelae'
+  }else if('Resolved with sequelae' %in% status){
+    final_status <- 'Not resolved or with sequelae'
+  }
+  final_status
+}
+```
+
+# Impact of final status and number of reinterventions associated to a surgery in `r y_`Y HRQL Gain (odi neg / others pos)
+```{r}
+index_dates <- clinical_data[, .(`Code of the patient`, `st1. Date of Stage 1`)]
+
+complications_0 %>% 
+  merge(index_dates,  by='Code of the patient') %>% 
+  .[, diff_years:=difftime(`Date of Reoperation`, `st1. Date of Stage 1`, units = "days")/365] %>% 
+  .[diff_years < y_] %>% 
+  .[`Code of the patient` %in% valid_patients] %>%
+  .[`Reoperation Due to Complication` == 'Yes'] %>% 
+  .[!is.na(`Date of Reoperation`)] %>% 
+  .[, .(
+    final_status = get_surgery_status(`Status of the complication`), 
+    reinterventions = `Date of Reoperation` %>% uniqueN), 
+    .(`Complication associated to surgery`, `Code of the patient` )] ->
+  complicated_surgeries
+
+complicated_surgeries_n <- complicated_surgeries[, `Complication associated to surgery`] %>% uniqueN
+```
+
+- Surgeries with complications before `r y_`y with valid patients: `r complicated_surgeries_n`
+- Valid patients: `r valid_patients %>% len`
+
+```{r echo=FALSE, comment=""}
+complicated_surgeries[, .N, final_status]
+```
+
+
+```{r echo=FALSE, comment=""}
+vars_ <- c(
+  controlling_vars,
+  outcomes,
+  base_outcomes %>% unlist,
+  'Code of the patient'
+) %>% unique
+
+complicated_surgeries %<>% 
+  dcast(
+    '`Code of the patient` ~ final_status', 
+    value.var='reinterventions',
+    fun.aggregate = sum
+  )
+final_types <- complicated_surgeries[, -1] %>% colnames
+
+DT::datatable(complicated_surgeries)
+```
+
+
+
+```{r echo=FALSE}
+clinical_data %>% 
+  .[, .SD, .SDcols=vars_] %>% 
+  merge(
+    complicated_surgeries, 
+    by='Code of the patient', 
+    all.x=TRUE) %>% 
+  .[, `Code of the patient` := NULL] ->
+  index_data_
+
+for( final_type in final_types){
+  index_data_[ is.na(get(final_type)), c(final_type) := 0]
+}
+```
+
+```{r echo=FALSE}
+lm_vars_ <- c(
+  controlling_vars, 
+  final_types,
+  'outcome_gain'
+)
+
+formula <- 'outcome_gain ~ . '
+```
+
+
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[1]
+base_outcome <- base_outcomes[[outcome]]
+
+htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+```
+
+Impacte d'una reintervencio que acaba sense secueles te 4.9 d'odi
+Impacte d'una reintervencio que acaba sense resolucio o amb secueles te 9 d'odi (no significatius)
+
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[2]
+base_outcome <- base_outcomes[[outcome]]
+
+htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+```
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[3]
+base_outcome <- base_outcomes[[outcome]]
+
+htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+```
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[4]
+base_outcome <- base_outcomes[[outcome]]
+
+htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+```

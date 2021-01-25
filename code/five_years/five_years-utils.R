@@ -239,6 +239,22 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     copy %>% 
     .[, outcome := get(outcome) - get(base_outcome)]
   
+  radio_6w <- demographics$radiologic %>% 
+    lapply(function(x) '6W. {x}' %>% f)
+  names(radio_6w) <- demographics$radiologic
+  
+  base_qualities <- demographics$qualitylife %>% 
+    sapply(. %>% get_base_outcome(first_visit=TRUE)) 
+  
+  radio_6w_inc <- c()
+  for(var_ in demographics$radiologic){
+    var_inc <- "{var_}_6w_inc" %>% f
+    var_6w <- radio_6w[[var_]]
+    data_ %<>%
+      .[, c(var_inc) := get(var_6w) - get(var_)]
+    radio_6w_inc <- c(radio_6w_inc, var_inc)
+  }
+  
   # model_age_gender <- lm(outcome~Age + Gender, data = data_)  %>% get_model_info
   
   sel_vars <- c(demographics$demographic, 'outcome')
@@ -247,6 +263,7 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     lm(outcome ~ ., data = .) %>%
     get_model_info ->
     model_demo
+  
 
   sel_vars <- c(demographics$demographic, demographics$radiologic, 'outcome')
   data_ %>% 
@@ -255,9 +272,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     get_model_info ->
     model_radio
   
-  
-  base_qualities <- demographics$qualitylife %>% 
-    sapply(. %>% get_base_outcome(first_visit=TRUE)) 
   sel_vars <- c(
     demographics$demographic, 
     demographics$radiologic, 
@@ -274,7 +288,20 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     demographics$demographic, 
     demographics$radiologic, 
     base_qualities,
-    'had_complications', 
+    radio_6w_inc, 
+    'outcome')
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_radio_correction
+  
+  sel_vars <- c(
+    demographics$demographic, 
+    demographics$radiologic, 
+    base_qualities,
+    radio_6w_inc, 
+    'had_major_complications', 
     'outcome'
   )
   data_ %>% 
@@ -283,12 +310,28 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     get_model_info ->
     model_complications
   
+  sel_vars <- c(
+    demographics$demographic, 
+    demographics$radiologic, 
+    base_qualities,
+    radio_6w_inc, 
+    'had_reinterventions', 
+    'outcome'
+  )
+  data_ %>% 
+    .[, .SD, .SDcols = sel_vars] %>% 
+    lm(outcome ~ ., data = .) %>%
+    get_model_info ->
+    model_reinterventions
+  
   return(list(
     # model_age_gender = model_age_gender,
     model_demo=model_demo,
     model_radio=model_radio,
+    model_radio_correction=model_radio_correction, 
     model_quality=model_quality,
-    model_complications=model_complications
+    model_complications=model_complications,
+    model_reinterventions=model_reinterventions
   ))  
   
 }

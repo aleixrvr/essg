@@ -1,6 +1,9 @@
 ---
 title: "5y followup analysis"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
 ---
 
   
