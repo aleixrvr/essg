@@ -1,0 +1,318 @@
+---
+title: "Descriptive Stats"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../')
+)
+```
+
+```{r echo=FALSE, warning=FALSE, include=FALSE}
+library(readxl)
+library(data.table)
+library(magrittr)
+library(yaml)
+library(glue)
+f <- glue
+
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+trim_propensity <- 0.5
+
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table()
+
+setnames(
+  clinical_data, 
+  'SRS22 -SI_First Visit', 
+  'SRS22 - Self image / Appearance_First Visit'
+)
+setnames(
+  clinical_data, 
+  'SRS22 - MH_First Visit', 
+  'SRS22 - Mental health_First Visit'
+)
+setnames(
+  clinical_data, 
+  'SRS22 - Function_First Visit', 
+  'SRS22 - Function / Activity_First Visit'
+)
+
+clinical_data[, 
+  `Pelvic Fixation` := grepl(
+    'Iliac', 
+    `Posterior Instrumented Fusion: Upper / Lower Levels`, 
+    fixed=TRUE
+  )] %>% 
+  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')]
+
+
+vars <- read_yaml('code/descriptive.yml')
+
+stats_fun <- function(variable){
+  if( class(variable) == 'numeric' ){
+    return( list(
+      mean = mean(variable, na.rm=TRUE),
+      sd = sd(variable, na.rm = TRUE)
+    ))
+  }else{
+    res_table <- table(variable)
+    return(list(
+      table = res_table, 
+      proportion = prop.table(res_table)
+    ))
+  }
+}
+
+```
+
+## Filters
+```{r}
+clinical_data %<>% 
+  .[as.Date(`st1. Date of Stage 1`) < as.Date('2018-12-15')] %>% 
+  .[ALIF + TLIF + PLIF > 0] %>% 
+  .[`Posterior Instrumented Fusion`!='No'] %>% 
+  .[, Alif := ifelse(ALIF > 0, 'Yes', 'No')]
+
+alif_data <- clinical_data %>% 
+  .[!is.na(`2 YEAR VISIT - Date of visit`) | !is.na(`3 YEAR VISIT - Date of visit`)]
+
+total_patients <- clinical_data[, `Code of the patient` %>% uniqueN]
+patients_visited <- alif_data[, `Code of the patient` %>% uniqueN]
+patients_visited_6w <- clinical_data %>% 
+  .[!is.na(`6 WEEKS VISIT - Date of visit`), `Code of the patient` %>% uniqueN]
+```
+
+- Number of Patients with 'st1. Date of Stage 1' < '2018-12-15': `r total_patients`
+- Number of patients with visit in 6 weeks: `r patients_visited_6w`
+- Number of patients with visit in 2 or 3 years: `r patients_visited`
+
+
+```{r echo=FALSE}
+calc_p_vals <- function(dt, var_){
+  vals_n <- dt[, get(var_)] %>% uniqueN
+  if(class(dt[, get(var_)]) == 'numeric'){
+    p.val <- t.test(
+      dt[Alif=='Yes', get(var_)],
+      dt[Alif=='No', get(var_)]
+    )$p.val
+  }else if(vals_n == 2){
+    t1 <- table(dt[Alif=='Yes', get(var_)])
+    t2 <- table(dt[Alif=='No', get(var_)])
+    
+    p.val <- prop.test(rbind(t1, t2))$p.val
+  }else{
+    p.val <- NULL
+  }
+  
+  return(p.val)
+}
+
+```
+
+
+```{r message=FALSE, comment ="", warning=FALSE, echo=FALSE}
+source('code/alif/alif-utils.R')
+source('code/propensity-utils.R')
+correction_approach <- FALSE
+tuneLenghtPropensity <- 40
+modelsPropensity <- c('elastic')
+
+c(sel_data, matching_vars) %<-% get_data(
+  evaluation=TRUE, correction_approach=correction_approach
+)
+covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
+treatment_name <- 'Alif'
+prop_data <- copy(covariates_data)
+prop_data[['patient_id']] <- sel_data[, `Code of the patient`]
+run_propensity(
+  prop_data,
+  treatment_name=treatment_name,
+  tuneLength = tuneLenghtPropensity,
+  models = modelsPropensity
+) -> best_model
+
+propensity_data <- best_model$clean_data[, .(patient_id, Propensity)] %>% 
+  na.omit()
+alif_data_propensity <- merge(alif_data, propensity_data, 
+  by.x='Code of the patient', by.y = 'patient_id', all=FALSE)
+
+fwrite(alif_data_propensity, 'data/alif_data_propensity.csv')
+alif_data <- alif_data_propensity[Propensity<trim_propensity]
+```
+
+Patients with 2/3Y FU and propensity less than `r trim_propensity`: `r alif_data[, .N]`
+
+### Demographics
+```{r echo=FALSE, comment=""}
+for(var_ in vars$demographics ){
+  cat(var_)
+  cat('\n')
+  
+  cat('All\n')
+  res <- stats_fun(alif_data[, get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Alif\n')
+  res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Plif/Tlif\n')
+  res <- stats_fun(alif_data[Alif=='No', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  p.val <- calc_p_vals(alif_data, var_)
+  if(!is.null(p.val)){
+    cat('Alif vs Plif/Tlif p-value:\n')
+    print(p.val)
+    cat('\n\n')
+  }
+}
+```
+
+
+### Radiology
+```{r echo=FALSE, comment=""}
+for(var_ in vars$radiology ){
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    
+    cat('All\n')
+    res <- stats_fun(alif_data[, get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Alif\n')
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Plif/Tlif\n')
+    res <- stats_fun(alif_data[Alif=='No', get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    p.val <- calc_p_vals(alif_data, var_y)
+    if(!is.null(p.val)){
+      cat('Alif vs Plif/Tlif p-value:\n')
+      print(p.val)
+      cat('\n\n')
+    }
+  }
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment=""}
+for(var_0 in vars$quality ){
+  var_ <- "{var_0}_First Visit" %>% f
+  var_2y <- "2Y. {var_0}" %>% f
+  var_5y <- "5Y. {var_0}" %>% f
+  vars_years <- c(var_, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    
+    cat('All\n')
+    res <- stats_fun(alif_data[, get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Alif\n')
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    cat('Plif/Tlif\n')
+    res <- stats_fun(alif_data[Alif=='No', get(var_y)])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+    
+    p.val <- calc_p_vals(alif_data, var_y)
+    if(!is.null(p.val)){
+      cat('Alif vs Plif/Tlif p-value:\n')
+      print(p.val)
+      cat('\n\n')
+    }
+
+  }
+}
+```
+
+
+### Surgery
+```{r echo=FALSE, comment=""}
+for(var_ in vars$surgery ){
+  cat(var_)
+  cat('\n')
+  
+  cat('All\n')
+  res <- stats_fun(alif_data[, get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Alif\n')
+  res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  cat('Plif/Tlif\n')
+  res <- stats_fun(alif_data[Alif=='No', get(var_)])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+  
+  p.val <- calc_p_vals(alif_data, var_)
+  if(!is.null(p.val)){
+    cat('Alif vs Plif/Tlif p-value:\n')
+    print(p.val)
+    cat('\n\n')
+  }
+
+}
+```

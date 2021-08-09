@@ -88,6 +88,32 @@ patients_visited_6w <- clinical_data %>%
 - Number of patients with visit in 6 weeks: `r patients_visited_6w`
 - Number of patients with visit in 2 or 3 years: `r patients_visited`
 
+
+```{r echo=FALSE}
+calc_p_vals <- function(dt, var_){
+  vals_n <- dt[, get(var_)] %>% uniqueN
+  if(class(dt[, get(var_)]) == 'numeric'){
+    p.val <- t.test(
+      dt[Alif=='Yes', get(var_)],
+      dt[Alif=='No', get(var_)]
+    )$p.val
+  }else if(vals_n == 2){
+    t1 <- table(dt[Alif=='Yes', get(var_)])
+    t2 <- table(dt[Alif=='No', get(var_)])
+    
+    p.val <- prop.test(rbind(t1, t2))$p.val
+  }else{
+    p.val <- NULL
+  }
+  
+  return(p.val)
+}
+
+```
+
+
+
+
 ### Demographics
 ```{r echo=FALSE, comment=""}
 for(var_ in vars$demographics ){
@@ -117,6 +143,13 @@ for(var_ in vars$demographics ){
     print(res[[res_name]])
   }
   cat('\n\n')
+  
+  p.val <- calc_p_vals(alif_data, var_)
+  if(!is.null(p.val)){
+    cat('Alif vs Plif/Tlif p-value:\n')
+    print(p.val)
+    cat('\n\n')
+  }
 }
 ```
 
@@ -132,7 +165,7 @@ for(var_ in vars$radiology ){
     cat('\n')
     
     cat('All\n')
-    res <- stats_fun(alif_data[, get(var_)])
+    res <- stats_fun(alif_data[, get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -140,7 +173,7 @@ for(var_ in vars$radiology ){
     cat('\n\n')
     
     cat('Alif\n')
-    res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -148,12 +181,19 @@ for(var_ in vars$radiology ){
     cat('\n\n')
     
     cat('Plif/Tlif\n')
-    res <- stats_fun(alif_data[Alif=='No', get(var_)])
+    res <- stats_fun(alif_data[Alif=='No', get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
     }
     cat('\n\n')
+    
+    p.val <- calc_p_vals(alif_data, var_y)
+    if(!is.null(p.val)){
+      cat('Alif vs Plif/Tlif p-value:\n')
+      print(p.val)
+      cat('\n\n')
+    }
   }
 }
 ```
@@ -171,7 +211,7 @@ for(var_0 in vars$quality ){
     cat('\n')
     
     cat('All\n')
-    res <- stats_fun(alif_data[, get(var_)])
+    res <- stats_fun(alif_data[, get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -179,7 +219,7 @@ for(var_0 in vars$quality ){
     cat('\n\n')
     
     cat('Alif\n')
-    res <- stats_fun(alif_data[Alif=='Yes', get(var_)])
+    res <- stats_fun(alif_data[Alif=='Yes', get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
@@ -187,12 +227,20 @@ for(var_0 in vars$quality ){
     cat('\n\n')
     
     cat('Plif/Tlif\n')
-    res <- stats_fun(alif_data[Alif=='No', get(var_)])
+    res <- stats_fun(alif_data[Alif=='No', get(var_y)])
     for( res_name in names(res) ){
       print(res_name)
       print(res[[res_name]])
     }
     cat('\n\n')
+    
+    p.val <- calc_p_vals(alif_data, var_y)
+    if(!is.null(p.val)){
+      cat('Alif vs Plif/Tlif p-value:\n')
+      print(p.val)
+      cat('\n\n')
+    }
+
   }
 }
 ```
@@ -227,5 +275,13 @@ for(var_ in vars$surgery ){
     print(res[[res_name]])
   }
   cat('\n\n')
+  
+  p.val <- calc_p_vals(alif_data, var_)
+  if(!is.null(p.val)){
+    cat('Alif vs Plif/Tlif p-value:\n')
+    print(p.val)
+    cat('\n\n')
+  }
+
 }
 ```

@@ -1,0 +1,385 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+
+source('code/basic.R')
+source('code/utils.R')
+source('code/reintervention/reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+
+```
+
+
+# Proportion of reinterventions
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+
+total_patients <- time_evolution[, uniqueN(patient_id)]
+
+table_info <- time_evolution[, .(.N, proportion=round(.N/total_patients, 3)), reintervention] 
+
+print(table_info)
+
+table_info %>% 
+  ggplot(aes(reintervention, proportion, group=1)) +
+  geom_line() +
+  geom_text(aes(label=round(proportion*100, 1))) +
+  ggtitle('Proportion of patients, total {total_patients}' %>% f) +
+  ylab('%') +
+  xlab('Reintervention')
+```
+
+
+## Patients with 2y FU, reinterventions
+Notes: 
+- reintervention means that at least has that number of reinterventions
+
+#### all reinterventions
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+```
+
+#### reinterventions before 2Y
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+```
+
+#### reinterventions before 5Y
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+```
+
+
+## Patients with 5y FU, reinterventions
+
+#### all reinterventions
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+```
+
+#### reinterventions before 5y
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+```
+
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_2yfu]
+category_los %<>% .[patient_id %in% patients_2yfu]
+time_evolution %<>% .[patient_id %in% patients_2yfu]
+complications %<>% .[patient_id %in% patients_2yfu]
+```
+
+The analysis follows with 2Y FU
+
+# Proportion of SICU transfers
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+
+time_evolution %>% 
+  .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
+  .[, .(
+    prop=mean(condition) %>% round(3),
+    N=.N),
+    reintervention] %>% 
+  .[, sd:=sqrt(prop*(1-prop)/N) %>% round(3)] ->
+  table_info
+print(table_info)
+
+time_evolution %>% 
+  .[, .(condition=(sicu_transferred == 'Yes'), reintervention)] %>% 
+  plot_evolution('transferred to SICU') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+```
+
+
+# Evolution of surgeries
+
+```{r warning=FALSE, echo=FALSE, fig.height=4, comment=""}
+
+
+time_evolution %>% 
+  .[, .(condition=co3==1, reintervention)] %>% 
+  plot_evolution('3CO') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Implant removal` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Implant removal') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Infection debridement` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Infection Debridement') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Anterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Anterior Instrumented Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Posterior Instrumented Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Posterior Instrumented Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Decompression` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Decompression') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Interbody Fusion` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Interbody Fusion') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Osteotomy` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Osteotomy') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Rod change` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Rod change') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+
+time_evolution %>% 
+  .[, .(condition=(`Scar revision` == 'Yes'), reintervention)] %>% 
+  plot_evolution('Scar revision') ->
+  evol_res
+
+print(evol_res$res_plot)
+print(evol_res$res_lm)
+```
+
+
+# Hospitalization Time
+
+### Basic stats hospitalization time
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', hospitalization_time]
+val_ur <- time_evolution[reintervention!='0', hospitalization_time]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val
+```
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=4}
+time_evolution %>% 
+  ggplot(aes(reintervention, hospitalization_time)) +
+  geom_boxplot() +
+  ylim(c(0, 250))
+
+time_evolution[, 
+  quantile(hospitalization_time, na.rm=TRUE) %>% as.list, 
+  reintervention]
+
+
+time_evolution[, .(hospitalization_time, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(hospitalization_time~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
+```
+
+Note: linear model only up to 3 reinterventions (included)
+
+# Blood Loss
+
+### Basic stats blood loss
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', blood_loss]
+val_ur <- time_evolution[reintervention!='0', blood_loss]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val
+```
+
+```{r echo=FALSE, comment=""}
+time_evolution %>% 
+  ggplot(aes(blood_loss, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  ggtitle('Blood Loss') +
+  xlim(c(0, 3000 ))+
+  facet_grid(reintervention~.)
+
+time_evolution[, .(blood_loss, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(blood_loss~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
+
+time_evolution %>% 
+  ggplot(aes(reintervention, blood_loss)) +
+  geom_boxplot() +
+  ggtitle('Blood Loss')
+```
+
+# Surgical Time
+
+### Basic stats surgical time
+
+```{r echo=FALSE, comment=""}
+val_index <- time_evolution[reintervention=='0', surgical_time]
+val_ur <- time_evolution[reintervention!='0', surgical_time]
+
+data.table(type=c('Mean', 'Sd'), 
+  index=c(mean(val_index, na.rm=TRUE), sd(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE), sd(val_ur, na.rm=TRUE))
+)
+```
+
+### t-test mean comparison p-values index vs ur
+```{r echo=FALSE, comment=""}
+t.test(val_index, val_ur)$p.val
+```
+
+```{r echo=FALSE, comment=""}
+time_evolution %>% 
+  ggplot(aes(surgical_time, fill=reintervention, color=reintervention)) +
+  geom_density(alpha=0.1) +
+  ggtitle('Surgical Time') +
+  xlim(c(0, 1000 ))+
+  facet_grid(reintervention~.)
+
+
+time_evolution[, .(surgical_time, reintervention)] %>% 
+  .[, reintervention := as.numeric(as.character(reintervention))] %>% 
+  .[ reintervention <= 3] %>% 
+  lm(surgical_time~reintervention, data= .) %>% 
+  summary %>% 
+  coefficients %>% 
+  print
+
+time_evolution %>% 
+  ggplot(aes(reintervention, surgical_time)) +
+  geom_boxplot() +
+  ggtitle('Surgical Time')
+```
+
+Note: linear model only up to 3 reinterventions (included)
+
+
+
+
+
+

@@ -30,6 +30,14 @@ source('code/reintervention/reinterventions-util.R')
 
 c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 controlling_vars <- read_yaml('code/reintervention/controling_vars.yml')
+
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_5yfu]
+category_los %<>% .[patient_id %in% patients_5yfu]
+time_evolution %<>% .[patient_id %in% patients_5yfu]
+complications %<>% .[patient_id %in% patients_5yfu]
 ```
 
 
@@ -86,7 +94,7 @@ index_dates <- clinical_data[, .(`Code of the patient`, `st1. Date of Stage 1`)]
 complications_0 %>% 
   merge(index_dates,  by='Code of the patient') %>% 
   .[, diff_years:=difftime(`Date of Reoperation`, `st1. Date of Stage 1`, units = "days")/365] %>% 
-  .[diff_years < y_] %>% 
+  .[diff_years < y_] %>%
   .[`Code of the patient` %in% valid_patients] %>%
   .[`Reoperation Due to Complication` == 'Yes'] %>% 
   .[!is.na(`Date of Reoperation`)] %>% 
@@ -97,9 +105,12 @@ complications_0 %>%
   complicated_surgeries
 
 complicated_surgeries_n <- complicated_surgeries[, `Complication associated to surgery`] %>% uniqueN
+index_surgeries <- complicated_surgeries[, `Code of the patient` %>% uniqueN]
 ```
 
-- Surgeries with complications before `r y_`y with valid patients: `r complicated_surgeries_n`
+
+- Surgeries that followed with complications before `r y_`y with valid patients: `r complicated_surgeries_n`
+- Index surgeries that followed with complications before `r y_`y with valid patients: `r index_surgeries`
 - Valid patients: `r valid_patients %>% len`
 
 ```{r echo=FALSE, comment=""}
@@ -123,9 +134,15 @@ complicated_surgeries %<>%
   )
 final_types <- complicated_surgeries[, -1] %>% colnames
 
+patients_unsolved <- complicated_surgeries[ `Not resolved or with sequelae`
+ > 0,.N]
+```
+Patients with final status 'unsolved' or 'with sequelae' in any re-intervention `r patients_unsolved`
+
+
+```{r echo=FALSE, comment=""}
 DT::datatable(complicated_surgeries)
 ```
-
 
 
 ```{r echo=FALSE}

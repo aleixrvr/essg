@@ -29,6 +29,15 @@ source('code/reintervention/reinterventions-util.R')
 
 c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 controlling_vars <- read_yaml('code/reintervention/controling_vars.yml')
+
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_2yfu]
+category_los %<>% .[patient_id %in% patients_2yfu]
+time_evolution %<>% .[patient_id %in% patients_2yfu]
+complications %<>% .[patient_id %in% patients_2yfu]
+
 ```
 
 # Controling Variables

@@ -1,0 +1,46 @@
+Name of the complication,N_Major Complication,N_Minor Complication,proportion_Major Complication,proportion_Minor Complication
+Abnormal bleeding (mL) : 5800,0,1,0,1.1
+Cardiopulmonary: Pleural effusion,0,1,0,1.1
+Cardiopulmonary: Re-intubation after extubation,1,0,1.1,0
+Hematopoietic: Anemia,0,2,0,2.2
+Hematopoietic: Coagulopathy,0,1,0,1.1
+Iatrogenic and Positioning Complications: Dural tear,1,3,1.1,3.4
+Infectious: Bacteremia,0,1,0,1.1
+Infectious: Sepsis,1,0,1.1,0
+Infectious: Urinary tract infection,0,7,0,7.9
+Left motor radiculopathy,1,0,1.1,0
+Left sensitive radiculopathy,0,1,0,1.1
+"Left sensitive radiculopathy, Right sensitive radiculopathy",1,0,1.1,0
+Non-spine Neurologic: Delirium,0,1,0,1.1
+Non-spine Neurologic: Epidural Hematoma,1,0,1.1,0
+Others: Electrolyte imbalance,0,2,0,2.2
+Pain: Ongoing pain: Back,0,1,0,1.1
+Pain: Reflex Sympathetic Dystrophy (Complex Regional Pain Syndrome),1,0,1.1,0
+Renal: Renal failure,1,0,1.1,0
+Right motor radiculopathy,1,0,1.1,0
+Type: Adjacent segment degeneration,1,0,1.1,0
+Type: Cement Leak,0,1,0,1.1
+"Type: Deep Wound infection ; Bacteria: Gram negative bacteria, Anaerobic bacteria",1,0,1.1,0
+Type: Deep Wound infection ; Bacteria: Staphylococcus,1,0,1.1,0
+Type: Deep Wound infection ; Bacteria: Streptococcus,1,0,1.1,0
+Type: Distal junctional kyphosis,1,0,1.1,0
+Type: Hook dislodgement,1,0,1.1,0
+Type: Loss of correction,1,0,1.1,0
+Type: Pedicle fracture,1,0,1.1,0
+Type: Proximal junctional failure: Sagittal subluxation,1,0,1.1,0
+Type: Proximal junctional failure: UIV fracture,2,1,2.2,1.1
+Type: Proximal junctional failure: UIV fracture & UIV +1 fracture,0,1,0,1.1
+Type: Proximal junctional kyphosis,3,3,3.4,3.4
+"Type: Proximal junctional kyphosis, Screw loosening",1,0,1.1,0
+Type: Proximal junctional kyphosis: >20° change,1,0,1.1,0
+Type: Proximal junctional kyphosis: >30° change,1,0,1.1,0
+Type: Pseudarthrosis,9,1,10.1,1.1
+Type: Rod breakage,10,0,11.2,0
+Type: Screw loosening,3,0,3.4,0
+Type: Screws breakage,2,0,2.2,0
+Type: Set screw dislodgement,2,0,2.2,0
+Type: Superficial Wound infection,2,1,2.2,1.1
+Type: Superficial Wound infection ; Bacteria: Staphylococcus,2,0,2.2,0
+Type: fracture of T9,1,0,1.1,0
+Wound: Wound dehiscence,1,1,1.1,1.1
+lumboischialgie left side,1,0,1.1,0

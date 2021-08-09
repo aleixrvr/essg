@@ -43,7 +43,7 @@ get_data <- function(){
   .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')]
 
   valid_patients <- clinical_data %>% 
-    .[followup_2y==TRUE] %>% 
+    # .[followup_2y==TRUE] %>% 
     .[Site != 'ANK Op'] %>% 
     .[`Vital status` == 'Alive'] %>% 
     .[!(`Code of the patient` %in% discarded_patients)] %>% 

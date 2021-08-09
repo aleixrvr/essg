@@ -7,8 +7,8 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(
-  echo = TRUE, 
-  root.dir=normalizePath('../')
+  echo = TRUE 
+  # root.dir=normalizePath('../../')
 )
 ```
 
@@ -22,7 +22,7 @@ f <- glue
 
 
 # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
-xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
 
 clinical_data <- read_excel(xls_path) %>% 
   as.data.table()
@@ -53,7 +53,13 @@ clinical_data[,
 
 clinical_data[, `ASA classification` := as.factor(`ASA classification`)]
 
-vars <- read_yaml('code/descriptive.yml')
+uiv_ <- c('T10', 'T11', 'T12', 'L1')
+clinical_data %>% 
+  .[, upper:= substr(`Posterior Instrumented Fusion: Upper / Lower Levels`, 1, 2)] %>% 
+  .[, uiv_t10_12_l1 := ifelse(upper %in% uiv_, 'Yes', 'No')]
+
+vars <- read_yaml('descriptive.yml')
+vars$surgery <- c(vars$surgery, 'uiv_t10_12_l1')
 
 stats_fun <- function(variable){
   if( class(variable) == 'numeric' ){
@@ -74,7 +80,7 @@ stats_fun <- function(variable){
 
 ### Filters
 ```{r warning=FALSE }
-discarded_patients <- readLines('code/five_years/discarded_patients')
+discarded_patients <- readLines('five_years/discarded_patients')
 
 clinical_data %<>% 
   .[, followup_2y := 
@@ -172,6 +178,13 @@ for(var_0 in vars$quality ){
     }
     cat('\n\n')
   }
+  
+   cat('{var_} tests\n' %>% f)
+  rad_2y <- clinical_data[[var_2y]]
+  rad_5y <- clinical_data[[var_5y]]
+  cat('2y vs 5y p-value\n')
+  cat(t.test(rad_2y, rad_5y)$p.val)
+  cat('\n\n')
 }
 ```
 

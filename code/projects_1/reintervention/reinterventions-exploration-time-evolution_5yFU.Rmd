@@ -33,22 +33,55 @@ c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 
 # Proportion of reinterventions
 
-```{r warning=FALSE, echo=FALSE, fig.height=3.5}
 
-total_patients <- time_evolution[, uniqueN(patient_id)]
+## Patients with 5y FU, reinterventions
+Notes: 
+- reintervention means that at least has that number of reinterventions
 
-table_info <- time_evolution[, .(proportion=round(.N/total_patients, 3)), reintervention] 
 
-print(table_info)
 
-table_info %>% 
-  ggplot(aes(reintervention, proportion, group=1)) +
-  geom_line() +
-  geom_text(aes(label=round(proportion*100, 1))) +
-  ggtitle('Proportion of patients, total {total_patients}' %>% f) +
-  ylab('%') +
-  xlab('Reintervention')
+#### all reinterventions
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
 ```
+
+#### reinterventions before 5y
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+```
+
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_5yfu]
+category_los %<>% .[patient_id %in% patients_5yfu]
+time_evolution %<>% .[patient_id %in% patients_5yfu]
+complications %<>% .[patient_id %in% patients_5yfu]
+```
+
+
+
+The analysis follows with 5Y FU. Number of patients `r clinical_data[, .N]`
 
 # Proportion of SICU transfers
 
