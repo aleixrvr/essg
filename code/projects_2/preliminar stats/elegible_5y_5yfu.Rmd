@@ -89,7 +89,7 @@ clinical_data %>%
   .[Site != 'ANK Op'] %>% 
   .[`Vital status` == 'Alive'] %>% 
   .[!(`Code of the patient` %in% discarded_patients)] %>% 
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2018-09-01')] ->
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] ->
   data_
 ```
 
@@ -140,24 +140,19 @@ for(var_ in analysis_vars$radiology ){
   val_2y <- data_[[var_2y]]
   val_5y <- data_[[var_5y]]
   cat('\nPreop vs 6w p-value\n')
-  inc <- na.omit(val_6w - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_6w , val_)$p.val)
   cat('\n\n')
   cat('Preop vs 2y p-value\n')
-  inc <- na.omit(val_2y - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_2y, val_)$p.val)
   cat('\n\n')
   cat('Preop vs 5y p-value\n')
-  inc <- na.omit(val_5y - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_5y, val_)$p.val)
   cat('\n\n')
   cat('6w vs 2y p-value\n')
-  inc <- na.omit(val_2y - val_6w)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_2y, val_6w)$p.val)
   cat('\n\n')
   cat('2y vs 5y p-value\n')
-  inc <- na.omit(val_5y - val_2y)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
 }
 ```
@@ -187,20 +182,16 @@ for(var_ in analysis_vars$quality ){
   val_2y <- data_[[var_2y]]
   val_5y <- data_[[var_5y]]
   cat('\nPreop vs 6w p-value\n')
-  inc <- na.omit(val_6m - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_6m, val_)$p.val)
   cat('\n')
   cat('\nPreop vs 2y p-value\n')
-  inc <- na.omit(val_2y - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_2y, val_)$p.val)
   cat('\n\n')
   cat('\nPreop vs 5y p-value\n')
-  inc <- na.omit(val_5y - val_)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_5y, val_)$p.val)
   cat('\n')
   cat('2y vs 5y p-value\n')
-  inc <- na.omit(val_5y - val_2y)
-  cat(t.test(inc)$p.val)
+  cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
 }
 ```

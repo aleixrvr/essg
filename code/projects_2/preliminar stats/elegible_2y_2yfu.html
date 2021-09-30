@@ -11,7 +11,7 @@
 
 
 
-<title>Eligible at 2Y - 5Y FU</title>
+<title>Eligible at 2Y - 2Y FU</title>
 
 <script>/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
 !function(a,b){"object"==typeof module&&"object"==typeof module.exports?module.exports=a.document?b(a,!0):function(a){if(!a.document)throw new Error("jQuery requires a window with a document");return b(a)}:b(a)}("undefined"!=typeof window?window:this,function(a,b){var c=[],d=c.slice,e=c.concat,f=c.push,g=c.indexOf,h={},i=h.toString,j=h.hasOwnProperty,k={},l="1.11.3",m=function(a,b){return new m.fn.init(a,b)},n=/^[\s\uFEFF\xA0]+|[\s\uFEFF\xA0]+$/g,o=/^-ms-/,p=/-([\da-z])/gi,q=function(a,b){return b.toUpperCase()};m.fn=m.prototype={jquery:l,constructor:m,selector:"",length:0,toArray:function(){return d.call(this)},get:function(a){return null!=a?0>a?this[a+this.length]:this[a]:d.call(this)},pushStack:function(a){var b=m.merge(this.constructor(),a);return b.prevObject=this,b.context=this.context,b},each:function(a,b){return m.each(this,a,b)},map:function(a){return this.pushStack(m.map(this,function(b,c){return a.call(b,c,b)}))},slice:function(){return this.pushStack(d.apply(this,arguments))},first:function(){return this.eq(0)},last:function(){return this.eq(-1)},eq:function(a){var b=this.length,c=+a+(0>a?b:0);return this.pushStack(c>=0&&b>c?[this[c]]:[])},end:function(){return this.prevObject||this.constructor(null)},push:f,sort:c.sort,splice:c.splice},m.extend=m.fn.extend=function(){var a,b,c,d,e,f,g=arguments[0]||{},h=1,i=arguments.length,j=!1;for("boolean"==typeof g&&(j=g,g=arguments[h]||{},h++),"object"==typeof g||m.isFunction(g)||(g={}),h===i&&(g=this,h--);i>h;h++)if(null!=(e=arguments[h]))for(d in e)a=g[d],c=e[d],g!==c&&(j&&c&&(m.isPlainObject(c)||(b=m.isArray(c)))?(b?(b=!1,f=a&&m.isArray(a)?a:[]):f=a&&m.isPlainObject(a)?a:{},g[d]=m.extend(j,f,c)):void 0!==c&&(g[d]=c));return g},m.extend({expando:"jQuery"+(l+Math.random()).replace(/\D/g,""),isReady:!0,error:function(a){throw new Error(a)},noop:function(){},isFunction:function(a){return"function"===m.type(a)},isArray:Array.isArray||function(a){return"array"===m.type(a)},isWindow:function(a){return null!=a&&a==a.window},isNumeric:function(a){return!m.isArray(a)&&a-parseFloat(a)+1>=0},isEmptyObject:function(a){var b;for(b in a)return!1;return!0},isPlainObject:function(a){var b;if(!a||"object"!==m.type(a)||a.nodeType||m.isWindow(a))return!1;try{if(a.constructor&&!j.call(a,"constructor")&&!j.call(a.constructor.prototype,"isPrototypeOf"))return!1}catch(c){return!1}if(k.ownLast)for(b in a)return j.call(a,b);for(b in a);return void 0===b||j.call(a,b)},type:function(a){return null==a?a+"":"object"==typeof a||"function"==typeof a?h[i.call(a)]||"object":typeof a},globalEval:function(b){b&&m.trim(b)&&(a.execScript||function(b){a.eval.call(a,b)})(b)},camelCase:function(a){return a.replace(o,"ms-").replace(p,q)},nodeName:function(a,b){return a.nodeName&&a.nodeName.toLowerCase()===b.toLowerCase()},each:function(a,b,c){var d,e=0,f=a.length,g=r(a);if(c){if(g){for(;f>e;e++)if(d=b.apply(a[e],c),d===!1)break}else for(e in a)if(d=b.apply(a[e],c),d===!1)break}else if(g){for(;f>e;e++)if(d=b.call(a[e],e,a[e]),d===!1)break}else for(e in a)if(d=b.call(a[e],e,a[e]),d===!1)break;return a},trim:function(a){return null==a?"":(a+"").replace(n,"")},makeArray:function(a,b){var c=b||[];return null!=a&&(r(Object(a))?m.merge(c,"string"==typeof a?[a]:a):f.call(c,a)),c},inArray:function(a,b,c){var d;if(b){if(g)return g.call(b,a,c);for(d=b.length,c=c?0>c?Math.max(0,d+c):c:0;d>c;c++)if(c in b&&b[c]===a)return c}return-1},merge:function(a,b){var c=+b.length,d=0,e=a.length;while(c>d)a[e++]=b[d++];if(c!==c)while(void 0!==b[d])a[e++]=b[d++];return a.length=e,a},grep:function(a,b,c){for(var d,e=[],f=0,g=a.length,h=!c;g>f;f++)d=!b(a[f],f),d!==h&&e.push(a[f]);return e},map:function(a,b,c){var d,f=0,g=a.length,h=r(a),i=[];if(h)for(;g>f;f++)d=b(a[f],f,c),null!=d&&i.push(d);else for(f in a)d=b(a[f],f,c),null!=d&&i.push(d);return e.apply([],i)},guid:1,proxy:function(a,b){var c,e,f;return"string"==typeof b&&(f=a[b],b=a,a=f),m.isFunction(a)?(c=d.call(arguments,2),e=function(){return a.apply(b||this,c.concat(d.call(arguments)))},e.guid=a.guid=a.guid||m.guid++,e):void 0},now:function(){return+new Date},support:k}),m.each("Boolean Number String Function Array Date RegExp Object Error".split(" "),function(a,b){h["[object "+b+"]"]=b.toLowerCase()});function r(a){var b="length"in a&&a.length,c=m.type(a);return"function"===c||m.isWindow(a)?!1:1===a.nodeType&&b?!0:"array"===c||0===b||"number"==typeof b&&b>0&&b-1 in a}var s=function(a){var b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u="sizzle"+1*new Date,v=a.document,w=0,x=0,y=ha(),z=ha(),A=ha(),B=function(a,b){return a===b&&(l=!0),0},C=1<<31,D={}.hasOwnProperty,E=[],F=E.pop,G=E.push,H=E.push,I=E.slice,J=function(a,b){for(var c=0,d=a.length;d>c;c++)if(a[c]===b)return c;return-1},K="checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped",L="[\\x20\\t\\r\\n\\f]",M="(?:\\\\.|[\\w-]|[^\\x00-\\xa0])+",N=M.replace("w","w#"),O="\\["+L+"*("+M+")(?:"+L+"*([*^$|!~]?=)"+L+"*(?:'((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\"|("+N+"))|)"+L+"*\\]",P=":("+M+")(?:\\((('((?:\\\\.|[^\\\\'])*)'|\"((?:\\\\.|[^\\\\\"])*)\")|((?:\\\\.|[^\\\\()[\\]]|"+O+")*)|.*)\\)|)",Q=new RegExp(L+"+","g"),R=new RegExp("^"+L+"+|((?:^|[^\\\\])(?:\\\\.)*)"+L+"+$","g"),S=new RegExp("^"+L+"*,"+L+"*"),T=new RegExp("^"+L+"*([>+~]|"+L+")"+L+"*"),U=new RegExp("="+L+"*([^\\]'\"]*?)"+L+"*\\]","g"),V=new RegExp(P),W=new RegExp("^"+N+"$"),X={ID:new RegExp("^#("+M+")"),CLASS:new RegExp("^\\.("+M+")"),TAG:new RegExp("^("+M.replace("w","w*")+")"),ATTR:new RegExp("^"+O),PSEUDO:new RegExp("^"+P),CHILD:new RegExp("^:(only|first|last|nth|nth-last)-(child|of-type)(?:\\("+L+"*(even|odd|(([+-]|)(\\d*)n|)"+L+"*(?:([+-]|)"+L+"*(\\d+)|))"+L+"*\\)|)","i"),bool:new RegExp("^(?:"+K+")$","i"),needsContext:new RegExp("^"+L+"*[>+~]|:(even|odd|eq|gt|lt|nth|first|last)(?:\\("+L+"*((?:-\\d)?\\d*)"+L+"*\\)|)(?=[^-]|$)","i")},Y=/^(?:input|select|textarea|button)$/i,Z=/^h\d$/i,$=/^[^{]+\{\s*\[native \w/,_=/^(?:#([\w-]+)|(\w+)|\.([\w-]+))$/,aa=/[+~]/,ba=/'|\\/g,ca=new RegExp("\\\\([\\da-f]{1,6}"+L+"?|("+L+")|.)","ig"),da=function(a,b,c){var d="0x"+b-65536;return d!==d||c?b:0>d?String.fromCharCode(d+65536):String.fromCharCode(d>>10|55296,1023&d|56320)},ea=function(){m()};try{H.apply(E=I.call(v.childNodes),v.childNodes),E[v.childNodes.length].nodeType}catch(fa){H={apply:E.length?function(a,b){G.apply(a,I.call(b))}:function(a,b){var c=a.length,d=0;while(a[c++]=b[d++]);a.length=c-1}}}function ga(a,b,d,e){var f,h,j,k,l,o,r,s,w,x;if((b?b.ownerDocument||b:v)!==n&&m(b),b=b||n,d=d||[],k=b.nodeType,"string"!=typeof a||!a||1!==k&&9!==k&&11!==k)return d;if(!e&&p){if(11!==k&&(f=_.exec(a)))if(j=f[1]){if(9===k){if(h=b.getElementById(j),!h||!h.parentNode)return d;if(h.id===j)return d.push(h),d}else if(b.ownerDocument&&(h=b.ownerDocument.getElementById(j))&&t(b,h)&&h.id===j)return d.push(h),d}else{if(f[2])return H.apply(d,b.getElementsByTagName(a)),d;if((j=f[3])&&c.getElementsByClassName)return H.apply(d,b.getElementsByClassName(j)),d}if(c.qsa&&(!q||!q.test(a))){if(s=r=u,w=b,x=1!==k&&a,1===k&&"object"!==b.nodeName.toLowerCase()){o=g(a),(r=b.getAttribute("id"))?s=r.replace(ba,"\\$&"):b.setAttribute("id",s),s="[id='"+s+"'] ",l=o.length;while(l--)o[l]=s+ra(o[l]);w=aa.test(a)&&pa(b.parentNode)||b,x=o.join(",")}if(x)try{return H.apply(d,w.querySelectorAll(x)),d}catch(y){}finally{r||b.removeAttribute("id")}}}return i(a.replace(R,"$1"),b,d,e)}function ha(){var a=[];function b(c,e){return a.push(c+" ")>d.cacheLength&&delete b[a.shift()],b[c+" "]=e}return b}function ia(a){return a[u]=!0,a}function ja(a){var b=n.createElement("div");try{return!!a(b)}catch(c){return!1}finally{b.parentNode&&b.parentNode.removeChild(b),b=null}}function ka(a,b){var c=a.split("|"),e=a.length;while(e--)d.attrHandle[c[e]]=b}function la(a,b){var c=b&&a,d=c&&1===a.nodeType&&1===b.nodeType&&(~b.sourceIndex||C)-(~a.sourceIndex||C);if(d)return d;if(c)while(c=c.nextSibling)if(c===b)return-1;return a?1:-1}function ma(a){return function(b){var c=b.nodeName.toLowerCase();return"input"===c&&b.type===a}}function na(a){return function(b){var c=b.nodeName.toLowerCase();return("input"===c||"button"===c)&&b.type===a}}function oa(a){return ia(function(b){return b=+b,ia(function(c,d){var e,f=a([],c.length,b),g=f.length;while(g--)c[e=f[g]]&&(c[e]=!(d[e]=c[e]))})})}function pa(a){return a&&"undefined"!=typeof a.getElementsByTagName&&a}c=ga.support={},f=ga.isXML=function(a){var b=a&&(a.ownerDocument||a).documentElement;return b?"HTML"!==b.nodeName:!1},m=ga.setDocument=function(a){var b,e,g=a?a.ownerDocument||a:v;return g!==n&&9===g.nodeType&&g.documentElement?(n=g,o=g.documentElement,e=g.defaultView,e&&e!==e.top&&(e.addEventListener?e.addEventListener("unload",ea,!1):e.attachEvent&&e.attachEvent("onunload",ea)),p=!f(g),c.attributes=ja(function(a){return a.className="i",!a.getAttribute("className")}),c.getElementsByTagName=ja(function(a){return a.appendChild(g.createComment("")),!a.getElementsByTagName("*").length}),c.getElementsByClassName=$.test(g.getElementsByClassName),c.getById=ja(function(a){return o.appendChild(a).id=u,!g.getElementsByName||!g.getElementsByName(u).length}),c.getById?(d.find.ID=function(a,b){if("undefined"!=typeof b.getElementById&&p){var c=b.getElementById(a);return c&&c.parentNode?[c]:[]}},d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){return a.getAttribute("id")===b}}):(delete d.find.ID,d.filter.ID=function(a){var b=a.replace(ca,da);return function(a){var c="undefined"!=typeof a.getAttributeNode&&a.getAttributeNode("id");return c&&c.value===b}}),d.find.TAG=c.getElementsByTagName?function(a,b){return"undefined"!=typeof b.getElementsByTagName?b.getElementsByTagName(a):c.qsa?b.querySelectorAll(a):void 0}:function(a,b){var c,d=[],e=0,f=b.getElementsByTagName(a);if("*"===a){while(c=f[e++])1===c.nodeType&&d.push(c);return d}return f},d.find.CLASS=c.getElementsByClassName&&function(a,b){return p?b.getElementsByClassName(a):void 0},r=[],q=[],(c.qsa=$.test(g.querySelectorAll))&&(ja(function(a){o.appendChild(a).innerHTML="<a id='"+u+"'></a><select id='"+u+"-\f]' msallowcapture=''><option selected=''></option></select>",a.querySelectorAll("[msallowcapture^='']").length&&q.push("[*^$]="+L+"*(?:''|\"\")"),a.querySelectorAll("[selected]").length||q.push("\\["+L+"*(?:value|"+K+")"),a.querySelectorAll("[id~="+u+"-]").length||q.push("~="),a.querySelectorAll(":checked").length||q.push(":checked"),a.querySelectorAll("a#"+u+"+*").length||q.push(".#.+[+~]")}),ja(function(a){var b=g.createElement("input");b.setAttribute("type","hidden"),a.appendChild(b).setAttribute("name","D"),a.querySelectorAll("[name=d]").length&&q.push("name"+L+"*[*^$|!~]?="),a.querySelectorAll(":enabled").length||q.push(":enabled",":disabled"),a.querySelectorAll("*,:x"),q.push(",.*:")})),(c.matchesSelector=$.test(s=o.matches||o.webkitMatchesSelector||o.mozMatchesSelector||o.oMatchesSelector||o.msMatchesSelector))&&ja(function(a){c.disconnectedMatch=s.call(a,"div"),s.call(a,"[s!='']:x"),r.push("!=",P)}),q=q.length&&new RegExp(q.join("|")),r=r.length&&new RegExp(r.join("|")),b=$.test(o.compareDocumentPosition),t=b||$.test(o.contains)?function(a,b){var c=9===a.nodeType?a.documentElement:a,d=b&&b.parentNode;return a===d||!(!d||1!==d.nodeType||!(c.contains?c.contains(d):a.compareDocumentPosition&&16&a.compareDocumentPosition(d)))}:function(a,b){if(b)while(b=b.parentNode)if(b===a)return!0;return!1},B=b?function(a,b){if(a===b)return l=!0,0;var d=!a.compareDocumentPosition-!b.compareDocumentPosition;return d?d:(d=(a.ownerDocument||a)===(b.ownerDocument||b)?a.compareDocumentPosition(b):1,1&d||!c.sortDetached&&b.compareDocumentPosition(a)===d?a===g||a.ownerDocument===v&&t(v,a)?-1:b===g||b.ownerDocument===v&&t(v,b)?1:k?J(k,a)-J(k,b):0:4&d?-1:1)}:function(a,b){if(a===b)return l=!0,0;var c,d=0,e=a.parentNode,f=b.parentNode,h=[a],i=[b];if(!e||!f)return a===g?-1:b===g?1:e?-1:f?1:k?J(k,a)-J(k,b):0;if(e===f)return la(a,b);c=a;while(c=c.parentNode)h.unshift(c);c=b;while(c=c.parentNode)i.unshift(c);while(h[d]===i[d])d++;return d?la(h[d],i[d]):h[d]===v?-1:i[d]===v?1:0},g):n},ga.matches=function(a,b){return ga(a,null,null,b)},ga.matchesSelector=function(a,b){if((a.ownerDocument||a)!==n&&m(a),b=b.replace(U,"='$1']"),!(!c.matchesSelector||!p||r&&r.test(b)||q&&q.test(b)))try{var d=s.call(a,b);if(d||c.disconnectedMatch||a.document&&11!==a.document.nodeType)return d}catch(e){}return ga(b,n,null,[a]).length>0},ga.contains=function(a,b){return(a.ownerDocument||a)!==n&&m(a),t(a,b)},ga.attr=function(a,b){(a.ownerDocument||a)!==n&&m(a);var e=d.attrHandle[b.toLowerCase()],f=e&&D.call(d.attrHandle,b.toLowerCase())?e(a,b,!p):void 0;return void 0!==f?f:c.attributes||!p?a.getAttribute(b):(f=a.getAttributeNode(b))&&f.specified?f.value:null},ga.error=function(a){throw new Error("Syntax error, unrecognized expression: "+a)},ga.uniqueSort=function(a){var b,d=[],e=0,f=0;if(l=!c.detectDuplicates,k=!c.sortStable&&a.slice(0),a.sort(B),l){while(b=a[f++])b===a[f]&&(e=d.push(f));while(e--)a.splice(d[e],1)}return k=null,a},e=ga.getText=function(a){var b,c="",d=0,f=a.nodeType;if(f){if(1===f||9===f||11===f){if("string"==typeof a.textContent)return a.textContent;for(a=a.firstChild;a;a=a.nextSibling)c+=e(a)}else if(3===f||4===f)return a.nodeValue}else while(b=a[d++])c+=e(b);return c},d=ga.selectors={cacheLength:50,createPseudo:ia,match:X,attrHandle:{},find:{},relative:{">":{dir:"parentNode",first:!0}," ":{dir:"parentNode"},"+":{dir:"previousSibling",first:!0},"~":{dir:"previousSibling"}},preFilter:{ATTR:function(a){return a[1]=a[1].replace(ca,da),a[3]=(a[3]||a[4]||a[5]||"").replace(ca,da),"~="===a[2]&&(a[3]=" "+a[3]+" "),a.slice(0,4)},CHILD:function(a){return a[1]=a[1].toLowerCase(),"nth"===a[1].slice(0,3)?(a[3]||ga.error(a[0]),a[4]=+(a[4]?a[5]+(a[6]||1):2*("even"===a[3]||"odd"===a[3])),a[5]=+(a[7]+a[8]||"odd"===a[3])):a[3]&&ga.error(a[0]),a},PSEUDO:function(a){var b,c=!a[6]&&a[2];return X.CHILD.test(a[0])?null:(a[3]?a[2]=a[4]||a[5]||"":c&&V.test(c)&&(b=g(c,!0))&&(b=c.indexOf(")",c.length-b)-c.length)&&(a[0]=a[0].slice(0,b),a[2]=c.slice(0,b)),a.slice(0,3))}},filter:{TAG:function(a){var b=a.replace(ca,da).toLowerCase();return"*"===a?function(){return!0}:function(a){return a.nodeName&&a.nodeName.toLowerCase()===b}},CLASS:function(a){var b=y[a+" "];return b||(b=new RegExp("(^|"+L+")"+a+"("+L+"|$)"))&&y(a,function(a){return b.test("string"==typeof a.className&&a.className||"undefined"!=typeof a.getAttribute&&a.getAttribute("class")||"")})},ATTR:function(a,b,c){return function(d){var e=ga.attr(d,a);return null==e?"!="===b:b?(e+="","="===b?e===c:"!="===b?e!==c:"^="===b?c&&0===e.indexOf(c):"*="===b?c&&e.indexOf(c)>-1:"$="===b?c&&e.slice(-c.length)===c:"~="===b?(" "+e.replace(Q," ")+" ").indexOf(c)>-1:"|="===b?e===c||e.slice(0,c.length+1)===c+"-":!1):!0}},CHILD:function(a,b,c,d,e){var f="nth"!==a.slice(0,3),g="last"!==a.slice(-4),h="of-type"===b;return 1===d&&0===e?function(a){return!!a.parentNode}:function(b,c,i){var j,k,l,m,n,o,p=f!==g?"nextSibling":"previousSibling",q=b.parentNode,r=h&&b.nodeName.toLowerCase(),s=!i&&!h;if(q){if(f){while(p){l=b;while(l=l[p])if(h?l.nodeName.toLowerCase()===r:1===l.nodeType)return!1;o=p="only"===a&&!o&&"nextSibling"}return!0}if(o=[g?q.firstChild:q.lastChild],g&&s){k=q[u]||(q[u]={}),j=k[a]||[],n=j[0]===w&&j[1],m=j[0]===w&&j[2],l=n&&q.childNodes[n];while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if(1===l.nodeType&&++m&&l===b){k[a]=[w,n,m];break}}else if(s&&(j=(b[u]||(b[u]={}))[a])&&j[0]===w)m=j[1];else while(l=++n&&l&&l[p]||(m=n=0)||o.pop())if((h?l.nodeName.toLowerCase()===r:1===l.nodeType)&&++m&&(s&&((l[u]||(l[u]={}))[a]=[w,m]),l===b))break;return m-=e,m===d||m%d===0&&m/d>=0}}},PSEUDO:function(a,b){var c,e=d.pseudos[a]||d.setFilters[a.toLowerCase()]||ga.error("unsupported pseudo: "+a);return e[u]?e(b):e.length>1?(c=[a,a,"",b],d.setFilters.hasOwnProperty(a.toLowerCase())?ia(function(a,c){var d,f=e(a,b),g=f.length;while(g--)d=J(a,f[g]),a[d]=!(c[d]=f[g])}):function(a){return e(a,0,c)}):e}},pseudos:{not:ia(function(a){var b=[],c=[],d=h(a.replace(R,"$1"));return d[u]?ia(function(a,b,c,e){var f,g=d(a,null,e,[]),h=a.length;while(h--)(f=g[h])&&(a[h]=!(b[h]=f))}):function(a,e,f){return b[0]=a,d(b,null,f,c),b[0]=null,!c.pop()}}),has:ia(function(a){return function(b){return ga(a,b).length>0}}),contains:ia(function(a){return a=a.replace(ca,da),function(b){return(b.textContent||b.innerText||e(b)).indexOf(a)>-1}}),lang:ia(function(a){return W.test(a||"")||ga.error("unsupported lang: "+a),a=a.replace(ca,da).toLowerCase(),function(b){var c;do if(c=p?b.lang:b.getAttribute("xml:lang")||b.getAttribute("lang"))return c=c.toLowerCase(),c===a||0===c.indexOf(a+"-");while((b=b.parentNode)&&1===b.nodeType);return!1}}),target:function(b){var c=a.location&&a.location.hash;return c&&c.slice(1)===b.id},root:function(a){return a===o},focus:function(a){return a===n.activeElement&&(!n.hasFocus||n.hasFocus())&&!!(a.type||a.href||~a.tabIndex)},enabled:function(a){return a.disabled===!1},disabled:function(a){return a.disabled===!0},checked:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&!!a.checked||"option"===b&&!!a.selected},selected:function(a){return a.parentNode&&a.parentNode.selectedIndex,a.selected===!0},empty:function(a){for(a=a.firstChild;a;a=a.nextSibling)if(a.nodeType<6)return!1;return!0},parent:function(a){return!d.pseudos.empty(a)},header:function(a){return Z.test(a.nodeName)},input:function(a){return Y.test(a.nodeName)},button:function(a){var b=a.nodeName.toLowerCase();return"input"===b&&"button"===a.type||"button"===b},text:function(a){var b;return"input"===a.nodeName.toLowerCase()&&"text"===a.type&&(null==(b=a.getAttribute("type"))||"text"===b.toLowerCase())},first:oa(function(){return[0]}),last:oa(function(a,b){return[b-1]}),eq:oa(function(a,b,c){return[0>c?c+b:c]}),even:oa(function(a,b){for(var c=0;b>c;c+=2)a.push(c);return a}),odd:oa(function(a,b){for(var c=1;b>c;c+=2)a.push(c);return a}),lt:oa(function(a,b,c){for(var d=0>c?c+b:c;--d>=0;)a.push(d);return a}),gt:oa(function(a,b,c){for(var d=0>c?c+b:c;++d<b;)a.push(d);return a})}},d.pseudos.nth=d.pseudos.eq;for(b in{radio:!0,checkbox:!0,file:!0,password:!0,image:!0})d.pseudos[b]=ma(b);for(b in{submit:!0,reset:!0})d.pseudos[b]=na(b);function qa(){}qa.prototype=d.filters=d.pseudos,d.setFilters=new qa,g=ga.tokenize=function(a,b){var c,e,f,g,h,i,j,k=z[a+" "];if(k)return b?0:k.slice(0);h=a,i=[],j=d.preFilter;while(h){(!c||(e=S.exec(h)))&&(e&&(h=h.slice(e[0].length)||h),i.push(f=[])),c=!1,(e=T.exec(h))&&(c=e.shift(),f.push({value:c,type:e[0].replace(R," ")}),h=h.slice(c.length));for(g in d.filter)!(e=X[g].exec(h))||j[g]&&!(e=j[g](e))||(c=e.shift(),f.push({value:c,type:g,matches:e}),h=h.slice(c.length));if(!c)break}return b?h.length:h?ga.error(a):z(a,i).slice(0)};function ra(a){for(var b=0,c=a.length,d="";c>b;b++)d+=a[b].value;return d}function sa(a,b,c){var d=b.dir,e=c&&"parentNode"===d,f=x++;return b.first?function(b,c,f){while(b=b[d])if(1===b.nodeType||e)return a(b,c,f)}:function(b,c,g){var h,i,j=[w,f];if(g){while(b=b[d])if((1===b.nodeType||e)&&a(b,c,g))return!0}else while(b=b[d])if(1===b.nodeType||e){if(i=b[u]||(b[u]={}),(h=i[d])&&h[0]===w&&h[1]===f)return j[2]=h[2];if(i[d]=j,j[2]=a(b,c,g))return!0}}}function ta(a){return a.length>1?function(b,c,d){var e=a.length;while(e--)if(!a[e](b,c,d))return!1;return!0}:a[0]}function ua(a,b,c){for(var d=0,e=b.length;e>d;d++)ga(a,b[d],c);return c}function va(a,b,c,d,e){for(var f,g=[],h=0,i=a.length,j=null!=b;i>h;h++)(f=a[h])&&(!c||c(f,d,e))&&(g.push(f),j&&b.push(h));return g}function wa(a,b,c,d,e,f){return d&&!d[u]&&(d=wa(d)),e&&!e[u]&&(e=wa(e,f)),ia(function(f,g,h,i){var j,k,l,m=[],n=[],o=g.length,p=f||ua(b||"*",h.nodeType?[h]:h,[]),q=!a||!f&&b?p:va(p,m,a,h,i),r=c?e||(f?a:o||d)?[]:g:q;if(c&&c(q,r,h,i),d){j=va(r,n),d(j,[],h,i),k=j.length;while(k--)(l=j[k])&&(r[n[k]]=!(q[n[k]]=l))}if(f){if(e||a){if(e){j=[],k=r.length;while(k--)(l=r[k])&&j.push(q[k]=l);e(null,r=[],j,i)}k=r.length;while(k--)(l=r[k])&&(j=e?J(f,l):m[k])>-1&&(f[j]=!(g[j]=l))}}else r=va(r===g?r.splice(o,r.length):r),e?e(null,g,r,i):H.apply(g,r)})}function xa(a){for(var b,c,e,f=a.length,g=d.relative[a[0].type],h=g||d.relative[" "],i=g?1:0,k=sa(function(a){return a===b},h,!0),l=sa(function(a){return J(b,a)>-1},h,!0),m=[function(a,c,d){var e=!g&&(d||c!==j)||((b=c).nodeType?k(a,c,d):l(a,c,d));return b=null,e}];f>i;i++)if(c=d.relative[a[i].type])m=[sa(ta(m),c)];else{if(c=d.filter[a[i].type].apply(null,a[i].matches),c[u]){for(e=++i;f>e;e++)if(d.relative[a[e].type])break;return wa(i>1&&ta(m),i>1&&ra(a.slice(0,i-1).concat({value:" "===a[i-2].type?"*":""})).replace(R,"$1"),c,e>i&&xa(a.slice(i,e)),f>e&&xa(a=a.slice(e)),f>e&&ra(a))}m.push(c)}return ta(m)}function ya(a,b){var c=b.length>0,e=a.length>0,f=function(f,g,h,i,k){var l,m,o,p=0,q="0",r=f&&[],s=[],t=j,u=f||e&&d.find.TAG("*",k),v=w+=null==t?1:Math.random()||.1,x=u.length;for(k&&(j=g!==n&&g);q!==x&&null!=(l=u[q]);q++){if(e&&l){m=0;while(o=a[m++])if(o(l,g,h)){i.push(l);break}k&&(w=v)}c&&((l=!o&&l)&&p--,f&&r.push(l))}if(p+=q,c&&q!==p){m=0;while(o=b[m++])o(r,s,g,h);if(f){if(p>0)while(q--)r[q]||s[q]||(s[q]=F.call(i));s=va(s)}H.apply(i,s),k&&!f&&s.length>0&&p+b.length>1&&ga.uniqueSort(i)}return k&&(w=v,j=t),r};return c?ia(f):f}return h=ga.compile=function(a,b){var c,d=[],e=[],f=A[a+" "];if(!f){b||(b=g(a)),c=b.length;while(c--)f=xa(b[c]),f[u]?d.push(f):e.push(f);f=A(a,ya(e,d)),f.selector=a}return f},i=ga.select=function(a,b,e,f){var i,j,k,l,m,n="function"==typeof a&&a,o=!f&&g(a=n.selector||a);if(e=e||[],1===o.length){if(j=o[0]=o[0].slice(0),j.length>2&&"ID"===(k=j[0]).type&&c.getById&&9===b.nodeType&&p&&d.relative[j[1].type]){if(b=(d.find.ID(k.matches[0].replace(ca,da),b)||[])[0],!b)return e;n&&(b=b.parentNode),a=a.slice(j.shift().value.length)}i=X.needsContext.test(a)?0:j.length;while(i--){if(k=j[i],d.relative[l=k.type])break;if((m=d.find[l])&&(f=m(k.matches[0].replace(ca,da),aa.test(j[0].type)&&pa(b.parentNode)||b))){if(j.splice(i,1),a=f.length&&ra(j),!a)return H.apply(e,f),e;break}}}return(n||h(a,o))(f,b,!p,e,aa.test(a)&&pa(b.parentNode)||b),e},c.sortStable=u.split("").sort(B).join("")===u,c.detectDuplicates=!!l,m(),c.sortDetached=ja(function(a){return 1&a.compareDocumentPosition(n.createElement("div"))}),ja(function(a){return a.innerHTML="<a href='#'></a>","#"===a.firstChild.getAttribute("href")})||ka("type|href|height|width",function(a,b,c){return c?void 0:a.getAttribute(b,"type"===b.toLowerCase()?1:2)}),c.attributes&&ja(function(a){return a.innerHTML="<input/>",a.firstChild.setAttribute("value",""),""===a.firstChild.getAttribute("value")})||ka("value",function(a,b,c){return c||"input"!==a.nodeName.toLowerCase()?void 0:a.defaultValue}),ja(function(a){return null==a.getAttribute("disabled")})||ka(K,function(a,b,c){var d;return c?void 0:a[b]===!0?b.toLowerCase():(d=a.getAttributeNode(b))&&d.specified?d.value:null}),ga}(a);m.find=s,m.expr=s.selectors,m.expr[":"]=m.expr.pseudos,m.unique=s.uniqueSort,m.text=s.getText,m.isXMLDoc=s.isXML,m.contains=s.contains;var t=m.expr.match.needsContext,u=/^<(\w+)\s*\/?>(?:<\/\1>|)$/,v=/^.[^:#\[\.,]*$/;function w(a,b,c){if(m.isFunction(b))return m.grep(a,function(a,d){return!!b.call(a,d,a)!==c});if(b.nodeType)return m.grep(a,function(a){return a===b!==c});if("string"==typeof b){if(v.test(b))return m.filter(b,a,c);b=m.filter(b,a)}return m.grep(a,function(a){return m.inArray(a,b)>=0!==c})}m.filter=function(a,b,c){var d=b[0];return c&&(a=":not("+a+")"),1===b.length&&1===d.nodeType?m.find.matchesSelector(d,a)?[d]:[]:m.find.matches(a,m.grep(b,function(a){return 1===a.nodeType}))},m.fn.extend({find:function(a){var b,c=[],d=this,e=d.length;if("string"!=typeof a)return this.pushStack(m(a).filter(function(){for(b=0;e>b;b++)if(m.contains(d[b],this))return!0}));for(b=0;e>b;b++)m.find(a,d[b],c);return c=this.pushStack(e>1?m.unique(c):c),c.selector=this.selector?this.selector+" "+a:a,c},filter:function(a){return this.pushStack(w(this,a||[],!1))},not:function(a){return this.pushStack(w(this,a||[],!0))},is:function(a){return!!w(this,"string"==typeof a&&t.test(a)?m(a):a||[],!1).length}});var x,y=a.document,z=/^(?:\s*(<[\w\W]+>)[^>]*|#([\w-]*))$/,A=m.fn.init=function(a,b){var c,d;if(!a)return this;if("string"==typeof a){if(c="<"===a.charAt(0)&&">"===a.charAt(a.length-1)&&a.length>=3?[null,a,null]:z.exec(a),!c||!c[1]&&b)return!b||b.jquery?(b||x).find(a):this.constructor(b).find(a);if(c[1]){if(b=b instanceof m?b[0]:b,m.merge(this,m.parseHTML(c[1],b&&b.nodeType?b.ownerDocument||b:y,!0)),u.test(c[1])&&m.isPlainObject(b))for(c in b)m.isFunction(this[c])?this[c](b[c]):this.attr(c,b[c]);return this}if(d=y.getElementById(c[2]),d&&d.parentNode){if(d.id!==c[2])return x.find(a);this.length=1,this[0]=d}return this.context=y,this.selector=a,this}return a.nodeType?(this.context=this[0]=a,this.length=1,this):m.isFunction(a)?"undefined"!=typeof x.ready?x.ready(a):a(m):(void 0!==a.selector&&(this.selector=a.selector,this.context=a.context),m.makeArray(a,this))};A.prototype=m.fn,x=m(y);var B=/^(?:parents|prev(?:Until|All))/,C={children:!0,contents:!0,next:!0,prev:!0};m.extend({dir:function(a,b,c){var d=[],e=a[b];while(e&&9!==e.nodeType&&(void 0===c||1!==e.nodeType||!m(e).is(c)))1===e.nodeType&&d.push(e),e=e[b];return d},sibling:function(a,b){for(var c=[];a;a=a.nextSibling)1===a.nodeType&&a!==b&&c.push(a);return c}}),m.fn.extend({has:function(a){var b,c=m(a,this),d=c.length;return this.filter(function(){for(b=0;d>b;b++)if(m.contains(this,c[b]))return!0})},closest:function(a,b){for(var c,d=0,e=this.length,f=[],g=t.test(a)||"string"!=typeof a?m(a,b||this.context):0;e>d;d++)for(c=this[d];c&&c!==b;c=c.parentNode)if(c.nodeType<11&&(g?g.index(c)>-1:1===c.nodeType&&m.find.matchesSelector(c,a))){f.push(c);break}return this.pushStack(f.length>1?m.unique(f):f)},index:function(a){return a?"string"==typeof a?m.inArray(this[0],m(a)):m.inArray(a.jquery?a[0]:a,this):this[0]&&this[0].parentNode?this.first().prevAll().length:-1},add:function(a,b){return this.pushStack(m.unique(m.merge(this.get(),m(a,b))))},addBack:function(a){return this.add(null==a?this.prevObject:this.prevObject.filter(a))}});function D(a,b){do a=a[b];while(a&&1!==a.nodeType);return a}m.each({parent:function(a){var b=a.parentNode;return b&&11!==b.nodeType?b:null},parents:function(a){return m.dir(a,"parentNode")},parentsUntil:function(a,b,c){return m.dir(a,"parentNode",c)},next:function(a){return D(a,"nextSibling")},prev:function(a){return D(a,"previousSibling")},nextAll:function(a){return m.dir(a,"nextSibling")},prevAll:function(a){return m.dir(a,"previousSibling")},nextUntil:function(a,b,c){return m.dir(a,"nextSibling",c)},prevUntil:function(a,b,c){return m.dir(a,"previousSibling",c)},siblings:function(a){return m.sibling((a.parentNode||{}).firstChild,a)},children:function(a){return m.sibling(a.firstChild)},contents:function(a){return m.nodeName(a,"iframe")?a.contentDocument||a.contentWindow.document:m.merge([],a.childNodes)}},function(a,b){m.fn[a]=function(c,d){var e=m.map(this,b,c);return"Until"!==a.slice(-5)&&(d=c),d&&"string"==typeof d&&(e=m.filter(d,e)),this.length>1&&(C[a]||(e=m.unique(e)),B.test(a)&&(e=e.reverse())),this.pushStack(e)}});var E=/\S+/g,F={};function G(a){var b=F[a]={};return m.each(a.match(E)||[],function(a,c){b[c]=!0}),b}m.Callbacks=function(a){a="string"==typeof a?F[a]||G(a):m.extend({},a);var b,c,d,e,f,g,h=[],i=!a.once&&[],j=function(l){for(c=a.memory&&l,d=!0,f=g||0,g=0,e=h.length,b=!0;h&&e>f;f++)if(h[f].apply(l[0],l[1])===!1&&a.stopOnFalse){c=!1;break}b=!1,h&&(i?i.length&&j(i.shift()):c?h=[]:k.disable())},k={add:function(){if(h){var d=h.length;!function f(b){m.each(b,function(b,c){var d=m.type(c);"function"===d?a.unique&&k.has(c)||h.push(c):c&&c.length&&"string"!==d&&f(c)})}(arguments),b?e=h.length:c&&(g=d,j(c))}return this},remove:function(){return h&&m.each(arguments,function(a,c){var d;while((d=m.inArray(c,h,d))>-1)h.splice(d,1),b&&(e>=d&&e--,f>=d&&f--)}),this},has:function(a){return a?m.inArray(a,h)>-1:!(!h||!h.length)},empty:function(){return h=[],e=0,this},disable:function(){return h=i=c=void 0,this},disabled:function(){return!h},lock:function(){return i=void 0,c||k.disable(),this},locked:function(){return!i},fireWith:function(a,c){return!h||d&&!i||(c=c||[],c=[a,c.slice?c.slice():c],b?i.push(c):j(c)),this},fire:function(){return k.fireWith(this,arguments),this},fired:function(){return!!d}};return k},m.extend({Deferred:function(a){var b=[["resolve","done",m.Callbacks("once memory"),"resolved"],["reject","fail",m.Callbacks("once memory"),"rejected"],["notify","progress",m.Callbacks("memory")]],c="pending",d={state:function(){return c},always:function(){return e.done(arguments).fail(arguments),this},then:function(){var a=arguments;return m.Deferred(function(c){m.each(b,function(b,f){var g=m.isFunction(a[b])&&a[b];e[f[1]](function(){var a=g&&g.apply(this,arguments);a&&m.isFunction(a.promise)?a.promise().done(c.resolve).fail(c.reject).progress(c.notify):c[f[0]+"With"](this===d?c.promise():this,g?[a]:arguments)})}),a=null}).promise()},promise:function(a){return null!=a?m.extend(a,d):d}},e={};return d.pipe=d.then,m.each(b,function(a,f){var g=f[2],h=f[3];d[f[1]]=g.add,h&&g.add(function(){c=h},b[1^a][2].disable,b[2][2].lock),e[f[0]]=function(){return e[f[0]+"With"](this===e?d:this,arguments),this},e[f[0]+"With"]=g.fireWith}),d.promise(e),a&&a.call(e,e),e},when:function(a){var b=0,c=d.call(arguments),e=c.length,f=1!==e||a&&m.isFunction(a.promise)?e:0,g=1===f?a:m.Deferred(),h=function(a,b,c){return function(e){b[a]=this,c[a]=arguments.length>1?d.call(arguments):e,c===i?g.notifyWith(b,c):--f||g.resolveWith(b,c)}},i,j,k;if(e>1)for(i=new Array(e),j=new Array(e),k=new Array(e);e>b;b++)c[b]&&m.isFunction(c[b].promise)?c[b].promise().done(h(b,k,c)).fail(g.reject).progress(h(b,j,i)):--f;return f||g.resolveWith(k,c),g.promise()}});var H;m.fn.ready=function(a){return m.ready.promise().done(a),this},m.extend({isReady:!1,readyWait:1,holdReady:function(a){a?m.readyWait++:m.ready(!0)},ready:function(a){if(a===!0?!--m.readyWait:!m.isReady){if(!y.body)return setTimeout(m.ready);m.isReady=!0,a!==!0&&--m.readyWait>0||(H.resolveWith(y,[m]),m.fn.triggerHandler&&(m(y).triggerHandler("ready"),m(y).off("ready")))}}});function I(){y.addEventListener?(y.removeEventListener("DOMContentLoaded",J,!1),a.removeEventListener("load",J,!1)):(y.detachEvent("onreadystatechange",J),a.detachEvent("onload",J))}function J(){(y.addEventListener||"load"===event.type||"complete"===y.readyState)&&(I(),m.ready())}m.ready.promise=function(b){if(!H)if(H=m.Deferred(),"complete"===y.readyState)setTimeout(m.ready);else if(y.addEventListener)y.addEventListener("DOMContentLoaded",J,!1),a.addEventListener("load",J,!1);else{y.attachEvent("onreadystatechange",J),a.attachEvent("onload",J);var c=!1;try{c=null==a.frameElement&&y.documentElement}catch(d){}c&&c.doScroll&&!function e(){if(!m.isReady){try{c.doScroll("left")}catch(a){return setTimeout(e,50)}I(),m.ready()}}()}return H.promise(b)};var K="undefined",L;for(L in m(k))break;k.ownLast="0"!==L,k.inlineBlockNeedsLayout=!1,m(function(){var a,b,c,d;c=y.getElementsByTagName("body")[0],c&&c.style&&(b=y.createElement("div"),d=y.createElement("div"),d.style.cssText="position:absolute;border:0;width:0;height:0;top:0;left:-9999px",c.appendChild(d).appendChild(b),typeof b.style.zoom!==K&&(b.style.cssText="display:inline;margin:0;border:0;padding:1px;width:1px;zoom:1",k.inlineBlockNeedsLayout=a=3===b.offsetWidth,a&&(c.style.zoom=1)),c.removeChild(d))}),function(){var a=y.createElement("div");if(null==k.deleteExpando){k.deleteExpando=!0;try{delete a.test}catch(b){k.deleteExpando=!1}}a=null}(),m.acceptData=function(a){var b=m.noData[(a.nodeName+" ").toLowerCase()],c=+a.nodeType||1;return 1!==c&&9!==c?!1:!b||b!==!0&&a.getAttribute("classid")===b};var M=/^(?:\{[\w\W]*\}|\[[\w\W]*\])$/,N=/([A-Z])/g;function O(a,b,c){if(void 0===c&&1===a.nodeType){var d="data-"+b.replace(N,"-$1").toLowerCase();if(c=a.getAttribute(d),"string"==typeof c){try{c="true"===c?!0:"false"===c?!1:"null"===c?null:+c+""===c?+c:M.test(c)?m.parseJSON(c):c}catch(e){}m.data(a,b,c)}else c=void 0}return c}function P(a){var b;for(b in a)if(("data"!==b||!m.isEmptyObject(a[b]))&&"toJSON"!==b)return!1;
@@ -347,7 +347,7 @@ pre code {
 
 
 
-<h1 class="title toc-ignore">Eligible at 2Y - 5Y FU</h1>
+<h1 class="title toc-ignore">Eligible at 2Y - 2Y FU</h1>
 
 </div>
 
@@ -355,1085 +355,1093 @@ pre code {
 <div id="selection" class="section level1">
 <h1>Selection</h1>
 <pre class="r"><code>clinical_data %&gt;% 
-  .[followup_5y==TRUE] %&gt;% 
+  .[followup_2y==TRUE] %&gt;% 
   .[Study==&#39;Op&#39;] %&gt;% 
   .[Site != &#39;ANK Op&#39;] %&gt;% 
   .[`Vital status` == &#39;Alive&#39;] %&gt;% 
   .[!(`Code of the patient` %in% discarded_patients)] %&gt;% 
   .[`st1. Date of Stage` %&gt;% as.Date() &lt; as.Date(&#39;2018-09-01&#39;)] -&gt;
   data_</code></pre>
-<p>Total Patients: 353</p>
+<p>Total Patients: 777</p>
 <pre><code>     Site   N
-1: BCN Op  85
-2: BOR Op 108
-3: IST Op  31
-4: MAD Op  60
-5: ZUR Op  69</code></pre>
+1: BCN Op 182
+2: BOR Op 274
+3: IST Op  81
+4: MAD Op 105
+5: ZUR Op 135</code></pre>
 <div id="demographics" class="section level3">
 <h3>Demographics</h3>
 <pre><code>Age
 [1] &quot;mean&quot;
-[1] 53.53824
+[1] 53.65894
 [1] &quot;sd&quot;
-[1] 18.77663
+[1] 19.27723
 
 
 Gender
 [1] &quot;table&quot;
 variable
 Female   Male 
-   282     71 
+   617    160 
 [1] &quot;proportion&quot;
 variable
    Female      Male 
-0.7988669 0.2011331 
+0.7940798 0.2059202 
 
 
 Prior Spine Surgery
 [1] &quot;table&quot;
 variable
  No Yes 
-245 108 
+532 244 
 [1] &quot;proportion&quot;
 variable
       No      Yes 
-0.694051 0.305949 
+0.685567 0.314433 
 
 
 Height (cm)_First Visit
 [1] &quot;mean&quot;
-[1] 162.7123
+[1] 162.4629
 [1] &quot;sd&quot;
-[1] 9.467831
+[1] 9.376333
 
 
 Weight (kgs)_First Visit
 [1] &quot;mean&quot;
-[1] 65.57835
+[1] 66.35279
 [1] &quot;sd&quot;
-[1] 12.42734
+[1] 13.4884
 
 
 BMI_First Visit
 [1] &quot;mean&quot;
-[1] 24.80843
+[1] 25.14243
 [1] &quot;sd&quot;
-[1] 4.464848
+[1] 4.721912
 
 
 ASA classification
 [1] &quot;table&quot;
 variable
   1   2   3   4 
-103 204  45   1 
+198 433 140   2 
 [1] &quot;proportion&quot;
 variable
           1           2           3           4 
-0.291784703 0.577903683 0.127478754 0.002832861 
+0.256144890 0.560155239 0.181112549 0.002587322 
 
 
 Tobacco use_First Visit
 [1] &quot;table&quot;
 variable
  Current       Ex Non-User 
-      61       66      226 
+     143      131      480 
 [1] &quot;proportion&quot;
 variable
   Current        Ex  Non-User 
-0.1728045 0.1869688 0.6402266 
+0.1896552 0.1737401 0.6366048 
 
 
 ESSG Diagnosis
 [1] &quot;table&quot;
 variable
                    Congenital                  Degenerative 
-                            9                           132 
+                           16                           313 
                   Failed-back                    Idiopathic 
-                           15                           165 
+                           40                           333 
                 Neuromuscular Other: Ankylosing spondylitis 
-                            5                             1 
-  Other: radiotherapy induced      Other: spondylolisthesis 
+                            6                             1 
+         Other: hyperkyphosis   Other: radiotherapy induced 
                             1                             1 
-               Post-traumatic                   Scheuermann 
-                           11                            10 
-                    Syndromic 
-                            3 
+     Other: spondylolisthesis      Other: Spondylolisthesis 
+                            1                             5 
+               Post-infection                Post-traumatic 
+                            3                            25 
+                  Scheuermann                     Syndromic 
+                           22                            10 
 [1] &quot;proportion&quot;
 variable
                    Congenital                  Degenerative 
-                  0.025495751                   0.373937677 
+                  0.020592021                   0.402831403 
                   Failed-back                    Idiopathic 
-                  0.042492918                   0.467422096 
+                  0.051480051                   0.428571429 
                 Neuromuscular Other: Ankylosing spondylitis 
-                  0.014164306                   0.002832861 
-  Other: radiotherapy induced      Other: spondylolisthesis 
-                  0.002832861                   0.002832861 
-               Post-traumatic                   Scheuermann 
-                  0.031161473                   0.028328612 
-                    Syndromic 
-                  0.008498584 </code></pre>
+                  0.007722008                   0.001287001 
+         Other: hyperkyphosis   Other: radiotherapy induced 
+                  0.001287001                   0.001287001 
+     Other: spondylolisthesis      Other: Spondylolisthesis 
+                  0.001287001                   0.006435006 
+               Post-infection                Post-traumatic 
+                  0.003861004                   0.032175032 
+                  Scheuermann                     Syndromic 
+                  0.028314028                   0.012870013 </code></pre>
 </div>
 <div id="radiology" class="section level3">
 <h3>Radiology</h3>
 <pre><code>Static Major curve Cobb angle
 [1] &quot;mean&quot;
-[1] 42.78834
+[1] 41.8442
 [1] &quot;sd&quot;
-[1] 21.93336
+[1] 22.34937
 
 
 6W. Static Major curve Cobb angle
 [1] &quot;mean&quot;
-[1] 23.03706
+[1] 22.71061
 [1] &quot;sd&quot;
-[1] 16.51916
+[1] 15.74137
 
 
 2Y. Static Major curve Cobb angle
 [1] &quot;mean&quot;
-[1] 23.33652
+[1] 22.53874
 [1] &quot;sd&quot;
-[1] 17.28064
+[1] 16.61543
 
 
 5Y. Static Major curve Cobb angle
 [1] &quot;mean&quot;
-[1] 24.63086
+[1] 25.32169
 [1] &quot;sd&quot;
-[1] 16.725
+[1] 17.26991
 
 
 Static Major curve Cobb angle tests
 Preop vs 6w p-value
-3.768685e-74
+1.951597e-70
 
 Preop vs 2y p-value
-3.857628e-58
+8.660963e-65
 
 Preop vs 5y p-value
-1.043799e-38
+2.911698e-22
 
 6w vs 2y p-value
-0.293062
+0.8518941
 
 2y vs 5y p-value
-0.5864437
+0.06651802
 
 Coronal Balance (C7PL to CSVL)
 [1] &quot;mean&quot;
-[1] 22.82393
+[1] 21.8274
 [1] &quot;sd&quot;
-[1] 20.00817
+[1] 20.78547
 
 
 6W. Coronal Balance (C7PL to CSVL)
 [1] &quot;mean&quot;
-[1] 20.04353
+[1] 18.77121
 [1] &quot;sd&quot;
-[1] 14.90309
+[1] 14.63993
 
 
 2Y. Coronal Balance (C7PL to CSVL)
 [1] &quot;mean&quot;
-[1] 18.1153
+[1] 16.92327
 [1] &quot;sd&quot;
-[1] 15.26189
+[1] 14.26748
 
 
 5Y. Coronal Balance (C7PL to CSVL)
 [1] &quot;mean&quot;
-[1] 19.69692
+[1] 19.94822
 [1] &quot;sd&quot;
-[1] 16.45148
+[1] 16.5779
 
 
 Coronal Balance (C7PL to CSVL) tests
 Preop vs 6w p-value
-0.0112886
+0.001699178
 
 Preop vs 2y p-value
-7.834e-05
+8.067412e-07
 
 Preop vs 5y p-value
-0.03947206
+0.2146797
 
 6w vs 2y p-value
-0.05953527
+0.03045229
 
 2y vs 5y p-value
-0.0811684
+0.03639911
 
 Sagittal Balance
 [1] &quot;mean&quot;
-[1] 39.19062
+[1] 46.41863
 [1] &quot;sd&quot;
-[1] 62.28599
+[1] 63.70414
 
 
 6W. Sagittal Balance
 [1] &quot;mean&quot;
-[1] 18.54894
+[1] 21.52197
 [1] &quot;sd&quot;
-[1] 36.64761
+[1] 40.59348
 
 
 2Y. Sagittal Balance
 [1] &quot;mean&quot;
-[1] 22.95894
+[1] 26.71713
 [1] &quot;sd&quot;
-[1] 44.85211
+[1] 47.88049
 
 
 5Y. Sagittal Balance
 [1] &quot;mean&quot;
-[1] 35.6348
+[1] 34.00012
 [1] &quot;sd&quot;
-[1] 51.13375
+[1] 48.81135
 
 
 Sagittal Balance tests
 Preop vs 6w p-value
-6.337372e-09
+8.406345e-18
 
 Preop vs 2y p-value
-7.7293e-06
+4.557046e-10
 
 Preop vs 5y p-value
-0.4423431
+0.005875006
 
 6w vs 2y p-value
-0.02955176
+0.04929486
 
 2y vs 5y p-value
-0.007304923
+0.09464898
 
 Sagittal T2-T5
 [1] &quot;mean&quot;
-[1] 11.63455
+[1] 11.59199
 [1] &quot;sd&quot;
-[1] 9.706115
+[1] 9.444623
 
 
 6W. Sagittal T2-T5
 [1] &quot;mean&quot;
-[1] 13.64313
+[1] 13.99732
 [1] &quot;sd&quot;
-[1] 8.128929
+[1] 8.775772
 
 
 2Y. Sagittal T2-T5
 [1] &quot;mean&quot;
-[1] 13.96634
+[1] 14.73839
 [1] &quot;sd&quot;
-[1] 10.56222
+[1] 10.16554
 
 
 5Y. Sagittal T2-T5
 [1] &quot;mean&quot;
-[1] 15.74526
+[1] 15.42813
 [1] &quot;sd&quot;
-[1] 11.50175
+[1] 11.21054
 
 
 Sagittal T2-T5 tests
 Preop vs 6w p-value
-0.0001226803
+1.224613e-06
 
 Preop vs 2y p-value
-0.0001080382
+1.885933e-08
 
 Preop vs 5y p-value
-1.017822e-07
+5.981929e-05
 
 6w vs 2y p-value
-0.08977002
+0.1829433
 
 2y vs 5y p-value
-0.0007456631
+0.478485
 
 Sagittal T5-T12
 [1] &quot;mean&quot;
-[1] 33.45058
+[1] 32.82894
 [1] &quot;sd&quot;
-[1] 18.92336
+[1] 18.7186
 
 
 6W. Sagittal T5-T12
 [1] &quot;mean&quot;
-[1] 34.0445
+[1] 35.09333
 [1] &quot;sd&quot;
-[1] 13.36459
+[1] 14.40991
 
 
 2Y. Sagittal T5-T12
 [1] &quot;mean&quot;
-[1] 35.64563
+[1] 37.43874
 [1] &quot;sd&quot;
-[1] 14.90641
+[1] 15.88641
 
 
 5Y. Sagittal T5-T12
 [1] &quot;mean&quot;
-[1] 41.11634
+[1] 40.67006
 [1] &quot;sd&quot;
-[1] 16.5702
+[1] 16.29534
 
 
 Sagittal T5-T12 tests
 Preop vs 6w p-value
-0.6834976
+0.01112507
 
 Preop vs 2y p-value
-0.003365025
+1.792953e-06
 
 Preop vs 5y p-value
-1.861172e-06
+1.042827e-07
 
 6w vs 2y p-value
-4.451952e-05
+0.008014641
 
 2y vs 5y p-value
-0.002522962
+0.02464137
 
 Sagittal T2-T12
 [1] &quot;mean&quot;
-[1] 40.68371
+[1] 39.75434
 [1] &quot;sd&quot;
-[1] 19.7769
+[1] 19.54754
 
 
 6W. Sagittal T2-T12
 [1] &quot;mean&quot;
-[1] 43.63692
+[1] 44.52769
 [1] &quot;sd&quot;
-[1] 14.54866
+[1] 15.76216
 
 
 2Y. Sagittal T2-T12
 [1] &quot;mean&quot;
-[1] 45.23639
+[1] 47.08329
 [1] &quot;sd&quot;
-[1] 15.73751
+[1] 16.43045
 
 
 5Y. Sagittal T2-T12
 [1] &quot;mean&quot;
-[1] 50.25526
+[1] 49.60741
 [1] &quot;sd&quot;
-[1] 16.85772
+[1] 16.41939
 
 
 Sagittal T2-T12 tests
 Preop vs 6w p-value
-0.0001569974
+5.224401e-07
 
 Preop vs 2y p-value
-2.093353e-09
+3.438315e-13
 
 Preop vs 5y p-value
-1.807435e-12
+8.738112e-11
 
 6w vs 2y p-value
-4.691898e-05
+0.006307781
 
 2y vs 5y p-value
-5.021681e-05
+0.08331186
 
 Lordosis (top of L1-S1)
 [1] &quot;mean&quot;
-[1] -44.73634
+[1] -43.51739
 [1] &quot;sd&quot;
-[1] 20.32738
+[1] 20.33641
 
 
 6W. Lordosis (top of L1-S1)
 [1] &quot;mean&quot;
-[1] -51.50333
+[1] -51.36821
 [1] &quot;sd&quot;
-[1] 14.16537
+[1] 14.46035
 
 
 2Y. Lordosis (top of L1-S1)
 [1] &quot;mean&quot;
-[1] -51.82958
+[1] -52.36593
 [1] &quot;sd&quot;
-[1] 15.27359
+[1] 14.79858
 
 
 5Y. Lordosis (top of L1-S1)
 [1] &quot;mean&quot;
-[1] -50.81678
+[1] -51.00304
 [1] &quot;sd&quot;
-[1] 15.37244
+[1] 15.47559
 
 
 Lordosis (top of L1-S1) tests
 Preop vs 6w p-value
-1.261371e-12
+1.869204e-17
 
 Preop vs 2y p-value
-3.431393e-15
+8.879757e-20
 
 Preop vs 5y p-value
-1.256027e-06
+1.46631e-07
 
 6w vs 2y p-value
-0.6043011
+0.2243715
 
 2y vs 5y p-value
-0.06223614
+0.3079364
 
 Pelvic Incidence
 [1] &quot;mean&quot;
-[1] 54.53307
+[1] 54.53759
 [1] &quot;sd&quot;
-[1] 12.95856
+[1] 12.96392
 
 
 6W. Pelvic Incidence
 [1] &quot;mean&quot;
-[1] 54.57751
+[1] 54.39024
 [1] &quot;sd&quot;
-[1] 12.80438
+[1] 12.76905
 
 
 2Y. Pelvic Incidence
 [1] &quot;mean&quot;
-[1] 54.01192
+[1] 54.94706
 [1] &quot;sd&quot;
-[1] 12.41785
+[1] 12.84515
 
 
 5Y. Pelvic Incidence
 [1] &quot;mean&quot;
-[1] 54.74778
+[1] 54.47018
 [1] &quot;sd&quot;
-[1] 12.49467
+[1] 12.42715
 
 
 Pelvic Incidence tests
 Preop vs 6w p-value
-0.8819059
+0.8262475
 
 Preop vs 2y p-value
-0.4359371
+0.5651879
 
 Preop vs 5y p-value
-0.03431652
+0.9493097
 
 6w vs 2y p-value
-0.3445133
+0.439607
 
 2y vs 5y p-value
-0.1609246
+0.6624042
 
 Pelvic Tilt
 [1] &quot;mean&quot;
-[1] 22.15641
+[1] 22.02666
 [1] &quot;sd&quot;
-[1] 10.51771
+[1] 11.24698
 
 
 6W. Pelvic Tilt
 [1] &quot;mean&quot;
-[1] 18.71392
+[1] 18.91372
 [1] &quot;sd&quot;
-[1] 9.600217
+[1] 9.388904
 
 
 2Y. Pelvic Tilt
 [1] &quot;mean&quot;
-[1] 19.40077
+[1] 19.94373
 [1] &quot;sd&quot;
-[1] 9.658656
+[1] 9.733858
 
 
 5Y. Pelvic Tilt
 [1] &quot;mean&quot;
-[1] 21.53789
+[1] 21.19556
 [1] &quot;sd&quot;
-[1] 10.51419
+[1] 10.19256
 
 
 Pelvic Tilt tests
 Preop vs 6w p-value
-4.613397e-12
+1.001539e-08
 
 Preop vs 2y p-value
-1.57216e-07
+0.0003104841
 
 Preop vs 5y p-value
-0.2647868
+0.3456555
 
 6w vs 2y p-value
-0.001528875
+0.05626609
 
 2y vs 5y p-value
-4.402005e-06
+0.1556294
 
 Sacral Slope
 [1] &quot;mean&quot;
-[1] 32.81793
+[1] 32.73125
 [1] &quot;sd&quot;
-[1] 11.09201
+[1] 11.27496
 
 
 6W. Sacral Slope
 [1] &quot;mean&quot;
-[1] 35.84776
+[1] 35.43972
 [1] &quot;sd&quot;
-[1] 10.09385
+[1] 10.25831
 
 
 2Y. Sacral Slope
 [1] &quot;mean&quot;
-[1] 34.68577
+[1] 35.04542
 [1] &quot;sd&quot;
-[1] 10.47669
+[1] 10.61198
 
 
 5Y. Sacral Slope
 [1] &quot;mean&quot;
-[1] 33.21561
+[1] 33.28058
 [1] &quot;sd&quot;
-[1] 10.25024
+[1] 10.45718
 
 
 Sacral Slope tests
 Preop vs 6w p-value
-5.058502e-12
+1.528193e-06
 
 Preop vs 2y p-value
-1.179805e-08
+0.0001262794
 
 Preop vs 5y p-value
-0.04667323
+0.5410011
 
 6w vs 2y p-value
-0.01389361
+0.5021807
 
 2y vs 5y p-value
-0.001740128
+0.05453828
 
 RLL
 [1] &quot;mean&quot;
-[1] -18.19201
+[1] -19.2443
 [1] &quot;sd&quot;
-[1] 19.6896
+[1] 20.21157
 
 
 6W. RLL
 [1] &quot;mean&quot;
-[1] -11.35251
+[1] -11.31552
 [1] &quot;sd&quot;
-[1] 12.79961
+[1] 13.35902
 
 
 2Y. RLL
 [1] &quot;mean&quot;
-[1] -10.48335
+[1] -10.59718
 [1] &quot;sd&quot;
-[1] 14.23868
+[1] 13.78405
 
 
 5Y. RLL
 [1] &quot;mean&quot;
-[1] -12.12739
+[1] -11.76906
 [1] &quot;sd&quot;
-[1] 14.2985
+[1] 14.3178
 
 
 RLL tests
 Preop vs 6w p-value
-1.110991e-12
+1.300705e-18
 
 Preop vs 2y p-value
-4.544713e-15
+5.539599e-20
 
 Preop vs 5y p-value
-2.9663e-06
+2.897309e-08
 
 6w vs 2y p-value
-0.6704329
+0.3477679
 
 2y vs 5y p-value
-0.02341671
+0.3442472
 
 Global Tilt
 [1] &quot;mean&quot;
-[1] 26.14399
+[1] 26.85552
 [1] &quot;sd&quot;
-[1] 16.79488
+[1] 17.8005
 
 
 6W. Global Tilt
 [1] &quot;mean&quot;
-[1] 18.79188
+[1] 19.86461
 [1] &quot;sd&quot;
-[1] 11.88918
+[1] 12.11631
 
 
 2Y. Global Tilt
 [1] &quot;mean&quot;
-[1] 20.65837
+[1] 21.77586
 [1] &quot;sd&quot;
-[1] 13.63876
+[1] 13.68242
 
 
 5Y. Global Tilt
 [1] &quot;mean&quot;
-[1] 24.69261
+[1] 24.12936
 [1] &quot;sd&quot;
-[1] 15.5583
+[1] 15.03203
 
 
 Global Tilt tests
 Preop vs 6w p-value
-9.039849e-19
+1.517261e-17
 
 Preop vs 2y p-value
-2.547221e-10
+8.157145e-09
 
 Preop vs 5y p-value
-0.1206136
+0.04022165
 
 6w vs 2y p-value
-3.170247e-05
+0.01093078
 
 2y vs 5y p-value
-3.361782e-06
+0.0687787
 
 T1 Sagittal Tilt
 [1] &quot;mean&quot;
-[1] -2.065107
+[1] -1.397717
 [1] &quot;sd&quot;
-[1] 6.03749
+[1] 6.104449
 
 
 6W. T1 Sagittal Tilt
 [1] &quot;mean&quot;
-[1] -3.768532
+[1] -3.371208
 [1] &quot;sd&quot;
-[1] 3.879217
+[1] 4.243258
 
 
 2Y. T1 Sagittal Tilt
 [1] &quot;mean&quot;
-[1] -3.798915
+[1] -3.439364
 [1] &quot;sd&quot;
-[1] 3.99184
+[1] 4.491967
 
 
 5Y. T1 Sagittal Tilt
 [1] &quot;mean&quot;
-[1] -2.821257
+[1] -2.642532
 [1] &quot;sd&quot;
-[1] 6.160895
+[1] 4.751187
 
 
 T1 Sagittal Tilt tests
 Preop vs 6w p-value
-7.667147e-05
+8.557651e-12
 
 Preop vs 2y p-value
-1.12854e-05
+1.568749e-11
 
 Preop vs 5y p-value
-0.05031038
+0.004128394
 
 6w vs 2y p-value
-0.3358227
+0.7912142
 
 2y vs 5y p-value
-0.03328119</code></pre>
+0.05429289</code></pre>
 </div>
 <div id="quality-of-life" class="section level3">
 <h3>Quality of Life</h3>
 <pre><code>ODI - Score (%)
 [1] &quot;mean&quot;
-[1] 37.42433
+[1] 39.44986
 [1] &quot;sd&quot;
-[1] 19.51787
+[1] 19.81559
 
 
 2Y. ODI - Score (%)
 [1] &quot;mean&quot;
-[1] 26.44051
+[1] 27.83795
 [1] &quot;sd&quot;
-[1] 21.04547
+[1] 20.25757
 
 
 5Y. ODI - Score (%)
 [1] &quot;mean&quot;
-[1] 28.18519
+[1] 27.8804
 [1] &quot;sd&quot;
-[1] 21.33551
+[1] 21.32477
 
 
 ODI - Score (%) tests
 Preop vs 6w p-value
-2.886905e-19
+1.239548e-27
 
 Preop vs 2y p-value
-6.49522e-24
+2.117125e-27
 
 
 Preop vs 5y p-value
-6.636625e-20
+4.065983e-15
 2y vs 5y p-value
-0.09484586
+0.9765257
 
 SRS22 - Function / Activity
 [1] &quot;mean&quot;
-[1] 3.095015
+[1] 3.080362
 [1] &quot;sd&quot;
-[1] 0.8602237
+[1] 0.8743487
 
 
 2Y. SRS22 - Function / Activity
 [1] &quot;mean&quot;
-[1] 3.539774
+[1] 3.502445
 [1] &quot;sd&quot;
-[1] 0.8933927
+[1] 0.9203356
 
 
 5Y. SRS22 - Function / Activity
 [1] &quot;mean&quot;
-[1] 3.509141
+[1] 3.517987
 [1] &quot;sd&quot;
-[1] 0.9365024
+[1] 0.9249437
 
 
 SRS22 - Function / Activity tests
 Preop vs 6w p-value
-2.515321e-05
+1.61617e-05
 
 Preop vs 2y p-value
-7.291745e-23
+6.308382e-19
 
 
 Preop vs 5y p-value
-1.650646e-20
+5.410376e-12
 2y vs 5y p-value
-0.9085236
+0.8058152
 
 SRS22 - Pain
 [1] &quot;mean&quot;
-[1] 2.628997
+[1] 2.606287
 [1] &quot;sd&quot;
-[1] 0.9807217
+[1] 0.9735528
 
 
 2Y. SRS22 - Pain
 [1] &quot;mean&quot;
-[1] 3.537258
+[1] 3.466243
 [1] &quot;sd&quot;
-[1] 1.07141
+[1] 1.060087
 
 
 5Y. SRS22 - Pain
 [1] &quot;mean&quot;
-[1] 3.421718
+[1] 3.442013
 [1] &quot;sd&quot;
-[1] 1.140443
+[1] 1.123492
 
 
 SRS22 - Pain tests
 Preop vs 6w p-value
-4.55149e-37
+5.496126e-47
 
 Preop vs 2y p-value
-2.654766e-43
+2.71259e-54
 
 
 Preop vs 5y p-value
-3.128117e-34
+1.223366e-26
 2y vs 5y p-value
-0.04204999
+0.7487685
 
 SRS22 - Self image / Appearance
 [1] &quot;mean&quot;
-[1] 2.446903
+[1] 2.395952
 [1] &quot;sd&quot;
-[1] 0.7382553
+[1] 0.7634264
 
 
 2Y. SRS22 - Self image / Appearance
 [1] &quot;mean&quot;
-[1] 3.489677
+[1] 3.46145
 [1] &quot;sd&quot;
-[1] 0.90497
+[1] 0.8971982
 
 
 5Y. SRS22 - Self image / Appearance
 [1] &quot;mean&quot;
-[1] 3.380061
+[1] 3.387789
 [1] &quot;sd&quot;
-[1] 0.9540689
+[1] 0.9449672
 
 
 SRS22 - Self image / Appearance tests
 Preop vs 6w p-value
-1.102116e-59
+3.675681e-122
 
 Preop vs 2y p-value
-2.189294e-56
+9.892906e-111
 
 
 Preop vs 5y p-value
-1.598515e-53
+2.049051e-47
 2y vs 5y p-value
-0.04249769
+0.2481064
 
 SRS22 - Mental health
 [1] &quot;mean&quot;
-[1] 3.200973
+[1] 3.162574
 [1] &quot;sd&quot;
-[1] 0.8699819
+[1] 0.8797189
 
 
 2Y. SRS22 - Mental health
 [1] &quot;mean&quot;
-[1] 3.577903
+[1] 3.529378
 [1] &quot;sd&quot;
-[1] 0.9372999
+[1] 0.8995535
 
 
 5Y. SRS22 - Mental health
 [1] &quot;mean&quot;
-[1] 3.538037
+[1] 3.542574
 [1] &quot;sd&quot;
-[1] 0.9194285
+[1] 0.9090254
 
 
 SRS22 - Mental health tests
 Preop vs 6w p-value
-2.706535e-15
+5.89007e-15
 
 Preop vs 2y p-value
-1.074724e-15
+5.379453e-15
 
 
 Preop vs 5y p-value
-1.243873e-12
+1.162616e-09
 2y vs 5y p-value
-0.6865715
+0.8315504
 
 SRS22 - SRS Subtotal score
 [1] &quot;mean&quot;
-[1] 2.846549
+[1] 2.813887
 [1] &quot;sd&quot;
-[1] 0.7030939
+[1] 0.7011095
 
 
 2Y. SRS22 - SRS Subtotal score
 [1] &quot;mean&quot;
-[1] 3.536097
+[1] 3.489986
 [1] &quot;sd&quot;
-[1] 0.8268437
+[1] 0.8123094
 
 
 5Y. SRS22 - SRS Subtotal score
 [1] &quot;mean&quot;
-[1] 3.451865
+[1] 3.461217
 [1] &quot;sd&quot;
-[1] 0.885164
+[1] 0.8732634
 
 
 SRS22 - SRS Subtotal score tests
 Preop vs 6w p-value
-4.029251e-45
+3.41594e-54
 
 Preop vs 2y p-value
-9.835054e-52
+1.565634e-59
 
 
 Preop vs 5y p-value
-2.159811e-40
+3.802293e-27
 2y vs 5y p-value
-0.06997811
+0.6229587
 
 SF36 - PCS
 [1] &quot;mean&quot;
-[1] 36.21885
+[1] 36.31929
 [1] &quot;sd&quot;
-[1] 9.528479
+[1] 9.635682
 
 
 2Y. SF36 - PCS
 [1] &quot;mean&quot;
-[1] 42.4144
+[1] 42.2329
 [1] &quot;sd&quot;
-[1] 10.2552
+[1] 10.50998
 
 
 5Y. SF36 - PCS
 [1] &quot;mean&quot;
-[1] 42.00981
+[1] 42.04384
 [1] &quot;sd&quot;
-[1] 11.18485
+[1] 11.31555
 
 
 SF36 - PCS tests
 Preop vs 6w p-value
-9.739191e-18
+7.286616e-18
 
 Preop vs 2y p-value
-6.826015e-25
+1.384518e-27
 
 
 Preop vs 5y p-value
-7.107889e-18
+1.506267e-13
 2y vs 5y p-value
-0.2359657
+0.8063636
 
 SF36 - MCS
 [1] &quot;mean&quot;
-[1] 43.53363
+[1] 42.99552
 [1] &quot;sd&quot;
-[1] 11.74263
+[1] 12.11189
 
 
 2Y. SF36 - MCS
 [1] &quot;mean&quot;
-[1] 47.95156
+[1] 47.2496
 [1] &quot;sd&quot;
-[1] 12.16866
+[1] 11.93614
 
 
 5Y. SF36 - MCS
 [1] &quot;mean&quot;
-[1] 47.50323
+[1] 47.65242
 [1] &quot;sd&quot;
-[1] 11.49257
+[1] 11.34939
 
 
 SF36 - MCS tests
 Preop vs 6w p-value
-2.011299e-09
+2.457847e-11
 
 Preop vs 2y p-value
-4.246988e-09
+2.741284e-11
 
 
 Preop vs 5y p-value
-1.068079e-08
+9.890992e-09
 2y vs 5y p-value
-0.7092216</code></pre>
+0.6148683</code></pre>
 </div>
 <div id="surgery" class="section level3">
 <h3>Surgery</h3>
 <pre><code>Total Operative Blood Loss st1+st2+st3
 [1] &quot;mean&quot;
-[1] 1449.863
+[1] 1219.846
 [1] &quot;sd&quot;
-[1] 1249.426
+[1] 1110.618
 
 
 Total surgical time st1+st2+st3
 [1] &quot;mean&quot;
-[1] 306.6838
+[1] 298.7406
 [1] &quot;sd&quot;
-[1] 167.9274
+[1] 176.6803
 
 
 Number of Posterior Instrumented Levels
 [1] &quot;mean&quot;
-[1] 9.107784
+[1] 8.602703
 [1] &quot;sd&quot;
-[1] 4.567847
+[1] 4.577286
 
 
 Pelvic fixation
 [1] &quot;table&quot;
 variable
  NA  No Yes 
- 17 208 128 
+ 52 436 289 
 [1] &quot;proportion&quot;
 variable
         NA         No        Yes 
-0.04815864 0.58923513 0.36260623 
+0.06692407 0.56113256 0.37194337 
 
 
 Surgical Approach
 [1] &quot;table&quot;
 variable
                     Anterior           Anterior-Posterior 
-                           1                            3 
+                           3                           17 
                    Posterior           Posterior-Anterior 
-                         336                            9 
-         Posterior-Posterior Posterior-Posterior-Anterior 
-                           3                            1 
+                         724                           22 
+Posterior-Anterior-Posterior          Posterior-Posterior 
+                           1                            9 
+Posterior-Posterior-Anterior 
+                           1 
 [1] &quot;proportion&quot;
 variable
                     Anterior           Anterior-Posterior 
-                 0.002832861                  0.008498584 
+                 0.003861004                  0.021879022 
                    Posterior           Posterior-Anterior 
-                 0.951841360                  0.025495751 
-         Posterior-Posterior Posterior-Posterior-Anterior 
-                 0.008498584                  0.002832861 
+                 0.931788932                  0.028314028 
+Posterior-Anterior-Posterior          Posterior-Posterior 
+                 0.001287001                  0.011583012 
+Posterior-Posterior-Anterior 
+                 0.001287001 
 
 
 Number of Interbody Fusions
 [1] &quot;mean&quot;
-[1] 0.8101983
+[1] 0.7876448
 [1] &quot;sd&quot;
-[1] 1.120931
+[1] 1.095893
 
 
 Decompression
 [1] &quot;table&quot;
 variable
  No Yes 
-261  92 
+547 230 
 [1] &quot;proportion&quot;
 variable
        No       Yes 
-0.7393768 0.2606232 
+0.7039897 0.2960103 
 
 
 Interbody Fusion
 [1] &quot;table&quot;
 variable
  No Yes 
-197 156 
+432 345 
 [1] &quot;proportion&quot;
 variable
        No       Yes 
-0.5580737 0.4419263 
+0.5559846 0.4440154 
 
 
 Osteotomy
 [1] &quot;table&quot;
 variable
  No Yes 
-190 163 
+417 360 
 [1] &quot;proportion&quot;
 variable
        No       Yes 
-0.5382436 0.4617564 
+0.5366795 0.4633205 
 
 
 3CO
 [1] &quot;table&quot;
 variable
  No Yes 
-307  46 
+671 106 
 [1] &quot;proportion&quot;
 variable
        No       Yes 
-0.8696884 0.1303116 
+0.8635779 0.1364221 
 
 
 uiv_t10_12_l1
 [1] &quot;table&quot;
 variable
  No Yes 
-325  28 
+714  63 
 [1] &quot;proportion&quot;
 variable
         No        Yes 
-0.92067989 0.07932011 </code></pre>
+0.91891892 0.08108108 </code></pre>
 </div>
 </div>
 

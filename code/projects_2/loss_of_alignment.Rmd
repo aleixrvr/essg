@@ -1,0 +1,182 @@
+---
+title: "Loss of alignment"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('patient_selection.R')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+```
+With Posterior Instrumented Fusion: `r data_[, .N]`
+
+```{r}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_ %<>% .[post_intr_fusion == 'Iliac']
+```
+Posterior Instrumental Fusion is Iliac: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[abs(diff_lordosis) < 10]
+```
+Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): `r data_[, .N]`
+
+```{r}
+data_ %<>% .[complications_bf_6m=='No']
+```
+Without complications (PJK, PJF, DJK, DJF) before 6 months after surgery: `r data_[, .N]`
+
+
+### Demographics
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$demographics ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(data_[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+
+
+### Radiology
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6w, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(data_[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+
+    
+  cat('{var_} tests\n' %>% f)
+  val_ <- data_[[var_]]
+  val_6w <- data_[[var_6w]]
+  val_2y <- data_[[var_2y]]
+  val_5y <- data_[[var_5y]]
+  cat('\nPreop vs 6w p-value\n')
+  cat(t.test(val_6w , val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 2y p-value\n')
+  cat(t.test(val_2y, val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 5y p-value\n')
+  cat(t.test(val_5y, val_)$p.val)
+  cat('\n\n')
+  cat('6w vs 2y p-value\n')
+  cat(t.test(val_2y, val_6w)$p.val)
+  cat('\n\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$quality ){
+  var_6m <- "6M. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(data_[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+  
+  cat('{var_} tests\n' %>% f)
+  val_ <- data_[[var_]]
+  val_6m <- data_[[var_6m]]
+  val_2y <- data_[[var_2y]]
+  val_5y <- data_[[var_5y]]
+  cat('\nPreop vs 6w p-value\n')
+  cat(t.test(val_6m, val_)$p.val)
+  cat('\n')
+  cat('\nPreop vs 2y p-value\n')
+  cat(t.test(val_2y, val_)$p.val)
+  cat('\n\n')
+  cat('\nPreop vs 5y p-value\n')
+  cat(t.test(val_5y, val_)$p.val)
+  cat('\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Surgery
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$surgery ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(data_[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+
+
+### Complications
+```{r}
+selected_patients <- data_[, `Code of the patient` %>% unique]
+
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Code of the patient` %chin% selected_patients]
+
+number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
+```
+
+Number of reinterventions: `r number_reiqs`
+
+```{r include=TRUE}
+complication_data[, .N, `Complication Impact`]
+```
+
+```{r include=TRUE}
+complication_data[, .N, `Category of the complication`]
+```
+
+
