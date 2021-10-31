@@ -358,6 +358,11 @@ pre code {
 1: &lt;NA&gt; 267
 2:   L5  39
 3:   L4  42</code></pre>
+<!-- With 5Y FU -->
+<!-- ```{r include=TRUE} -->
+<!-- data_ %<>% .[followup_5y==TRUE] -->
+<!-- data_[, .N, type] -->
+<!-- ``` -->
 <div id="demographics" class="section level3">
 <h3>Demographics</h3>
 <pre><code>Age - mean
@@ -379,9 +384,6 @@ L4
 L5
 [1] 16.2067
 
-L4 vs L5 p-value:[1] 0.02396962
-
-
 
 
 Gender - table
@@ -398,9 +400,6 @@ variable
 Female   Male 
     32      7 
 
-L4 vs L5 p-value:[1] 0.9094149
-
-
 Gender - proportion
 All
 variable
@@ -414,9 +413,6 @@ L5
 variable
    Female      Male 
 0.8205128 0.1794872 
-
-L4 vs L5 p-value:[1] 0.9094149
-
 
 
 
@@ -434,9 +430,6 @@ variable
  No Yes 
  28  11 
 
-L4 vs L5 p-value:[1] 0.2062036
-
-
 Prior Spine Surgery - proportion
 All
 variable
@@ -450,9 +443,6 @@ L5
 variable
        No       Yes 
 0.7179487 0.2820513 
-
-L4 vs L5 p-value:[1] 0.2062036
-
 
 
 
@@ -475,9 +465,6 @@ L4
 L5
 [1] 9.651274
 
-L4 vs L5 p-value:[1] 0.09689435
-
-
 
 
 Weight (kgs)_First Visit - mean
@@ -499,9 +486,6 @@ L4
 L5
 [1] 13.83716
 
-L4 vs L5 p-value:[1] 0.9838195
-
-
 
 
 BMI_First Visit - mean
@@ -522,9 +506,6 @@ L4
 [1] 4.368086
 L5
 [1] 4.979352
-
-L4 vs L5 p-value:[1] 0.3199424
-
 
 
 
@@ -661,12 +642,9 @@ L4
 L5
 [1] 24.55119
 
-L4 vs L5 p-value:[1] 0.3827009
 
 
-
-
-Static Major curve Cobb angle - mean
+6W. Static Major curve Cobb angle - mean
 All
 [1] 22.28508
 L4
@@ -674,10 +652,10 @@ L4
 L5
 [1] 25.28838
 
-L4 vs L5 p-value:[1] 0.3827009
+L4 vs L5 p-value:[1] 0.9662744
 
 
-Static Major curve Cobb angle - sd
+6W. Static Major curve Cobb angle - sd
 All
 [1] 15.03951
 L4
@@ -685,12 +663,51 @@ L4
 L5
 [1] 18.25572
 
-L4 vs L5 p-value:[1] 0.3827009
+
+
+6M. Static Major curve Cobb angle - mean
+All
+[1] 22.11803
+L4
+[1] 25.03243
+L5
+[1] 26.73529
+
+L4 vs L5 p-value:[1] 0.6799513
+
+
+6M. Static Major curve Cobb angle - sd
+All
+[1] 15.82402
+L4
+[1] 15.70284
+L5
+[1] 18.64226
 
 
 
+1Y. Static Major curve Cobb angle - mean
+All
+[1] 20.3063
+L4
+[1] 23.3535
+L5
+[1] 24.50108
 
-Static Major curve Cobb angle - mean
+L4 vs L5 p-value:[1] 0.7742008
+
+
+1Y. Static Major curve Cobb angle - sd
+All
+[1] 15.65562
+L4
+[1] 16.69628
+L5
+[1] 18.16084
+
+
+
+2Y. Static Major curve Cobb angle - mean
 All
 [1] 21.62893
 L4
@@ -698,10 +715,10 @@ L4
 L5
 [1] 26.43484
 
-L4 vs L5 p-value:[1] 0.3827009
+L4 vs L5 p-value:[1] 0.7054688
 
 
-Static Major curve Cobb angle - sd
+2Y. Static Major curve Cobb angle - sd
 All
 [1] 15.67408
 L4
@@ -709,12 +726,9 @@ L4
 L5
 [1] 19.57633
 
-L4 vs L5 p-value:[1] 0.3827009
 
 
-
-
-Static Major curve Cobb angle - mean
+5Y. Static Major curve Cobb angle - mean
 All
 [1] 24.83891
 L4
@@ -722,19 +736,16 @@ L4
 L5
 [1] 31.11636
 
-L4 vs L5 p-value:[1] 0.3827009
+L4 vs L5 p-value:[1] 0.9920431
 
 
-Static Major curve Cobb angle - sd
+5Y. Static Major curve Cobb angle - sd
 All
 [1] 16.535
 L4
 [1] 15.81463
 L5
 [1] 20.92306
-
-L4 vs L5 p-value:[1] 0.3827009
-
 
 
 
@@ -805,12 +816,9 @@ L4
 L5
 [1] 14.09169
 
-L4 vs L5 p-value:[1] 0.8284834
 
 
-
-
-Coronal Balance (C7PL to CSVL) - mean
+6W. Coronal Balance (C7PL to CSVL) - mean
 All
 [1] 20.30517
 L4
@@ -818,10 +826,10 @@ L4
 L5
 [1] 22.5775
 
-L4 vs L5 p-value:[1] 0.8284834
+L4 vs L5 p-value:[1] 0.8802018
 
 
-Coronal Balance (C7PL to CSVL) - sd
+6W. Coronal Balance (C7PL to CSVL) - sd
 All
 [1] 15.15984
 L4
@@ -829,12 +837,51 @@ L4
 L5
 [1] 17.7469
 
-L4 vs L5 p-value:[1] 0.8284834
+
+
+6M. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 18.82025
+L4
+[1] 14.84273
+L5
+[1] 21.69464
+
+L4 vs L5 p-value:[1] 0.07179218
+
+
+6M. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 14.8228
+L4
+[1] 9.719906
+L5
+[1] 17.45066
 
 
 
+1Y. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 18.23263
+L4
+[1] 13.35714
+L5
+[1] 20.28778
 
-Coronal Balance (C7PL to CSVL) - mean
+L4 vs L5 p-value:[1] 0.02164315
+
+
+1Y. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 13.86945
+L4
+[1] 8.579425
+L5
+[1] 13.08954
+
+
+
+2Y. Coronal Balance (C7PL to CSVL) - mean
 All
 [1] 18.25252
 L4
@@ -842,10 +889,10 @@ L4
 L5
 [1] 17.50778
 
-L4 vs L5 p-value:[1] 0.8284834
+L4 vs L5 p-value:[1] 0.410834
 
 
-Coronal Balance (C7PL to CSVL) - sd
+2Y. Coronal Balance (C7PL to CSVL) - sd
 All
 [1] 15.6976
 L4
@@ -853,12 +900,9 @@ L4
 L5
 [1] 13.43186
 
-L4 vs L5 p-value:[1] 0.8284834
 
 
-
-
-Coronal Balance (C7PL to CSVL) - mean
+5Y. Coronal Balance (C7PL to CSVL) - mean
 All
 [1] 20.90584
 L4
@@ -866,19 +910,16 @@ L4
 L5
 [1] 17.1345
 
-L4 vs L5 p-value:[1] 0.8284834
+L4 vs L5 p-value:[1] 0.8667627
 
 
-Coronal Balance (C7PL to CSVL) - sd
+5Y. Coronal Balance (C7PL to CSVL) - sd
 All
 [1] 17.44156
 L4
 [1] 9.833244
 L5
 [1] 11.43413
-
-L4 vs L5 p-value:[1] 0.8284834
-
 
 
 
@@ -949,12 +990,9 @@ L4
 L5
 [1] 47.57232
 
-L4 vs L5 p-value:[1] 0.1287651
 
 
-
-
-Sagittal Balance - mean
+6W. Sagittal Balance - mean
 All
 [1] 19.26473
 L4
@@ -962,10 +1000,10 @@ L4
 L5
 [1] 32.40324
 
-L4 vs L5 p-value:[1] 0.1287651
+L4 vs L5 p-value:[1] 0.007714831
 
 
-Sagittal Balance - sd
+6W. Sagittal Balance - sd
 All
 [1] 37.36993
 L4
@@ -973,12 +1011,51 @@ L4
 L5
 [1] 40.32849
 
-L4 vs L5 p-value:[1] 0.1287651
+
+
+6M. Sagittal Balance - mean
+All
+[1] 15.97674
+L4
+[1] 3.055
+L5
+[1] 21.68333
+
+L4 vs L5 p-value:[1] 0.04552114
+
+
+6M. Sagittal Balance - sd
+All
+[1] 43.76537
+L4
+[1] 31.0467
+L5
+[1] 39.20212
 
 
 
+1Y. Sagittal Balance - mean
+All
+[1] 19.33475
+L4
+[1] -2.346176
+L5
+[1] 19.16259
 
-Sagittal Balance - mean
+L4 vs L5 p-value:[1] 0.02727914
+
+
+1Y. Sagittal Balance - sd
+All
+[1] 48.72367
+L4
+[1] 33.57705
+L5
+[1] 39.03962
+
+
+
+2Y. Sagittal Balance - mean
 All
 [1] 24.44867
 L4
@@ -986,10 +1063,10 @@ L4
 L5
 [1] 28.33731
 
-L4 vs L5 p-value:[1] 0.1287651
+L4 vs L5 p-value:[1] 0.004820746
 
 
-Sagittal Balance - sd
+2Y. Sagittal Balance - sd
 All
 [1] 49.39084
 L4
@@ -997,12 +1074,9 @@ L4
 L5
 [1] 38.98368
 
-L4 vs L5 p-value:[1] 0.1287651
 
 
-
-
-Sagittal Balance - mean
+5Y. Sagittal Balance - mean
 All
 [1] 33.34324
 L4
@@ -1010,19 +1084,16 @@ L4
 L5
 [1] 40.85571
 
-L4 vs L5 p-value:[1] 0.1287651
+L4 vs L5 p-value:[1] 0.002170761
 
 
-Sagittal Balance - sd
+5Y. Sagittal Balance - sd
 All
 [1] 48.54904
 L4
 [1] 34.35246
 L5
 [1] 41.25933
-
-L4 vs L5 p-value:[1] 0.1287651
-
 
 
 
@@ -1093,12 +1164,9 @@ L4
 L5
 [1] 7.33487
 
-L4 vs L5 p-value:[1] 0.4031292
 
 
-
-
-Sagittal T2-T5 - mean
+6W. Sagittal T2-T5 - mean
 All
 [1] 13.5879
 L4
@@ -1106,10 +1174,10 @@ L4
 L5
 [1] 12.48879
 
-L4 vs L5 p-value:[1] 0.4031292
+L4 vs L5 p-value:[1] 0.5942622
 
 
-Sagittal T2-T5 - sd
+6W. Sagittal T2-T5 - sd
 All
 [1] 8.196472
 L4
@@ -1117,12 +1185,51 @@ L4
 L5
 [1] 5.7268
 
-L4 vs L5 p-value:[1] 0.4031292
+
+
+6M. Sagittal T2-T5 - mean
+All
+[1] 14.17102
+L4
+[1] 13.66194
+L5
+[1] 13.57143
+
+L4 vs L5 p-value:[1] 0.9741784
+
+
+6M. Sagittal T2-T5 - sd
+All
+[1] 9.60744
+L4
+[1] 8.776699
+L5
+[1] 12.51792
 
 
 
+1Y. Sagittal T2-T5 - mean
+All
+[1] 13.75941
+L4
+[1] 12.90394
+L5
+[1] 11.40897
 
-Sagittal T2-T5 - mean
+L4 vs L5 p-value:[1] 0.5449708
+
+
+1Y. Sagittal T2-T5 - sd
+All
+[1] 9.464446
+L4
+[1] 12.09008
+L5
+[1] 6.789844
+
+
+
+2Y. Sagittal T2-T5 - mean
 All
 [1] 14.44455
 L4
@@ -1130,10 +1237,10 @@ L4
 L5
 [1] 11.59357
 
-L4 vs L5 p-value:[1] 0.4031292
+L4 vs L5 p-value:[1] 0.2986884
 
 
-Sagittal T2-T5 - sd
+2Y. Sagittal T2-T5 - sd
 All
 [1] 9.976044
 L4
@@ -1141,12 +1248,9 @@ L4
 L5
 [1] 8.418109
 
-L4 vs L5 p-value:[1] 0.4031292
 
 
-
-
-Sagittal T2-T5 - mean
+5Y. Sagittal T2-T5 - mean
 All
 [1] 15.8525
 L4
@@ -1154,19 +1258,16 @@ L4
 L5
 [1] 7.981429
 
-L4 vs L5 p-value:[1] 0.4031292
+L4 vs L5 p-value:[1] 0.006230627
 
 
-Sagittal T2-T5 - sd
+5Y. Sagittal T2-T5 - sd
 All
 [1] 11.76296
 L4
 [1] 11.46709
 L5
 [1] 5.656832
-
-L4 vs L5 p-value:[1] 0.4031292
-
 
 
 
@@ -1237,12 +1338,9 @@ L4
 L5
 [1] 18.18414
 
-L4 vs L5 p-value:[1] 0.2415302
 
 
-
-
-Sagittal T5-T12 - mean
+6W. Sagittal T5-T12 - mean
 All
 [1] 33.62656
 L4
@@ -1250,10 +1348,10 @@ L4
 L5
 [1] 32.31088
 
-L4 vs L5 p-value:[1] 0.2415302
+L4 vs L5 p-value:[1] 0.7505943
 
 
-Sagittal T5-T12 - sd
+6W. Sagittal T5-T12 - sd
 All
 [1] 13.90854
 L4
@@ -1261,12 +1359,51 @@ L4
 L5
 [1] 13.06099
 
-L4 vs L5 p-value:[1] 0.2415302
+
+
+6M. Sagittal T5-T12 - mean
+All
+[1] 34.73774
+L4
+[1] 32.98676
+L5
+[1] 30.46667
+
+L4 vs L5 p-value:[1] 0.4670917
+
+
+6M. Sagittal T5-T12 - sd
+All
+[1] 14.02575
+L4
+[1] 11.92522
+L5
+[1] 15.48689
 
 
 
+1Y. Sagittal T5-T12 - mean
+All
+[1] 35.40093
+L4
+[1] 34.86206
+L5
+[1] 33.33966
 
-Sagittal T5-T12 - mean
+L4 vs L5 p-value:[1] 0.6606636
+
+
+1Y. Sagittal T5-T12 - sd
+All
+[1] 13.97161
+L4
+[1] 12.47545
+L5
+[1] 14.5701
+
+
+
+2Y. Sagittal T5-T12 - mean
 All
 [1] 36.11884
 L4
@@ -1274,10 +1411,10 @@ L4
 L5
 [1] 33.20893
 
-L4 vs L5 p-value:[1] 0.2415302
+L4 vs L5 p-value:[1] 0.6714107
 
 
-Sagittal T5-T12 - sd
+2Y. Sagittal T5-T12 - sd
 All
 [1] 15.92236
 L4
@@ -1285,12 +1422,9 @@ L4
 L5
 [1] 17.12723
 
-L4 vs L5 p-value:[1] 0.2415302
 
 
-
-
-Sagittal T5-T12 - mean
+5Y. Sagittal T5-T12 - mean
 All
 [1] 39.98071
 L4
@@ -1298,19 +1432,16 @@ L4
 L5
 [1] 38.97227
 
-L4 vs L5 p-value:[1] 0.2415302
+L4 vs L5 p-value:[1] 0.370834
 
 
-Sagittal T5-T12 - sd
+5Y. Sagittal T5-T12 - sd
 All
 [1] 15.98859
 L4
 [1] 15.30659
 L5
 [1] 17.26826
-
-L4 vs L5 p-value:[1] 0.2415302
-
 
 
 
@@ -1381,12 +1512,9 @@ L4
 L5
 [1] 17.26251
 
-L4 vs L5 p-value:[1] 0.6830684
 
 
-
-
-Sagittal T2-T12 - mean
+6W. Sagittal T2-T12 - mean
 All
 [1] 42.95152
 L4
@@ -1394,10 +1522,10 @@ L4
 L5
 [1] 41.59152
 
-L4 vs L5 p-value:[1] 0.6830684
+L4 vs L5 p-value:[1] 0.7283135
 
 
-Sagittal T2-T12 - sd
+6W. Sagittal T2-T12 - sd
 All
 [1] 15.37581
 L4
@@ -1405,12 +1533,51 @@ L4
 L5
 [1] 14.07648
 
-L4 vs L5 p-value:[1] 0.6830684
+
+
+6M. Sagittal T2-T12 - mean
+All
+[1] 44.89783
+L4
+[1] 41.39718
+L5
+[1] 37.9
+
+L4 vs L5 p-value:[1] 0.3164742
+
+
+6M. Sagittal T2-T12 - sd
+All
+[1] 15.41013
+L4
+[1] 14.68361
+L5
+[1] 13.93173
 
 
 
+1Y. Sagittal T2-T12 - mean
+All
+[1] 44.7213
+L4
+[1] 41.80056
+L5
+[1] 39.684
 
-Sagittal T2-T12 - mean
+L4 vs L5 p-value:[1] 0.5951255
+
+
+1Y. Sagittal T2-T12 - sd
+All
+[1] 15.30903
+L4
+[1] 17.31613
+L5
+[1] 14.87456
+
+
+
+2Y. Sagittal T2-T12 - mean
 All
 [1] 45.66838
 L4
@@ -1418,10 +1585,10 @@ L4
 L5
 [1] 39.99483
 
-L4 vs L5 p-value:[1] 0.6830684
+L4 vs L5 p-value:[1] 0.3569212
 
 
-Sagittal T2-T12 - sd
+2Y. Sagittal T2-T12 - sd
 All
 [1] 15.76841
 L4
@@ -1429,12 +1596,9 @@ L4
 L5
 [1] 13.95897
 
-L4 vs L5 p-value:[1] 0.6830684
 
 
-
-
-Sagittal T2-T12 - mean
+5Y. Sagittal T2-T12 - mean
 All
 [1] 49.57493
 L4
@@ -1442,19 +1606,16 @@ L4
 L5
 [1] 41.33381
 
-L4 vs L5 p-value:[1] 0.6830684
+L4 vs L5 p-value:[1] 0.4891298
 
 
-Sagittal T2-T12 - sd
+5Y. Sagittal T2-T12 - sd
 All
 [1] 16.77857
 L4
 [1] 17.32894
 L5
 [1] 16.15582
-
-L4 vs L5 p-value:[1] 0.6830684
-
 
 
 
@@ -1525,12 +1686,9 @@ L4
 L5
 [1] 16.79441
 
-L4 vs L5 p-value:[1] 0.12683
 
 
-
-
-Lordosis (top of L1-S1) - mean
+6W. Lordosis (top of L1-S1) - mean
 All
 [1] -51.24225
 L4
@@ -1538,10 +1696,10 @@ L4
 L5
 [1] -45.14105
 
-L4 vs L5 p-value:[1] 0.12683
+L4 vs L5 p-value:[1] 0.1983333
 
 
-Lordosis (top of L1-S1) - sd
+6W. Lordosis (top of L1-S1) - sd
 All
 [1] 14.31666
 L4
@@ -1549,12 +1707,51 @@ L4
 L5
 [1] 11.52152
 
-L4 vs L5 p-value:[1] 0.12683
+
+
+6M. Lordosis (top of L1-S1) - mean
+All
+[1] -50.93475
+L4
+[1] -49.87829
+L5
+[1] -44.72222
+
+L4 vs L5 p-value:[1] 0.0843069
+
+
+6M. Lordosis (top of L1-S1) - sd
+All
+[1] 14.143
+L4
+[1] 13.63278
+L5
+[1] 12.22786
 
 
 
+1Y. Lordosis (top of L1-S1) - mean
+All
+[1] -50.99939
+L4
+[1] -50.41474
+L5
+[1] -47.47486
 
-Lordosis (top of L1-S1) - mean
+L4 vs L5 p-value:[1] 0.3247297
+
+
+1Y. Lordosis (top of L1-S1) - sd
+All
+[1] 14.43568
+L4
+[1] 13.61477
+L5
+[1] 12.03265
+
+
+
+2Y. Lordosis (top of L1-S1) - mean
 All
 [1] -51.48615
 L4
@@ -1562,10 +1759,10 @@ L4
 L5
 [1] -49.10906
 
-L4 vs L5 p-value:[1] 0.12683
+L4 vs L5 p-value:[1] 0.3273227
 
 
-Lordosis (top of L1-S1) - sd
+2Y. Lordosis (top of L1-S1) - sd
 All
 [1] 15.18502
 L4
@@ -1573,12 +1770,9 @@ L4
 L5
 [1] 14.16177
 
-L4 vs L5 p-value:[1] 0.12683
 
 
-
-
-Lordosis (top of L1-S1) - mean
+5Y. Lordosis (top of L1-S1) - mean
 All
 [1] -50.78937
 L4
@@ -1586,19 +1780,16 @@ L4
 L5
 [1] -45.53545
 
-L4 vs L5 p-value:[1] 0.12683
+L4 vs L5 p-value:[1] 0.5608513
 
 
-Lordosis (top of L1-S1) - sd
+5Y. Lordosis (top of L1-S1) - sd
 All
 [1] 15.77495
 L4
 [1] 16.35281
 L5
 [1] 14.54658
-
-L4 vs L5 p-value:[1] 0.12683
-
 
 
 
@@ -1669,12 +1860,9 @@ L4
 L5
 [1] 11.51062
 
-L4 vs L5 p-value:[1] 0.157949
 
 
-
-
-Pelvic Incidence - mean
+6W. Pelvic Incidence - mean
 All
 [1] 54.07006
 L4
@@ -1682,10 +1870,10 @@ L4
 L5
 [1] 52.59184
 
-L4 vs L5 p-value:[1] 0.157949
+L4 vs L5 p-value:[1] 0.1014558
 
 
-Pelvic Incidence - sd
+6W. Pelvic Incidence - sd
 All
 [1] 12.97202
 L4
@@ -1693,12 +1881,51 @@ L4
 L5
 [1] 11.56849
 
-L4 vs L5 p-value:[1] 0.157949
+
+
+6M. Pelvic Incidence - mean
+All
+[1] 53.87257
+L4
+[1] 47.7839
+L5
+[1] 51.51429
+
+L4 vs L5 p-value:[1] 0.1498352
+
+
+6M. Pelvic Incidence - sd
+All
+[1] 12.66077
+L4
+[1] 11.44377
+L5
+[1] 10.8692
 
 
 
+1Y. Pelvic Incidence - mean
+All
+[1] 53.58789
+L4
+[1] 47.95154
+L5
+[1] 52.65378
 
-Pelvic Incidence - mean
+L4 vs L5 p-value:[1] 0.06155034
+
+
+1Y. Pelvic Incidence - sd
+All
+[1] 12.56026
+L4
+[1] 10.7562
+L5
+[1] 10.82734
+
+
+
+2Y. Pelvic Incidence - mean
 All
 [1] 53.74154
 L4
@@ -1706,10 +1933,10 @@ L4
 L5
 [1] 53.41437
 
-L4 vs L5 p-value:[1] 0.157949
+L4 vs L5 p-value:[1] 0.05246645
 
 
-Pelvic Incidence - sd
+2Y. Pelvic Incidence - sd
 All
 [1] 12.46023
 L4
@@ -1717,12 +1944,9 @@ L4
 L5
 [1] 10.78803
 
-L4 vs L5 p-value:[1] 0.157949
 
 
-
-
-Pelvic Incidence - mean
+5Y. Pelvic Incidence - mean
 All
 [1] 54.78028
 L4
@@ -1730,19 +1954,16 @@ L4
 L5
 [1] 54.88273
 
-L4 vs L5 p-value:[1] 0.157949
+L4 vs L5 p-value:[1] 0.05373662
 
 
-Pelvic Incidence - sd
+5Y. Pelvic Incidence - sd
 All
 [1] 12.46756
 L4
 [1] 12.84556
 L5
 [1] 11.88406
-
-L4 vs L5 p-value:[1] 0.157949
-
 
 
 
@@ -1813,12 +2034,9 @@ L4
 L5
 [1] 8.607439
 
-L4 vs L5 p-value:[1] 0.0149214
 
 
-
-
-Pelvic Tilt - mean
+6W. Pelvic Tilt - mean
 All
 [1] 18.00204
 L4
@@ -1826,10 +2044,10 @@ L4
 L5
 [1] 20.87737
 
-L4 vs L5 p-value:[1] 0.0149214
+L4 vs L5 p-value:[1] 0.001285324
 
 
-Pelvic Tilt - sd
+6W. Pelvic Tilt - sd
 All
 [1] 9.452979
 L4
@@ -1837,12 +2055,51 @@ L4
 L5
 [1] 8.405796
 
-L4 vs L5 p-value:[1] 0.0149214
+
+
+6M. Pelvic Tilt - mean
+All
+[1] 19.46394
+L4
+[1] 14.35098
+L5
+[1] 21.22857
+
+L4 vs L5 p-value:[1] 0.0003621315
+
+
+6M. Pelvic Tilt - sd
+All
+[1] 9.712063
+L4
+[1] 8.201262
+L5
+[1] 7.803038
 
 
 
+1Y. Pelvic Tilt - mean
+All
+[1] 19.39412
+L4
+[1] 15.79333
+L5
+[1] 21.00568
 
-Pelvic Tilt - mean
+L4 vs L5 p-value:[1] 0.007487864
+
+
+1Y. Pelvic Tilt - sd
+All
+[1] 10.12876
+L4
+[1] 9.02875
+L5
+[1] 7.446546
+
+
+
+2Y. Pelvic Tilt - mean
 All
 [1] 19.27738
 L4
@@ -1850,10 +2107,10 @@ L4
 L5
 [1] 21.49438
 
-L4 vs L5 p-value:[1] 0.0149214
+L4 vs L5 p-value:[1] 0.0002880703
 
 
-Pelvic Tilt - sd
+2Y. Pelvic Tilt - sd
 All
 [1] 9.352162
 L4
@@ -1861,12 +2118,9 @@ L4
 L5
 [1] 7.468692
 
-L4 vs L5 p-value:[1] 0.0149214
 
 
-
-
-Pelvic Tilt - mean
+5Y. Pelvic Tilt - mean
 All
 [1] 21.76769
 L4
@@ -1874,19 +2128,16 @@ L4
 L5
 [1] 24.74455
 
-L4 vs L5 p-value:[1] 0.0149214
+L4 vs L5 p-value:[1] 0.002866542
 
 
-Pelvic Tilt - sd
+5Y. Pelvic Tilt - sd
 All
 [1] 9.708017
 L4
 [1] 9.51867
 L5
 [1] 7.214661
-
-L4 vs L5 p-value:[1] 0.0149214
-
 
 
 
@@ -1957,12 +2208,9 @@ L4
 L5
 [1] 9.548232
 
-L4 vs L5 p-value:[1] 0.9493803
 
 
-
-
-Sacral Slope - mean
+6W. Sacral Slope - mean
 All
 [1] 36.01872
 L4
@@ -1970,10 +2218,10 @@ L4
 L5
 [1] 31.66211
 
-L4 vs L5 p-value:[1] 0.9493803
+L4 vs L5 p-value:[1] 0.3513935
 
 
-Sacral Slope - sd
+6W. Sacral Slope - sd
 All
 [1] 10.21491
 L4
@@ -1981,12 +2229,51 @@ L4
 L5
 [1] 8.623344
 
-L4 vs L5 p-value:[1] 0.9493803
+
+
+6M. Sacral Slope - mean
+All
+[1] 34.38332
+L4
+[1] 33.31073
+L5
+[1] 30.08571
+
+L4 vs L5 p-value:[1] 0.1211204
+
+
+6M. Sacral Slope - sd
+All
+[1] 10.05546
+L4
+[1] 8.97487
+L5
+[1] 8.899344
 
 
 
+1Y. Sacral Slope - mean
+All
+[1] 34.23707
+L4
+[1] 32.18385
+L5
+[1] 31.59378
 
-Sacral Slope - mean
+L4 vs L5 p-value:[1] 0.7688873
+
+
+1Y. Sacral Slope - sd
+All
+[1] 9.649275
+L4
+[1] 8.967879
+L5
+[1] 8.474762
+
+
+
+2Y. Sacral Slope - mean
 All
 [1] 34.55096
 L4
@@ -1994,10 +2281,10 @@ L4
 L5
 [1] 31.88812
 
-L4 vs L5 p-value:[1] 0.9493803
+L4 vs L5 p-value:[1] 0.4866861
 
 
-Sacral Slope - sd
+2Y. Sacral Slope - sd
 All
 [1] 10.43826
 L4
@@ -2005,12 +2292,9 @@ L4
 L5
 [1] 8.696084
 
-L4 vs L5 p-value:[1] 0.9493803
 
 
-
-
-Sacral Slope - mean
+5Y. Sacral Slope - mean
 All
 [1] 33.01965
 L4
@@ -2018,19 +2302,16 @@ L4
 L5
 [1] 30.13818
 
-L4 vs L5 p-value:[1] 0.9493803
+L4 vs L5 p-value:[1] 0.8072471
 
 
-Sacral Slope - sd
+5Y. Sacral Slope - sd
 All
 [1] 10.79392
 L4
 [1] 11.35501
 L5
 [1] 9.429717
-
-L4 vs L5 p-value:[1] 0.9493803
-
 
 
 
@@ -2101,12 +2382,9 @@ L4
 L5
 [1] 15.06803
 
-L4 vs L5 p-value:[1] 0.01887427
 
 
-
-
-RLL - mean
+6W. RLL - mean
 All
 [1] -11.17656
 L4
@@ -2114,10 +2392,10 @@ L4
 L5
 [1] -16.46579
 
-L4 vs L5 p-value:[1] 0.01887427
+L4 vs L5 p-value:[1] 0.01238277
 
 
-RLL - sd
+6W. RLL - sd
 All
 [1] 12.92636
 L4
@@ -2125,12 +2403,51 @@ L4
 L5
 [1] 11.42234
 
-L4 vs L5 p-value:[1] 0.01887427
+
+
+6M. RLL - mean
+All
+[1] -11.42286
+L4
+[1] -8.747805
+L5
+[1] -15.93886
+
+L4 vs L5 p-value:[1] 0.007415021
+
+
+6M. RLL - sd
+All
+[1] 12.9312
+L4
+[1] 11.13418
+L5
+[1] 11.50621
 
 
 
+1Y. RLL - mean
+All
+[1] -11.34216
+L4
+[1] -8.200789
+L5
+[1] -14.17027
 
-RLL - mean
+L4 vs L5 p-value:[1] 0.02978466
+
+
+1Y. RLL - sd
+All
+[1] 13.81769
+L4
+[1] 12.04899
+L5
+[1] 11.2711
+
+
+
+2Y. RLL - mean
 All
 [1] -10.62964
 L4
@@ -2138,10 +2455,10 @@ L4
 L5
 [1] -13.0075
 
-L4 vs L5 p-value:[1] 0.01887427
+L4 vs L5 p-value:[1] 0.0270933
 
 
-RLL - sd
+2Y. RLL - sd
 All
 [1] 14.04272
 L4
@@ -2149,12 +2466,9 @@ L4
 L5
 [1] 13.67183
 
-L4 vs L5 p-value:[1] 0.01887427
 
 
-
-
-RLL - mean
+5Y. RLL - mean
 All
 [1] -12.17483
 L4
@@ -2162,19 +2476,16 @@ L4
 L5
 [1] -17.49227
 
-L4 vs L5 p-value:[1] 0.01887427
+L4 vs L5 p-value:[1] 0.07973966
 
 
-RLL - sd
+5Y. RLL - sd
 All
 [1] 13.83349
 L4
 [1] 13.58576
 L5
 [1] 13.54271
-
-L4 vs L5 p-value:[1] 0.01887427
-
 
 
 
@@ -2245,12 +2556,9 @@ L4
 L5
 [1] 13.70465
 
-L4 vs L5 p-value:[1] 0.02809123
 
 
-
-
-Global Tilt - mean
+6W. Global Tilt - mean
 All
 [1] 18.63569
 L4
@@ -2258,10 +2566,10 @@ L4
 L5
 [1] 23.40353
 
-L4 vs L5 p-value:[1] 0.02809123
+L4 vs L5 p-value:[1] 0.0005703284
 
 
-Global Tilt - sd
+6W. Global Tilt - sd
 All
 [1] 11.84771
 L4
@@ -2269,12 +2577,51 @@ L4
 L5
 [1] 12.23443
 
-L4 vs L5 p-value:[1] 0.02809123
+
+
+6M. Global Tilt - mean
+All
+[1] 20.27157
+L4
+[1] 13.32641
+L5
+[1] 21.96154
+
+L4 vs L5 p-value:[1] 0.002285445
+
+
+6M. Global Tilt - sd
+All
+[1] 13.30891
+L4
+[1] 9.66809
+L5
+[1] 11.15878
 
 
 
+1Y. Global Tilt - mean
+All
+[1] 20.78354
+L4
+[1] 13.13344
+L5
+[1] 22.31621
 
-Global Tilt - mean
+L4 vs L5 p-value:[1] 0.0002698268
+
+
+1Y. Global Tilt - sd
+All
+[1] 13.82404
+L4
+[1] 8.914528
+L5
+[1] 9.500308
+
+
+
+2Y. Global Tilt - mean
 All
 [1] 20.92011
 L4
@@ -2282,10 +2629,10 @@ L4
 L5
 [1] 22.95419
 
-L4 vs L5 p-value:[1] 0.02809123
+L4 vs L5 p-value:[1] 0.0001167054
 
 
-Global Tilt - sd
+2Y. Global Tilt - sd
 All
 [1] 13.80935
 L4
@@ -2293,12 +2640,9 @@ L4
 L5
 [1] 10.55854
 
-L4 vs L5 p-value:[1] 0.02809123
 
 
-
-
-Global Tilt - mean
+5Y. Global Tilt - mean
 All
 [1] 24.63748
 L4
@@ -2306,19 +2650,16 @@ L4
 L5
 [1] 28.79091
 
-L4 vs L5 p-value:[1] 0.02809123
+L4 vs L5 p-value:[1] 0.0005289438
 
 
-Global Tilt - sd
+5Y. Global Tilt - sd
 All
 [1] 14.71007
 L4
 [1] 12.44704
 L5
 [1] 10.77561
-
-L4 vs L5 p-value:[1] 0.02809123
-
 
 
 
@@ -2389,12 +2730,9 @@ L4
 L5
 [1] 5.957362
 
-L4 vs L5 p-value:[1] 0.07816866
 
 
-
-
-T1 Sagittal Tilt - mean
+6W. T1 Sagittal Tilt - mean
 All
 [1] -3.53703
 L4
@@ -2402,10 +2740,10 @@ L4
 L5
 [1] -1.82664
 
-L4 vs L5 p-value:[1] 0.07816866
+L4 vs L5 p-value:[1] 0.01879112
 
 
-T1 Sagittal Tilt - sd
+6W. T1 Sagittal Tilt - sd
 All
 [1] 4.011335
 L4
@@ -2413,12 +2751,51 @@ L4
 L5
 [1] 3.807393
 
-L4 vs L5 p-value:[1] 0.07816866
+
+
+6M. T1 Sagittal Tilt - mean
+All
+[1] -4.209195
+L4
+[1] -4.84305
+L5
+[1] -3.8
+
+L4 vs L5 p-value:[1] 0.196341
+
+
+6M. T1 Sagittal Tilt - sd
+All
+[1] 4.287613
+L4
+[1] 3.196408
+L5
+[1] 3.02765
 
 
 
+1Y. T1 Sagittal Tilt - mean
+All
+[1] -3.857386
+L4
+[1] -5.003071
+L5
+[1] -4.236946
 
-T1 Sagittal Tilt - mean
+L4 vs L5 p-value:[1] 0.4966102
+
+
+1Y. T1 Sagittal Tilt - sd
+All
+[1] 5.009467
+L4
+[1] 4.604076
+L5
+[1] 4.047984
+
+
+
+2Y. T1 Sagittal Tilt - mean
 All
 [1] -3.641381
 L4
@@ -2426,10 +2803,10 @@ L4
 L5
 [1] -3.129655
 
-L4 vs L5 p-value:[1] 0.07816866
+L4 vs L5 p-value:[1] 0.01624378
 
 
-T1 Sagittal Tilt - sd
+2Y. T1 Sagittal Tilt - sd
 All
 [1] 4.489465
 L4
@@ -2437,12 +2814,9 @@ L4
 L5
 [1] 3.387316
 
-L4 vs L5 p-value:[1] 0.07816866
 
 
-
-
-T1 Sagittal Tilt - mean
+5Y. T1 Sagittal Tilt - mean
 All
 [1] -2.809025
 L4
@@ -2450,19 +2824,16 @@ L4
 L5
 [1] -2.462173
 
-L4 vs L5 p-value:[1] 0.07816866
+L4 vs L5 p-value:[1] 0.009462915
 
 
-T1 Sagittal Tilt - sd
+5Y. T1 Sagittal Tilt - sd
 All
 [1] 4.9292
 L4
 [1] 2.82748
 L5
 [1] 3.463919
-
-L4 vs L5 p-value:[1] 0.07816866
-
 
 
 
@@ -2512,7 +2883,355 @@ Preop vs 5y p-value
 0.156091
 
 2y vs 5y p-value
-0.4890376</code></pre>
+0.4890376
+
+RSA - mean
+All
+[1] 15.35214
+L4
+[1] 9.160714
+L5
+[1] 13.82947
+
+L4 vs L5 p-value:[1] 0.07113172
+
+
+RSA - sd
+All
+[1] 15.39231
+L4
+[1] 11.44371
+L5
+[1] 11.35332
+
+
+
+6W. RSA - mean
+All
+[1] 7.573828
+L4
+[1] 5.672703
+L5
+[1] 13.09794
+
+L4 vs L5 p-value:[1] 0.001320824
+
+
+6W. RSA - sd
+All
+[1] 9.296028
+L4
+[1] 8.845212
+L5
+[1] 9.739833
+
+
+
+6M. RSA - mean
+All
+[1] 9.327491
+L4
+[1] 5.333846
+L5
+[1] 12.51846
+
+L4 vs L5 p-value:[1] 0.0009051997
+
+
+6M. RSA - sd
+All
+[1] 10.52038
+L4
+[1] 8.023078
+L5
+[1] 8.105674
+
+
+
+1Y. RSA - mean
+All
+[1] 9.847893
+L4
+[1] 5.166562
+L5
+[1] 11.98862
+
+L4 vs L5 p-value:[1] 0.0005692798
+
+
+1Y. RSA - sd
+All
+[1] 10.94623
+L4
+[1] 7.363837
+L5
+[1] 7.24227
+
+
+
+2Y. RSA - mean
+All
+[1] 10.08882
+L4
+[1] 4.159091
+L5
+[1] 12.57226
+
+L4 vs L5 p-value:[1] 0.0002771497
+
+
+2Y. RSA - sd
+All
+[1] 11.55025
+L4
+[1] 9.348516
+L5
+[1] 8.087446
+
+
+
+5Y. RSA - mean
+All
+[1] 13.34259
+L4
+[1] 7.435
+L5
+[1] 17.44682
+
+L4 vs L5 p-value:[1] 0.003816685
+
+
+5Y. RSA - sd
+All
+[1] 12.68594
+L4
+[1] 11.85644
+L5
+[1] 8.629911
+
+
+
+RSA tests all
+Preop vs 6w p-value
+4.959458e-14
+
+Preop vs 2y p-value
+2.441125e-06
+
+Preop vs 5y p-value
+0.1393535
+
+6w vs 2y p-value
+0.005318745
+
+2y vs 5y p-value
+0.01148679
+
+RSA tests L4
+Preop vs 6w p-value
+0.1314663
+
+Preop vs 2y p-value
+0.04077405
+
+Preop vs 5y p-value
+0.5912976
+
+6w vs 2y p-value
+0.4903931
+
+2y vs 5y p-value
+0.2999071
+
+RSA tests L5
+Preop vs 6w p-value
+0.7694667
+
+Preop vs 2y p-value
+0.5937744
+
+Preop vs 5y p-value
+0.1704213
+
+6w vs 2y p-value
+0.8130623
+
+2y vs 5y p-value
+0.04350424
+
+RPV - mean
+All
+[1] -8.395936
+L4
+[1] -6.15119
+L5
+[1] -8.532632
+
+L4 vs L5 p-value:[1] 0.1099413
+
+
+RPV - sd
+All
+[1] 9.093878
+L4
+[1] 6.908871
+L5
+[1] 6.264781
+
+
+
+6W. RPV - mean
+All
+[1] -4.861015
+L4
+[1] -3.793846
+L5
+[1] -8.367368
+
+L4 vs L5 p-value:[1] 0.0036263
+
+
+6W. RPV - sd
+All
+[1] 7.511161
+L4
+[1] 6.999124
+L5
+[1] 6.35249
+
+
+
+6M. RPV - mean
+All
+[1] -6.401442
+L4
+[1] -3.881463
+L5
+[1] -9.307714
+
+L4 vs L5 p-value:[1] 0.0004057546
+
+
+6M. RPV - sd
+All
+[1] 7.674791
+L4
+[1] 6.447693
+L5
+[1] 6.283058
+
+
+
+1Y. RPV - mean
+All
+[1] -6.406026
+L4
+[1] -5.107692
+L5
+[1] -8.471622
+
+L4 vs L5 p-value:[1] 0.02849249
+
+
+1Y. RPV - sd
+All
+[1] 7.841029
+L4
+[1] 7.305366
+L5
+[1] 5.756638
+
+
+
+2Y. RPV - mean
+All
+[1] -6.166797
+L4
+[1] -3.58
+L5
+[1] -8.62625
+
+L4 vs L5 p-value:[1] 0.001881745
+
+
+2Y. RPV - sd
+All
+[1] 7.725126
+L4
+[1] 6.648097
+L5
+[1] 5.989988
+
+
+
+5Y. RPV - mean
+All
+[1] -8.30049
+L4
+[1] -5.95
+L5
+[1] -11.24227
+
+L4 vs L5 p-value:[1] 0.02152269
+
+
+5Y. RPV - sd
+All
+[1] 8.115654
+L4
+[1] 8.149249
+L5
+[1] 5.744464
+
+
+
+RPV tests all
+Preop vs 6w p-value
+5.931477e-08
+
+Preop vs 2y p-value
+0.0009951724
+
+Preop vs 5y p-value
+0.9094059
+
+6w vs 2y p-value
+0.03599535
+
+2y vs 5y p-value
+0.009801427
+
+RPV tests L4
+Preop vs 6w p-value
+0.131529
+
+Preop vs 2y p-value
+0.1038785
+
+Preop vs 5y p-value
+0.9246635
+
+6w vs 2y p-value
+0.8939752
+
+2y vs 5y p-value
+0.2780007
+
+RPV tests L5
+Preop vs 6w p-value
+0.9094009
+
+Preop vs 2y p-value
+0.9493303
+
+Preop vs 5y p-value
+0.09522309
+
+6w vs 2y p-value
+0.8614437
+
+2y vs 5y p-value
+0.1128968</code></pre>
 </div>
 <div id="quality-of-life" class="section level3">
 <h3>Quality of Life</h3>
@@ -2535,12 +3254,51 @@ L4
 L5
 [1] 17.82218
 
-L4 vs L5 p-value:[1] 0.004970222
+
+
+6M. ODI - Score (%) - mean
+All
+[1] 28.63578
+L4
+[1] 26.23684
+L5
+[1] 28.30303
+
+L4 vs L5 p-value:[1] 0.5870559
+
+
+6M. ODI - Score (%) - sd
+All
+[1] 17.87927
+L4
+[1] 15.95845
+L5
+[1] 15.87152
 
 
 
+1Y. ODI - Score (%) - mean
+All
+[1] 25.88644
+L4
+[1] 18.89744
+L5
+[1] 29.65714
 
-ODI - Score (%) - mean
+L4 vs L5 p-value:[1] 0.006735415
+
+
+1Y. ODI - Score (%) - sd
+All
+[1] 18.01475
+L4
+[1] 15.16366
+L5
+[1] 17.66343
+
+
+
+2Y. ODI - Score (%) - mean
 All
 [1] 27.66254
 L4
@@ -2548,10 +3306,10 @@ L4
 L5
 [1] 27.68421
 
-L4 vs L5 p-value:[1] 0.004970222
+L4 vs L5 p-value:[1] 0.1289585
 
 
-ODI - Score (%) - sd
+2Y. ODI - Score (%) - sd
 All
 [1] 21.22449
 L4
@@ -2559,12 +3317,9 @@ L4
 L5
 [1] 20.52303
 
-L4 vs L5 p-value:[1] 0.004970222
 
 
-
-
-ODI - Score (%) - mean
+5Y. ODI - Score (%) - mean
 All
 [1] 28.8159
 L4
@@ -2572,10 +3327,10 @@ L4
 L5
 [1] 29.46667
 
-L4 vs L5 p-value:[1] 0.004970222
+L4 vs L5 p-value:[1] 0.1752142
 
 
-ODI - Score (%) - sd
+5Y. ODI - Score (%) - sd
 All
 [1] 21.56736
 L4
@@ -2583,14 +3338,11 @@ L4
 L5
 [1] 16.42692
 
-L4 vs L5 p-value:[1] 0.004970222
-
-
 
 
 ODI - Score (%) tests all
-Preop vs 6w p-value
-1.176207e-124
+Preop vs 6m p-value
+4.234456e-09
 
 Preop vs 2y p-value
 1.669532e-09
@@ -2598,15 +3350,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 1.3154e-06
 
-6w vs 2y p-value
-3.359437e-83
+6m vs 2y p-value
+0.531449
 
 2y vs 5y p-value
 0.5283208
 
 ODI - Score (%) tests L4
-Preop vs 6w p-value
-4.109819e-15
+Preop vs 6m p-value
+0.4333096
 
 Preop vs 2y p-value
 0.03972036
@@ -2614,15 +3366,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.1763392
 
-6w vs 2y p-value
-2.590595e-11
+6m vs 2y p-value
+0.1739929
 
 2y vs 5y p-value
 0.5212302
 
 ODI - Score (%) tests L5
-Preop vs 6w p-value
-1.391657e-17
+Preop vs 6m p-value
+0.0003512974
 
 Preop vs 2y p-value
 0.004010115
@@ -2630,8 +3382,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.00842788
 
-6w vs 2y p-value
-9.445223e-11
+6m vs 2y p-value
+0.7324842
 
 2y vs 5y p-value
 0.6920722
@@ -2655,12 +3407,51 @@ L4
 L5
 [1] 0.7164104
 
-L4 vs L5 p-value:[1] 0.02683056
+
+
+6M. SRS22 - Function / Activity - mean
+All
+[1] 3.240662
+L4
+[1] 3.219474
+L5
+[1] 3.070937
+
+L4 vs L5 p-value:[1] 0.4605215
+
+
+6M. SRS22 - Function / Activity - sd
+All
+[1] 0.8076042
+L4
+[1] 0.8524589
+L5
+[1] 0.8181977
 
 
 
+1Y. SRS22 - Function / Activity - mean
+All
+[1] 3.389371
+L4
+[1] 3.669231
+L5
+[1] 3.11
 
-SRS22 - Function / Activity - mean
+L4 vs L5 p-value:[1] 0.009749303
+
+
+1Y. SRS22 - Function / Activity - sd
+All
+[1] 0.8873405
+L4
+[1] 0.9122107
+L5
+[1] 0.8972015
+
+
+
+2Y. SRS22 - Function / Activity - mean
 All
 [1] 3.471677
 L4
@@ -2668,10 +3459,10 @@ L4
 L5
 [1] 3.391667
 
-L4 vs L5 p-value:[1] 0.02683056
+L4 vs L5 p-value:[1] 0.1080432
 
 
-SRS22 - Function / Activity - sd
+2Y. SRS22 - Function / Activity - sd
 All
 [1] 0.9315734
 L4
@@ -2679,12 +3470,9 @@ L4
 L5
 [1] 0.8212795
 
-L4 vs L5 p-value:[1] 0.02683056
 
 
-
-
-SRS22 - Function / Activity - mean
+5Y. SRS22 - Function / Activity - mean
 All
 [1] 3.479876
 L4
@@ -2692,10 +3480,10 @@ L4
 L5
 [1] 3.38
 
-L4 vs L5 p-value:[1] 0.02683056
+L4 vs L5 p-value:[1] 0.3105073
 
 
-SRS22 - Function / Activity - sd
+5Y. SRS22 - Function / Activity - sd
 All
 [1] 0.9070044
 L4
@@ -2703,14 +3491,11 @@ L4
 L5
 [1] 0.7046276
 
-L4 vs L5 p-value:[1] 0.02683056
-
-
 
 
 SRS22 - Function / Activity tests all
-Preop vs 6w p-value
-8.120265e-78
+Preop vs 6m p-value
+0.02173791
 
 Preop vs 2y p-value
 7.667214e-08
@@ -2718,15 +3503,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 3.075026e-07
 
-6w vs 2y p-value
-6.087843e-83
+6m vs 2y p-value
+0.0008535996
 
 2y vs 5y p-value
 0.9164978
 
 SRS22 - Function / Activity tests L4
-Preop vs 6w p-value
-1.629708e-13
+Preop vs 6m p-value
+0.7656171
 
 Preop vs 2y p-value
 0.02926171
@@ -2734,15 +3519,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.1403798
 
-6w vs 2y p-value
-3.349264e-14
+6m vs 2y p-value
+0.01448075
 
 2y vs 5y p-value
 0.5472829
 
 SRS22 - Function / Activity tests L5
-Preop vs 6w p-value
-7.580475e-08
+Preop vs 6m p-value
+0.05918874
 
 Preop vs 2y p-value
 0.005170153
@@ -2750,8 +3535,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.004423053
 
-6w vs 2y p-value
-8.626405e-09
+6m vs 2y p-value
+0.3791198
 
 2y vs 5y p-value
 0.9502907
@@ -2775,12 +3560,51 @@ L4
 L5
 [1] 0.8824211
 
-L4 vs L5 p-value:[1] 0.02800391
+
+
+6M. SRS22 - Pain - mean
+All
+[1] 3.422145
+L4
+[1] 3.422368
+L5
+[1] 3.369687
+
+L4 vs L5 p-value:[1] 0.8011964
+
+
+6M. SRS22 - Pain - sd
+All
+[1] 0.8962788
+L4
+[1] 0.8597373
+L5
+[1] 0.8757577
 
 
 
+1Y. SRS22 - Pain - mean
+All
+[1] 3.561038
+L4
+[1] 3.845385
+L5
+[1] 3.397143
 
-SRS22 - Pain - mean
+L4 vs L5 p-value:[1] 0.05004134
+
+
+1Y. SRS22 - Pain - sd
+All
+[1] 0.972682
+L4
+[1] 0.9379649
+L5
+[1] 0.9894995
+
+
+
+2Y. SRS22 - Pain - mean
 All
 [1] 3.492236
 L4
@@ -2788,10 +3612,10 @@ L4
 L5
 [1] 3.309722
 
-L4 vs L5 p-value:[1] 0.02800391
+L4 vs L5 p-value:[1] 0.04307255
 
 
-SRS22 - Pain - sd
+2Y. SRS22 - Pain - sd
 All
 [1] 1.096029
 L4
@@ -2799,12 +3623,9 @@ L4
 L5
 [1] 1.014665
 
-L4 vs L5 p-value:[1] 0.02800391
 
 
-
-
-SRS22 - Pain - mean
+5Y. SRS22 - Pain - mean
 All
 [1] 3.342946
 L4
@@ -2812,10 +3633,10 @@ L4
 L5
 [1] 3.083871
 
-L4 vs L5 p-value:[1] 0.02800391
+L4 vs L5 p-value:[1] 0.1354012
 
 
-SRS22 - Pain - sd
+5Y. SRS22 - Pain - sd
 All
 [1] 1.129902
 L4
@@ -2823,14 +3644,11 @@ L4
 L5
 [1] 1.0141
 
-L4 vs L5 p-value:[1] 0.02800391
-
-
 
 
 SRS22 - Pain tests all
-Preop vs 6w p-value
-1.94786e-71
+Preop vs 6m p-value
+8.395163e-27
 
 Preop vs 2y p-value
 6.671258e-26
@@ -2838,15 +3656,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 1.989905e-15
 
-6w vs 2y p-value
-1.416551e-83
+6m vs 2y p-value
+0.3762109
 
 2y vs 5y p-value
 0.1167575
 
 SRS22 - Pain tests L4
-Preop vs 6w p-value
-7.402617e-13
+Preop vs 6m p-value
+0.005996365
 
 Preop vs 2y p-value
 4.344815e-05
@@ -2854,15 +3672,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.008788428
 
-6w vs 2y p-value
-2.073329e-14
+6m vs 2y p-value
+0.08866341
 
 2y vs 5y p-value
 0.1923711
 
 SRS22 - Pain tests L5
-Preop vs 6w p-value
-7.123944e-07
+Preop vs 6m p-value
+9.020891e-07
 
 Preop vs 2y p-value
 4.950859e-05
@@ -2870,8 +3688,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.002440434
 
-6w vs 2y p-value
-1.185602e-08
+6m vs 2y p-value
+0.6089766
 
 2y vs 5y p-value
 0.3669379
@@ -2895,12 +3713,51 @@ L4
 L5
 [1] 0.709256
 
-L4 vs L5 p-value:[1] 0.1548127
+
+
+6M. SRS22 - Self image / Appearance - mean
+All
+[1] 3.486877
+L4
+[1] 3.7
+L5
+[1] 3.498438
+
+L4 vs L5 p-value:[1] 0.2922336
+
+
+6M. SRS22 - Self image / Appearance - sd
+All
+[1] 0.8323526
+L4
+[1] 0.6803219
+L5
+[1] 0.8723794
 
 
 
+1Y. SRS22 - Self image / Appearance - mean
+All
+[1] 3.532013
+L4
+[1] 3.818718
+L5
+[1] 3.442857
 
-SRS22 - Self image / Appearance - mean
+L4 vs L5 p-value:[1] 0.05463313
+
+
+1Y. SRS22 - Self image / Appearance - sd
+All
+[1] 0.7925686
+L4
+[1] 0.7421029
+L5
+[1] 0.8931226
+
+
+
+2Y. SRS22 - Self image / Appearance - mean
 All
 [1] 3.433385
 L4
@@ -2908,10 +3765,10 @@ L4
 L5
 [1] 3.461111
 
-L4 vs L5 p-value:[1] 0.1548127
+L4 vs L5 p-value:[1] 0.1454374
 
 
-SRS22 - Self image / Appearance - sd
+2Y. SRS22 - Self image / Appearance - sd
 All
 [1] 0.9315575
 L4
@@ -2919,12 +3776,9 @@ L4
 L5
 [1] 0.9156661
 
-L4 vs L5 p-value:[1] 0.1548127
 
 
-
-
-SRS22 - Self image / Appearance - mean
+5Y. SRS22 - Self image / Appearance - mean
 All
 [1] 3.357884
 L4
@@ -2932,10 +3786,10 @@ L4
 L5
 [1] 3.269355
 
-L4 vs L5 p-value:[1] 0.1548127
+L4 vs L5 p-value:[1] 0.1483662
 
 
-SRS22 - Self image / Appearance - sd
+5Y. SRS22 - Self image / Appearance - sd
 All
 [1] 0.9422712
 L4
@@ -2943,14 +3797,11 @@ L4
 L5
 [1] 0.9203874
 
-L4 vs L5 p-value:[1] 0.1548127
-
-
 
 
 SRS22 - Self image / Appearance tests all
-Preop vs 6w p-value
-3.083111e-68
+Preop vs 6m p-value
+1.036098e-57
 
 Preop vs 2y p-value
 5.696223e-48
@@ -2958,15 +3809,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 2.671698e-34
 
-6w vs 2y p-value
-1.902465e-82
+6m vs 2y p-value
+0.4441466
 
 2y vs 5y p-value
 0.3449467
 
 SRS22 - Self image / Appearance tests L4
-Preop vs 6w p-value
-2.404814e-12
+Preop vs 6m p-value
+6.275197e-09
 
 Preop vs 2y p-value
 1.439882e-08
@@ -2974,15 +3825,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 3.704997e-06
 
-6w vs 2y p-value
-2.913474e-14
+6m vs 2y p-value
+0.7320808
 
 2y vs 5y p-value
 0.4365176
 
 SRS22 - Self image / Appearance tests L5
-Preop vs 6w p-value
-7.242357e-07
+Preop vs 6m p-value
+1.377997e-12
 
 Preop vs 2y p-value
 1.651947e-07
@@ -2990,8 +3841,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 2.457011e-05
 
-6w vs 2y p-value
-6.369116e-09
+6m vs 2y p-value
+0.2092055
 
 2y vs 5y p-value
 0.3972415
@@ -3015,12 +3866,51 @@ L4
 L5
 [1] 0.8591405
 
-L4 vs L5 p-value:[1] 0.9285385
+
+
+6M. SRS22 - Mental health - mean
+All
+[1] 3.54041
+L4
+[1] 3.573684
+L5
+[1] 3.55625
+
+L4 vs L5 p-value:[1] 0.9320568
+
+
+6M. SRS22 - Mental health - sd
+All
+[1] 0.8480854
+L4
+[1] 0.8149562
+L5
+[1] 0.8765539
 
 
 
+1Y. SRS22 - Mental health - mean
+All
+[1] 3.592138
+L4
+[1] 3.75641
+L5
+[1] 3.505714
 
-SRS22 - Mental health - mean
+L4 vs L5 p-value:[1] 0.2197001
+
+
+1Y. SRS22 - Mental health - sd
+All
+[1] 0.8220451
+L4
+[1] 0.802232
+L5
+[1] 0.9251209
+
+
+
+2Y. SRS22 - Mental health - mean
 All
 [1] 3.497205
 L4
@@ -3028,10 +3918,10 @@ L4
 L5
 [1] 3.570833
 
-L4 vs L5 p-value:[1] 0.9285385
+L4 vs L5 p-value:[1] 0.7500067
 
 
-SRS22 - Mental health - sd
+2Y. SRS22 - Mental health - sd
 All
 [1] 0.9377551
 L4
@@ -3039,12 +3929,9 @@ L4
 L5
 [1] 0.8540973
 
-L4 vs L5 p-value:[1] 0.9285385
 
 
-
-
-SRS22 - Mental health - mean
+5Y. SRS22 - Mental health - mean
 All
 [1] 3.532365
 L4
@@ -3052,10 +3939,10 @@ L4
 L5
 [1] 3.432258
 
-L4 vs L5 p-value:[1] 0.9285385
+L4 vs L5 p-value:[1] 0.2864843
 
 
-SRS22 - Mental health - sd
+5Y. SRS22 - Mental health - sd
 All
 [1] 0.8906518
 L4
@@ -3063,14 +3950,11 @@ L4
 L5
 [1] 0.8344208
 
-L4 vs L5 p-value:[1] 0.9285385
-
-
 
 
 SRS22 - Mental health tests all
-Preop vs 6w p-value
-1.356575e-78
+Preop vs 6m p-value
+8.276809e-09
 
 Preop vs 2y p-value
 9.80005e-07
@@ -3078,15 +3962,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 3.57605e-07
 
-6w vs 2y p-value
-2.76458e-83
+6m vs 2y p-value
+0.5414079
 
 2y vs 5y p-value
 0.6506869
 
 SRS22 - Mental health tests L4
-Preop vs 6w p-value
-2.38231e-13
+Preop vs 6m p-value
+0.04483037
 
 Preop vs 2y p-value
 0.02128555
@@ -3094,15 +3978,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.02531553
 
-6w vs 2y p-value
-4.554173e-14
+6m vs 2y p-value
+0.7520899
 
 2y vs 5y p-value
 0.8667876
 
 SRS22 - Mental health tests L5
-Preop vs 6w p-value
-1.786788e-08
+Preop vs 6m p-value
+0.06643112
 
 Preop vs 2y p-value
 0.07894434
@@ -3110,8 +3994,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.2941027
 
-6w vs 2y p-value
-4.099766e-09
+6m vs 2y p-value
+0.9883327
 
 2y vs 5y p-value
 0.5049983
@@ -3135,12 +4019,51 @@ L4
 L5
 [1] 0.6454288
 
-L4 vs L5 p-value:[1] 0.09354685
+
+
+6M. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.423438
+L4
+[1] 3.479474
+L5
+[1] 3.373125
+
+L4 vs L5 p-value:[1] 0.5144035
+
+
+6M. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.6904808
+L4
+[1] 0.6596885
+L5
+[1] 0.6896303
 
 
 
+1Y. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.522893
+L4
+[1] 3.772821
+L5
+[1] 3.364286
 
-SRS22 - SRS Subtotal score - mean
+L4 vs L5 p-value:[1] 0.02219664
+
+
+1Y. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.7326649
+L4
+[1] 0.7236456
+L5
+[1] 0.7731117
+
+
+
+2Y. SRS22 - SRS Subtotal score - mean
 All
 [1] 3.473385
 L4
@@ -3148,10 +4071,10 @@ L4
 L5
 [1] 3.436667
 
-L4 vs L5 p-value:[1] 0.09354685
+L4 vs L5 p-value:[1] 0.111672
 
 
-SRS22 - SRS Subtotal score - sd
+2Y. SRS22 - SRS Subtotal score - sd
 All
 [1] 0.8491084
 L4
@@ -3159,12 +4082,9 @@ L4
 L5
 [1] 0.7790067
 
-L4 vs L5 p-value:[1] 0.09354685
 
 
-
-
-SRS22 - SRS Subtotal score - mean
+5Y. SRS22 - SRS Subtotal score - mean
 All
 [1] 3.414752
 L4
@@ -3172,10 +4092,10 @@ L4
 L5
 [1] 3.289032
 
-L4 vs L5 p-value:[1] 0.09354685
+L4 vs L5 p-value:[1] 0.1461649
 
 
-SRS22 - SRS Subtotal score - sd
+5Y. SRS22 - SRS Subtotal score - sd
 All
 [1] 0.8760138
 L4
@@ -3183,14 +4103,11 @@ L4
 L5
 [1] 0.7615526
 
-L4 vs L5 p-value:[1] 0.09354685
-
-
 
 
 SRS22 - SRS Subtotal score tests all
-Preop vs 6w p-value
-6.329863e-74
+Preop vs 6m p-value
+5.666437e-27
 
 Preop vs 2y p-value
 2.051315e-25
@@ -3198,15 +4115,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 1.769115e-17
 
-6w vs 2y p-value
-8.68412e-83
+6m vs 2y p-value
+0.4145993
 
 2y vs 5y p-value
 0.4257375
 
 SRS22 - SRS Subtotal score tests L4
-Preop vs 6w p-value
-5.883295e-13
+Preop vs 6m p-value
+0.002451528
 
 Preop vs 2y p-value
 3.60342e-05
@@ -3214,15 +4131,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.001881916
 
-6w vs 2y p-value
-3.783685e-14
+6m vs 2y p-value
+0.1367817
 
 2y vs 5y p-value
 0.4502338
 
 SRS22 - SRS Subtotal score tests L5
-Preop vs 6w p-value
-1.508821e-07
+Preop vs 6m p-value
+2.169867e-06
 
 Preop vs 2y p-value
 4.559858e-05
@@ -3230,8 +4147,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.001364516
 
-6w vs 2y p-value
-7.220159e-09
+6m vs 2y p-value
+0.7999314
 
 2y vs 5y p-value
 0.4366109
@@ -3255,12 +4172,51 @@ L4
 L5
 [1] 8.592285
 
-L4 vs L5 p-value:[1] 0.008001579
+
+
+6M. SF36 - PCS - mean
+All
+[1] 40.33466
+L4
+[1] 42.96757
+L5
+[1] 38.68706
+
+L4 vs L5 p-value:[1] 0.02049346
+
+
+6M. SF36 - PCS - sd
+All
+[1] 9.018023
+L4
+[1] 7.653854
+L5
+[1] 7.541766
 
 
 
+1Y. SF36 - PCS - mean
+All
+[1] 41.90603
+L4
+[1] 46.17949
+L5
+[1] 39.66743
 
-SF36 - PCS - mean
+L4 vs L5 p-value:[1] 0.005079299
+
+
+1Y. SF36 - PCS - sd
+All
+[1] 9.910487
+L4
+[1] 9.565238
+L5
+[1] 9.764051
+
+
+
+2Y. SF36 - PCS - mean
 All
 [1] 41.89387
 L4
@@ -3268,10 +4224,10 @@ L4
 L5
 [1] 41.13658
 
-L4 vs L5 p-value:[1] 0.008001579
+L4 vs L5 p-value:[1] 0.05009991
 
 
-SF36 - PCS - sd
+2Y. SF36 - PCS - sd
 All
 [1] 10.37739
 L4
@@ -3279,12 +4235,9 @@ L4
 L5
 [1] 8.765236
 
-L4 vs L5 p-value:[1] 0.008001579
 
 
-
-
-SF36 - PCS - mean
+5Y. SF36 - PCS - mean
 All
 [1] 41.28809
 L4
@@ -3292,10 +4245,10 @@ L4
 L5
 [1] 40.62467
 
-L4 vs L5 p-value:[1] 0.008001579
+L4 vs L5 p-value:[1] 0.185434
 
 
-SF36 - PCS - sd
+5Y. SF36 - PCS - sd
 All
 [1] 11.27507
 L4
@@ -3303,14 +4256,11 @@ L4
 L5
 [1] 8.381923
 
-L4 vs L5 p-value:[1] 0.008001579
-
-
 
 
 SF36 - PCS tests all
-Preop vs 6w p-value
-3.757884e-248
+Preop vs 6m p-value
+7.448317e-08
 
 Preop vs 2y p-value
 3.406167e-12
@@ -3318,15 +4268,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 7.205896e-08
 
-6w vs 2y p-value
-6.669299e-240
+6m vs 2y p-value
+0.04488095
 
 2y vs 5y p-value
 0.5181065
 
 SF36 - PCS tests L4
-Preop vs 6w p-value
-3.009171e-34
+Preop vs 6m p-value
+0.154334
 
 Preop vs 2y p-value
 0.01781341
@@ -3334,15 +4284,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.1206343
 
-6w vs 2y p-value
-9.874799e-34
+6m vs 2y p-value
+0.2403903
 
 2y vs 5y p-value
 0.417447
 
 SF36 - PCS tests L5
-Preop vs 6w p-value
-8.115478e-30
+Preop vs 6m p-value
+4.836783e-05
 
 Preop vs 2y p-value
 0.002306935
@@ -3350,8 +4300,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.00697263
 
-6w vs 2y p-value
-1.266673e-32
+6m vs 2y p-value
+0.3381004
 
 2y vs 5y p-value
 0.8072016
@@ -3375,12 +4325,51 @@ L4
 L5
 [1] 12.21496
 
-L4 vs L5 p-value:[1] 0.2671804
+
+
+6M. SF36 - MCS - mean
+All
+[1] 46.86537
+L4
+[1] 48.23703
+L5
+[1] 47.58147
+
+L4 vs L5 p-value:[1] 0.8190889
+
+
+6M. SF36 - MCS - sd
+All
+[1] 11.90581
+L4
+[1] 11.54626
+L5
+[1] 12.43532
 
 
 
+1Y. SF36 - MCS - mean
+All
+[1] 47.37006
+L4
+[1] 50.80026
+L5
+[1] 47.00257
 
-SF36 - MCS - mean
+L4 vs L5 p-value:[1] 0.1710523
+
+
+1Y. SF36 - MCS - sd
+All
+[1] 11.50197
+L4
+[1] 9.864652
+L5
+[1] 13.26289
+
+
+
+2Y. SF36 - MCS - mean
 All
 [1] 47.01148
 L4
@@ -3388,10 +4377,10 @@ L4
 L5
 [1] 49.08342
 
-L4 vs L5 p-value:[1] 0.2671804
+L4 vs L5 p-value:[1] 0.905938
 
 
-SF36 - MCS - sd
+2Y. SF36 - MCS - sd
 All
 [1] 12.04287
 L4
@@ -3399,12 +4388,9 @@ L4
 L5
 [1] 12.1099
 
-L4 vs L5 p-value:[1] 0.2671804
 
 
-
-
-SF36 - MCS - mean
+5Y. SF36 - MCS - mean
 All
 [1] 47.45658
 L4
@@ -3412,10 +4398,10 @@ L4
 L5
 [1] 47.63367
 
-L4 vs L5 p-value:[1] 0.2671804
+L4 vs L5 p-value:[1] 0.3406633
 
 
-SF36 - MCS - sd
+5Y. SF36 - MCS - sd
 All
 [1] 11.34882
 L4
@@ -3423,14 +4409,11 @@ L4
 L5
 [1] 11.49529
 
-L4 vs L5 p-value:[1] 0.2671804
-
-
 
 
 SF36 - MCS tests all
-Preop vs 6w p-value
-5.338678e-225
+Preop vs 6m p-value
+1.116871e-05
 
 Preop vs 2y p-value
 5.388458e-06
@@ -3438,15 +4421,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 1.783548e-06
 
-6w vs 2y p-value
-4.167323e-226
+6m vs 2y p-value
+0.8787294
 
 2y vs 5y p-value
 0.6565847
 
 SF36 - MCS tests L4
-Preop vs 6w p-value
-3.592648e-28
+Preop vs 6m p-value
+0.0188427
 
 Preop vs 2y p-value
 0.003017321
@@ -3454,15 +4437,15 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.001627255
 
-6w vs 2y p-value
-1.64157e-34
+6m vs 2y p-value
+0.646381
 
 2y vs 5y p-value
 0.7112284
 
 SF36 - MCS tests L5
-Preop vs 6w p-value
-4.30188e-26
+Preop vs 6m p-value
+0.229428
 
 Preop vs 2y p-value
 0.1391076
@@ -3470,8 +4453,8 @@ Preop vs 2y p-value
 Preop vs 5y p-value
 0.3491436
 
-6w vs 2y p-value
-7.651389e-28
+6m vs 2y p-value
+0.757567
 
 2y vs 5y p-value
 0.6157796</code></pre>
@@ -3497,9 +4480,6 @@ L4
 L5
 [1] 1021.535
 
-L4 vs L5 p-value:[1] 0.2336043
-
-
 
 
 Total surgical time st1+st2+st3 - mean
@@ -3521,9 +4501,6 @@ L4
 L5
 [1] 210.2413
 
-L4 vs L5 p-value:[1] 0.03805626
-
-
 
 
 Number of Posterior Instrumented Levels - mean
@@ -3544,9 +4521,6 @@ L4
 [1] 3.961194
 L5
 [1] 4.551549
-
-L4 vs L5 p-value:[1] 0.4527274
-
 
 
 
@@ -3637,9 +4611,6 @@ L4
 L5
 [1] 1.385777
 
-L4 vs L5 p-value:[1] 0.004462937
-
-
 
 
 Decompression - table
@@ -3656,9 +4627,6 @@ variable
  No Yes 
  26  13 
 
-L4 vs L5 p-value:[1] 0.3402745
-
-
 Decompression - proportion
 All
 variable
@@ -3672,9 +4640,6 @@ L5
 variable
        No       Yes 
 0.6666667 0.3333333 
-
-L4 vs L5 p-value:[1] 0.3402745
-
 
 
 
@@ -3692,9 +4657,6 @@ variable
  No Yes 
  19  20 
 
-L4 vs L5 p-value:[1] 0.01990904
-
-
 Interbody Fusion - proportion
 All
 variable
@@ -3708,9 +4670,6 @@ L5
 variable
        No       Yes 
 0.4871795 0.5128205 
-
-L4 vs L5 p-value:[1] 0.01990904
-
 
 
 
@@ -3728,9 +4687,6 @@ variable
  No Yes 
  25  14 
 
-L4 vs L5 p-value:[1] 0.5296241
-
-
 Osteotomy - proportion
 All
 variable
@@ -3744,9 +4700,6 @@ L5
 variable
        No       Yes 
 0.6410256 0.3589744 
-
-L4 vs L5 p-value:[1] 0.5296241
-
 
 
 
@@ -3764,9 +4717,6 @@ variable
  No Yes 
  33   6 
 
-L4 vs L5 p-value:[1] 0.8948038
-
-
 3CO - proportion
 All
 variable
@@ -3779,54 +4729,40 @@ variable
 L5
 variable
        No       Yes 
-0.8461538 0.1538462 
-
-L4 vs L5 p-value:[1] 0.8948038</code></pre>
+0.8461538 0.1538462 </code></pre>
 </div>
-<div id="complications" class="section level3">
-<h3>Complications</h3>
-<p>Number of reinterventions: 293</p>
-<pre><code>   Complication Impact   N
-1:  Minor Complication 296
-2:  Major Complication 343
-3:       Adverse Event   9
-4:                &lt;NA&gt;   1</code></pre>
-<pre><code>          Category of the complication   N
-1:            Mechanical complications 302
-2:                 Other complications 145
-3: Peripheral neurologic complications  61
-4:                          Iatrogenic  75
-5:            Infectious complications  41
-6:    Central neurologic complications   2
-7:                                Pain  23</code></pre>
+<div id="reinterventions" class="section level1">
+<h1>Reinterventions</h1>
+<pre><code>   group reiqs patients total
+1:   all   293      112   348
+2:    L4     9        7    42
+3:    L5    44       14    39</code></pre>
+<pre><code>  p_val_1_total p_val_2_total    p_val_1_2
+1  1.292592e-74  2.753309e-46 1.220851e-06</code></pre>
 </div>
-<div id="complications-l4" class="section level3">
-<h3>Complications L4</h3>
-<p>Number of reinterventions: 9</p>
-<pre><code>   Complication Impact  N
-1:  Major Complication 14
-2:  Minor Complication 24</code></pre>
-<pre><code>          Category of the complication  N
-1:            Infectious complications  3
-2: Peripheral neurologic complications  3
-3:            Mechanical complications 13
-4:                 Other complications  9
-5:                          Iatrogenic 10</code></pre>
+<div id="impacts" class="section level1">
+<h1>Impacts</h1>
+<pre><code>   Complication Impact all_num all_patients L4_num L4_patients L5_num
+1:  Major Complication     343          124     14           7     53
+2:  Minor Complication     296          171     24          16     28
+   L5_patients total_all L4 L5 p_val_1_total p_val_2_total    p_val_1_2
+1:          16       348 42 39  3.436610e-83  4.261601e-53 1.772868e-06
+2:          19       348 42 39  9.008848e-61  1.257768e-57 6.778086e-01</code></pre>
 </div>
-<div id="complications-l5" class="section level3">
-<h3>Complications L5</h3>
-<p>Number of reinterventions: 44</p>
-<pre><code>   Complication Impact  N
-1:  Major Complication 53
-2:  Minor Complication 28
-3:       Adverse Event  2</code></pre>
-<pre><code>          Category of the complication  N
-1:            Infectious complications 11
-2:                          Iatrogenic 13
-3:            Mechanical complications 31
-4:                 Other complications 17
-5: Peripheral neurologic complications  7
-6:                                Pain  4</code></pre>
+<div id="categories" class="section level1">
+<h1>Categories</h1>
+<pre><code>          Category of the complication all_num all_patients L4_num L4_patients
+1:                          Iatrogenic      75           64     10           8
+2:            Infectious complications      41           32      3           3
+3:            Mechanical complications     302          138     13           8
+4:                 Other complications     145           87      9           5
+5: Peripheral neurologic complications      61           49      3           3
+   L5_num L5_patients total_all L4 L5 p_val_1_total p_val_2_total   p_val_1_2
+1:     13          11       348 42 39  1.858275e-13  9.326266e-12 0.677639484
+2:     11           7       348 42 39  1.618332e-09  3.588792e-05 0.057373047
+3:     31          14       348 42 39  1.175771e-72  5.749194e-57 0.009559879
+4:     17          14       348 42 39  9.869751e-33  1.661487e-26 0.168637544
+5:      7           6       348 42 39  4.742842e-15  7.387403e-12 0.343750000</code></pre>
 </div>
 
 

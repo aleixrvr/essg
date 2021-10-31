@@ -1,0 +1,70 @@
+---
+title: "Loss of alignment"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(DiagrammeR)
+library(lme4)
+library(lmerTest)
+
+source('patient_selection.R')
+```
+
+```{r, message=FALSE}
+data_ <- get_data()
+factors_loss <- read_yaml('factors_loss.yml')
+```
+Initial Patients: `r data_[, .N]`
+
+*Selection criteria*
+```{r echo=TRUE, include=TRUE}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_ %<>% .[post_intr_fusion == 'Iliac']
+
+non_stable <- readLines('non_stable_degree.txt')
+greater_than_10 <- data_[abs(diff_lordosis) >= 10, `Code of the patient`]
+greater_than_10 <- greater_than_10 %¡in% non_stable
+data_ %<>% .[!(`Code of the patient` %in% greater_than_10)]
+
+data_ %<>% .[complications_bf_6m=='No']
+```
+
+
+*Increment = Future - Baseline*
+
+<!-- ### Estability Increment Quality of Life -->
+
+<!-- ```{r include=TRUE} -->
+<!-- demo <- c( -->
+<!--   factors_loss$demographic_0, -->
+<!--   factors_loss$demographic_1, -->
+<!--   factors_loss$surgical -->
+<!-- ) -->
+<!-- calc_estability(data_, factors_loss$qualitylife, demo) -->
+<!-- ``` -->
+
+### Estability Increment Radiology
+
+```{r include=TRUE}
+demo <- c(
+  factors_loss$demographic_0,
+  factors_loss$demographic_1,
+  factors_loss$surgical
+)
+calc_estability(data_, factors_loss$radiologic, demo)
+```
+

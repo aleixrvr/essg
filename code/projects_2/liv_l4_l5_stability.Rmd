@@ -1,0 +1,78 @@
+---
+title: "LIV L4/L5 stability"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('patient_selection.R')
+factors_loss <- read_yaml('factors_loss.yml')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data()
+```
+
+
+```{r}
+treatment_ <- 'type'
+treatment_vals <- c('L4', 'L5')
+```
+
+*Selection criteria*
+```{r include=TRUE, echo=TRUE}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'L4', type := 'L4']
+data_[post_intr_fusion == 'L5', type := 'L5']
+
+data_ %<>% .[!is.na(get(treatment_))]
+```
+
+Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[!is.na(type)]
+```
+
+
+*Increment = Future - Baseline*
+
+<!-- ### Estability Increment Quality of Life -->
+
+<!-- ```{r include=TRUE} -->
+<!-- demo <- c( -->
+<!--   factors_loss$demographic_0, -->
+<!--   factors_loss$demographic_1, -->
+<!--   factors_loss$surgical -->
+<!-- ) -->
+<!-- calc_estability(data_, factors_loss$qualitylife, demo,  -->
+<!--   treatment = treatment_) -->
+<!-- ``` -->
+
+### Estability Increment Radiology
+
+```{r include=TRUE}
+demo <- c(
+  factors_loss$demographic_0,
+  factors_loss$demographic_1,
+  factors_loss$surgical
+)
+calc_estability(data_, factors_loss$radiologic, demo,
+   treatment = treatment_)
+```
+

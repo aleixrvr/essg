@@ -1,0 +1,110 @@
+---
+title: "Loss of alignment bf 6m"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(DiagrammeR)
+library(lme4)
+library(lmerTest)
+
+source('patient_selection.R')
+factors_loss <- read_yaml('factors_loss.yml')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+**Selection criteria**
+```{r echo=TRUE, include=TRUE}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_ %<>% .[post_intr_fusion == 'Iliac']
+
+non_stable <- readLines('non_stable_degree.txt')
+greater_than_10 <- data_[abs(diff_lordosis) >= 10, `Code of the patient`]
+greater_than_10 <- greater_than_10 %¡in% non_stable
+data_ %<>% .[!(`Code of the patient` %in% greater_than_10)]
+```
+
+
+```{r echo=FALSE}
+grViz('
+digraph rmarkdown {
+
+  graph [
+    rankdir = UD
+  ]
+  
+  node [
+    shape=circle,
+    fixedsize=true,
+    width=1.2,
+    style=filled,
+    fillcolor=aquamarine2,
+    fontsize=15
+    ]
+
+ 
+  D[label="Demographic"]
+  P[label="Individual\nTraits", style="dashed"]
+  R[label="Radiologic\n(Deformity)"]
+  H[label="Quality of\nLife"]
+  C[label="PKJ/PJF\nDJK/DJF"]
+  
+  D -> R 
+  P -> R
+  P -> H
+  D -> H
+  H -> C
+  D -> C
+  R -> C
+  P -> C
+  
+  
+  {rank=same; P;D}
+  {rank=same; R;H}
+  {rank=same; C}
+}                  
+')
+```
+
+```{r}
+print(factors_loss)
+```
+
+Numer of patients with complications (pjf/pjk/djk/djf) before 6m
+```{r  include=TRUE}
+data_[, .N, complications_bf_6m]
+```
+
+
+"- j -" stands for: pjk/pjf/djk/djf
+
+# Demographic Factors -j- before 6m 
+
+```{r include=TRUE}
+cols_ <- factors_loss$demographic_0
+data_ %>% 
+  .[, .SD, .SDcols = c('complications_bf_6m', cols_)] %>% 
+  .[, complications_bf_6m:=ifelse(complications_bf_6m=='Yes', 1, 0)] %>% 
+  glm(complications_bf_6m~., ., family='binomial') ->
+  factor_model_demo
+
+summary(factor_model_demo)
+```
+
+

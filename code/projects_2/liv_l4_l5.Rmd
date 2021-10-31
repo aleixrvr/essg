@@ -1,6 +1,8 @@
 ---
 title: "LIV L4/L5"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -28,6 +30,7 @@ With Posterior Instrumented Fusion: `r data_[, .N]`
 
 
 
+
 ```{r include=TRUE}
 data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
   sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
@@ -39,9 +42,31 @@ data_[post_intr_fusion == 'L5', type := 'L5']
 data_[, .N, type]
 ```
 
+<!-- With 5Y FU -->
+<!-- ```{r include=TRUE} -->
+<!-- data_ %<>% .[followup_5y==TRUE] -->
+<!-- data_[, .N, type] -->
+<!-- ``` -->
+
+
+Patients who end up intrumented until pelvis
+```{r include=TRUE, echo=TRUE}
+revision <- read_excel(xls_path, sheet="Revision surgeries") %>% 
+  as.data.table()
+
+revision[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
+
+data_[`Code of the patient` %in% reint_iliac, `Code of the patient` %>% uniqueN, type]
+```
+
+
 
 ```{r}
-treatment_ <- 'post_intr_fusion'
+treatment_ <- 'type'
 treatment_vals <- c('L4', 'L5')
 ```
 
@@ -75,11 +100,13 @@ for(var_ in analysis_vars$demographics ){
     print(res_2[[res_name]])
     cat('\n')
     
-    p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
-    if(!is.null(p.val)){
-      cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
-      print(p.val)
-      cat('\n\n')
+    if( res_name == 'mean'){
+      p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
+      if(!is.null(p.val)){
+        cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
+        print(p.val)
+        cat('\n\n')
+      }
     }
   }
   cat('\n\n')
@@ -91,15 +118,17 @@ for(var_ in analysis_vars$demographics ){
 ```{r echo=FALSE, comment="", include=TRUE}
 for(var_ in analysis_vars$radiology ){
   var_6w <- "6W. {var_}" %>% f
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
   var_2y <- "2Y. {var_}" %>% f
   var_5y <- "5Y. {var_}" %>% f
-  vars_years <- c(var_, var_6w, var_2y, var_5y)
+  vars_years <- c(var_, var_6w, var_6m, var_1y, var_2y, var_5y)
   for(var_y in vars_years){
     res <- stats_fun(data_[[var_y]])
     res_1 <- stats_fun(data_1[[var_y]])
     res_2 <- stats_fun(data_2[[var_y]])
     for( res_name in names(res) ){
-      cat(var_)
+      cat(var_y)
       cat(' - ')
       cat(res_name)
       cat('\n')
@@ -116,11 +145,13 @@ for(var_ in analysis_vars$radiology ){
       print(res_2[[res_name]])
       cat('\n')
       
-      p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
-      if(!is.null(p.val)){
-        cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
-        print(p.val)
-        cat('\n\n')
+      if( res_name == 'mean'){
+        p.val <- calc_p_vals(data_, var_y, treatment_, treatment_vals)
+        if(!is.null(p.val)){
+          cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
+          print(p.val)
+          cat('\n\n')
+        }
       }
     }
     cat('\n\n')
@@ -146,6 +177,9 @@ for(var_ in analysis_vars$radiology ){
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
+  cat('\n\n')
   
   cat('{var_} tests {treatment_vals[1]}\n' %>% f)
   val_ <- data_1[[var_]]
@@ -166,6 +200,9 @@ for(var_ in analysis_vars$radiology ){
   cat('\n\n')
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
   cat('\n\n')
   
   cat('{var_} tests {treatment_vals[2]}\n' %>% f)
@@ -188,6 +225,9 @@ for(var_ in analysis_vars$radiology ){
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
+  cat('\n\n')
 }
 ```
 
@@ -196,15 +236,16 @@ for(var_ in analysis_vars$radiology ){
 ```{r echo=FALSE, comment="", include=TRUE}
 for(var_ in analysis_vars$quality ){
   var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
   var_2y <- "2Y. {var_}" %>% f
   var_5y <- "5Y. {var_}" %>% f
-  vars_years <- c(var_, var_2y, var_5y)
+  vars_years <- c(var_, var_6m, var_1y, var_2y, var_5y)
   for(var_y in vars_years){
     res <- stats_fun(data_[[var_y]])
     res_1 <- stats_fun(data_1[[var_y]])
     res_2 <- stats_fun(data_2[[var_y]])
     for( res_name in names(res) ){
-      cat(var_)
+      cat(var_y)
       cat(' - ')
       cat(res_name)
       cat('\n')
@@ -221,11 +262,13 @@ for(var_ in analysis_vars$quality ){
       print(res_2[[res_name]])
       cat('\n')
       
-      p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
-      if(!is.null(p.val)){
-        cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
-        print(p.val)
-        cat('\n\n')
+      if( res_name == 'mean'){
+        p.val <- calc_p_vals(data_, var_y, treatment_, treatment_vals)
+        if(!is.null(p.val)){
+          cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
+          print(p.val)
+          cat('\n\n')
+        }
       }
     }
     cat('\n\n')
@@ -233,11 +276,11 @@ for(var_ in analysis_vars$quality ){
   
   cat('{var_} tests all\n' %>% f)
   val_ <- data_[[var_]]
-  val_6w <- data_[[var_6w]]
+  val_6m <- data_[[var_6m]]
   val_2y <- data_[[var_2y]]
   val_5y <- data_[[var_5y]]
-  cat('\nPreop vs 6w p-value\n')
-  cat(t.test(val_6w , val_)$p.val)
+  cat('\nPreop vs 6m p-value\n')
+  cat(t.test(val_6m , val_)$p.val)
   cat('\n\n')
   cat('Preop vs 2y p-value\n')
   cat(t.test(val_2y, val_)$p.val)
@@ -245,20 +288,24 @@ for(var_ in analysis_vars$quality ){
   cat('Preop vs 5y p-value\n')
   cat(t.test(val_5y, val_)$p.val)
   cat('\n\n')
-  cat('6w vs 2y p-value\n')
-  cat(t.test(val_2y, val_6w)$p.val)
+  cat('6m vs 2y p-value\n')
+  cat(t.test(val_2y, val_6m)$p.val)
   cat('\n\n')
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
+  cat('\n\n')
+
   
   cat('{var_} tests {treatment_vals[1]}\n' %>% f)
   val_ <- data_1[[var_]]
-  val_6w <- data_1[[var_6w]]
+  val_6m <- data_1[[var_6m]]
   val_2y <- data_1[[var_2y]]
   val_5y <- data_1[[var_5y]]
-  cat('\nPreop vs 6w p-value\n')
-  cat(t.test(val_6w , val_)$p.val)
+  cat('\nPreop vs 6m p-value\n')
+  cat(t.test(val_6m , val_)$p.val)
   cat('\n\n')
   cat('Preop vs 2y p-value\n')
   cat(t.test(val_2y, val_)$p.val)
@@ -266,11 +313,14 @@ for(var_ in analysis_vars$quality ){
   cat('Preop vs 5y p-value\n')
   cat(t.test(val_5y, val_)$p.val)
   cat('\n\n')
-  cat('6w vs 2y p-value\n')
-  cat(t.test(val_2y, val_6w)$p.val)
+  cat('6m vs 2y p-value\n')
+  cat(t.test(val_2y, val_6m)$p.val)
   cat('\n\n')
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
   cat('\n\n')
   
   cat('{var_} tests {treatment_vals[2]}\n' %>% f)
@@ -278,8 +328,8 @@ for(var_ in analysis_vars$quality ){
   val_6w <- data_2[[var_6w]]
   val_2y <- data_2[[var_2y]]
   val_5y <- data_2[[var_5y]]
-  cat('\nPreop vs 6w p-value\n')
-  cat(t.test(val_6w , val_)$p.val)
+  cat('\nPreop vs 6m p-value\n')
+  cat(t.test(val_6m , val_)$p.val)
   cat('\n\n')
   cat('Preop vs 2y p-value\n')
   cat(t.test(val_2y, val_)$p.val)
@@ -287,11 +337,14 @@ for(var_ in analysis_vars$quality ){
   cat('Preop vs 5y p-value\n')
   cat(t.test(val_5y, val_)$p.val)
   cat('\n\n')
-  cat('6w vs 2y p-value\n')
-  cat(t.test(val_2y, val_6w)$p.val)
+  cat('6m vs 2y p-value\n')
+  cat(t.test(val_2y, val_6m)$p.val)
   cat('\n\n')
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
   cat('\n\n')
 }
 ```
@@ -321,11 +374,13 @@ for(var_ in analysis_vars$surgery ){
     print(res_2[[res_name]])
     cat('\n')
     
-    p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
-    if(!is.null(p.val)){
-      cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
-      print(p.val)
-      cat('\n\n')
+    if( res_name == 'mean'){
+      p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals)
+      if(!is.null(p.val)){
+        cat('{treatment_vals[1]} vs {treatment_vals[2]} p-value:\n' %>% f)
+        print(p.val)
+        cat('\n\n')
+      }
     }
   }
   cat('\n\n')
@@ -333,68 +388,29 @@ for(var_ in analysis_vars$surgery ){
 ```
 
 
-### Complications 
+# Reinterventions
+
 ```{r}
-selected_patients <- data_[, `Code of the patient` %>% unique]
-
-complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
-  as.data.table() %>% 
-  .[`Code of the patient` %chin% selected_patients]
-
-number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
-```
-
-Number of reinterventions: `r number_reiqs`
-
-```{r include=TRUE}
-complication_data[, .N, `Complication Impact`]
+res <- calc_complications(data_, treatment_vals)
 ```
 
 ```{r include=TRUE}
-complication_data[, .N, `Category of the complication`]
-```
-
-### Complications `r treatment_vals[1]`
-```{r}
-selected_patients <- data_[get(treatment_) == treatment_vals[1], `Code of the patient` %>% unique]
-
-complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
-  as.data.table() %>% 
-  .[`Code of the patient` %chin% selected_patients]
-
-number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
-```
-
-Number of reinterventions: `r number_reiqs`
-
-```{r include=TRUE}
-complication_data[, .N, `Complication Impact`]
+res$number_reiqs
 ```
 
 ```{r include=TRUE}
-complication_data[, .N, `Category of the complication`]
+res$p_vals_reiqs
 ```
 
-### Complications `r treatment_vals[2]`
-```{r}
-selected_patients <- data_[get(treatment_) == treatment_vals[2], `Code of the patient` %>% unique]
-
-complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
-  as.data.table() %>% 
-  .[`Code of the patient` %chin% selected_patients]
-
-number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
-```
-
-Number of reinterventions: `r number_reiqs`
+# Impacts
 
 ```{r include=TRUE}
-complication_data[, .N, `Complication Impact`]
+res$impacts
 ```
+
+# Categories
 
 ```{r include=TRUE}
-complication_data[, .N, `Category of the complication`]
+res$categories
 ```
-
-
 

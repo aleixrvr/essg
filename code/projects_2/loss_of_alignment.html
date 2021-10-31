@@ -355,1061 +355,1858 @@ pre code {
 <p>Initial Patients: 372</p>
 <p>With Posterior Instrumented Fusion: 348</p>
 <p>Posterior Instrumental Fusion is Iliac: 134</p>
-<p>Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): 87</p>
-<p>Without complications (PJK, PJF, DJK, DJF) before 6 months after surgery: 80</p>
+<p>Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): 112</p>
+<p>Without complications (PJK, PJF, DJK, DJF) before 6 months after surgery: 98</p>
+<!-- ```{r} -->
+<!-- data_ %<>% .[followup_5y==TRUE] -->
+<!-- ``` -->
+<!-- With 5Y FU: 98 -->
 <div id="demographics" class="section level3">
 <h3>Demographics</h3>
 <pre><code>Age
-[1] &quot;mean&quot;
-[1] 62.875
-[1] &quot;sd&quot;
-[1] 9.975127
+Age - mean
+All
+[1] 62.63265
+Age - sd
+All
+[1] 10.01997
 
 
 Gender
-[1] &quot;table&quot;
+Gender - table
+All
 variable
 Female   Male 
-    68     12 
-[1] &quot;proportion&quot;
+    84     14 
+Gender - proportion
+All
 variable
-Female   Male 
-  0.85   0.15 
+   Female      Male 
+0.8571429 0.1428571 
 
 
 Prior Spine Surgery
-[1] &quot;table&quot;
+Prior Spine Surgery - table
+All
 variable
  No Yes 
- 45  35 
-[1] &quot;proportion&quot;
+ 58  40 
+Prior Spine Surgery - proportion
+All
 variable
-    No    Yes 
-0.5625 0.4375 
+       No       Yes 
+0.5918367 0.4081633 
 
 
 Height (cm)_First Visit
-[1] &quot;mean&quot;
-[1] 160.7342
-[1] &quot;sd&quot;
-[1] 8.777461
+Height (cm)_First Visit - mean
+All
+[1] 161.1753
+Height (cm)_First Visit - sd
+All
+[1] 9.005797
 
 
 Weight (kgs)_First Visit
-[1] &quot;mean&quot;
-[1] 65.62025
-[1] &quot;sd&quot;
-[1] 11.60604
+Weight (kgs)_First Visit - mean
+All
+[1] 66.08247
+Weight (kgs)_First Visit - sd
+All
+[1] 12.22163
 
 
 BMI_First Visit
-[1] &quot;mean&quot;
-[1] 25.34684
-[1] &quot;sd&quot;
-[1] 3.580376
+BMI_First Visit - mean
+All
+[1] 25.37825
+BMI_First Visit - sd
+All
+[1] 3.691012
 
 
 ASA classification
-[1] &quot;table&quot;
+ASA classification - table
+All
 variable
  1  2  3 
-14 58  8 
-[1] &quot;proportion&quot;
+18 69 11 
+ASA classification - proportion
+All
 variable
-    1     2     3 
-0.175 0.725 0.100 
+        1         2         3 
+0.1836735 0.7040816 0.1122449 
 
 
 Tobacco use_First Visit
-[1] &quot;table&quot;
+Tobacco use_First Visit - table
+All
 variable
  Current       Ex Non-User 
-      16       19       45 
-[1] &quot;proportion&quot;
+      20       22       56 
+Tobacco use_First Visit - proportion
+All
 variable
- Current       Ex Non-User 
-  0.2000   0.2375   0.5625 
+  Current        Ex  Non-User 
+0.2040816 0.2244898 0.5714286 
 
 
 ESSG Diagnosis
-[1] &quot;table&quot;
+ESSG Diagnosis - table
+All
 variable
               Congenital             Degenerative              Failed-back 
-                       3                       35                        9 
+                       3                       47                        9 
               Idiopathic            Neuromuscular Other: spondylolisthesis 
-                      26                        2                        1 
+                      31                        3                        1 
           Post-traumatic                Syndromic 
                        3                        1 
-[1] &quot;proportion&quot;
+ESSG Diagnosis - proportion
+All
 variable
               Congenital             Degenerative              Failed-back 
-                  0.0375                   0.4375                   0.1125 
+              0.03061224               0.47959184               0.09183673 
               Idiopathic            Neuromuscular Other: spondylolisthesis 
-                  0.3250                   0.0250                   0.0125 
+              0.31632653               0.03061224               0.01020408 
           Post-traumatic                Syndromic 
-                  0.0375                   0.0125 </code></pre>
+              0.03061224               0.01020408 </code></pre>
 </div>
 <div id="radiology" class="section level3">
 <h3>Radiology</h3>
 <pre><code>Static Major curve Cobb angle
-[1] &quot;mean&quot;
-[1] 41.01622
-[1] &quot;sd&quot;
-[1] 22.29244
+Static Major curve Cobb angle - mean
+All
+[1] 41.14804
+Static Major curve Cobb angle - sd
+All
+[1] 22.01958
 
 
 6W. Static Major curve Cobb angle
-[1] &quot;mean&quot;
-[1] 22.72116
-[1] &quot;sd&quot;
-[1] 16.35012
+6W. Static Major curve Cobb angle - mean
+All
+[1] 22.46103
+6W. Static Major curve Cobb angle - sd
+All
+[1] 15.81603
+
+
+6M. Static Major curve Cobb angle
+6M. Static Major curve Cobb angle - mean
+All
+[1] 21.58412
+6M. Static Major curve Cobb angle - sd
+All
+[1] 17.16257
+
+
+1Y. Static Major curve Cobb angle
+1Y. Static Major curve Cobb angle - mean
+All
+[1] 19.70506
+1Y. Static Major curve Cobb angle - sd
+All
+[1] 15.82992
 
 
 2Y. Static Major curve Cobb angle
-[1] &quot;mean&quot;
-[1] 18.05118
-[1] &quot;sd&quot;
-[1] 14.8381
+2Y. Static Major curve Cobb angle - mean
+All
+[1] 18.3164
+2Y. Static Major curve Cobb angle - sd
+All
+[1] 14.48838
 
 
 5Y. Static Major curve Cobb angle
-[1] &quot;mean&quot;
-[1] 23.90282
-[1] &quot;sd&quot;
-[1] 16.0834
+5Y. Static Major curve Cobb angle - mean
+All
+[1] 22.79204
+5Y. Static Major curve Cobb angle - sd
+All
+[1] 15.84268
 
 
 Static Major curve Cobb angle tests
 Preop vs 6w p-value
-1.056068e-07
+7.055818e-10
 
 Preop vs 2y p-value
-3.014065e-11
+6.790356e-14
 
 Preop vs 5y p-value
-8.845539e-06
+8.196997e-08
 
 6w vs 2y p-value
-0.08221105
+0.07401691
 
 2y vs 5y p-value
-0.06648739
+0.1070358
 
 Coronal Balance (C7PL to CSVL)
-[1] &quot;mean&quot;
-[1] 28.93513
-[1] &quot;sd&quot;
-[1] 25.04973
+Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 29.70063
+Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 25.43232
 
 
 6W. Coronal Balance (C7PL to CSVL)
-[1] &quot;mean&quot;
-[1] 20.68356
-[1] &quot;sd&quot;
-[1] 15.94582
+6W. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 20.808
+6W. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 15.55918
+
+
+6M. Coronal Balance (C7PL to CSVL)
+6M. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 21.51627
+6M. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 17.05537
+
+
+1Y. Coronal Balance (C7PL to CSVL)
+1Y. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 21.94195
+1Y. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 16.94412
 
 
 2Y. Coronal Balance (C7PL to CSVL)
-[1] &quot;mean&quot;
-[1] 22.68582
-[1] &quot;sd&quot;
-[1] 19.4235
+2Y. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 22.1681
+2Y. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 18.48451
 
 
 5Y. Coronal Balance (C7PL to CSVL)
-[1] &quot;mean&quot;
-[1] 25.71513
-[1] &quot;sd&quot;
-[1] 17.60523
+5Y. Coronal Balance (C7PL to CSVL) - mean
+All
+[1] 28.06021
+5Y. Coronal Balance (C7PL to CSVL) - sd
+All
+[1] 21.12074
 
 
 Coronal Balance (C7PL to CSVL) tests
 Preop vs 6w p-value
-0.01643251
+0.004459069
 
 Preop vs 2y p-value
-0.09325016
+0.02359945
 
 Preop vs 5y p-value
-0.4225733
+0.683468
 
 6w vs 2y p-value
-0.5083759
+0.6015384
 
 2y vs 5y p-value
-0.413295
+0.110569
 
 Sagittal Balance
-[1] &quot;mean&quot;
-[1] 78.24684
-[1] &quot;sd&quot;
-[1] 65.28954
+Sagittal Balance - mean
+All
+[1] 77.66538
+Sagittal Balance - sd
+All
+[1] 63.33729
 
 
 6W. Sagittal Balance
-[1] &quot;mean&quot;
-[1] 26.30644
-[1] &quot;sd&quot;
-[1] 34.15355
+6W. Sagittal Balance - mean
+All
+[1] 25.2333
+6W. Sagittal Balance - sd
+All
+[1] 32.65841
+
+
+6M. Sagittal Balance
+6M. Sagittal Balance - mean
+All
+[1] 19.73134
+6M. Sagittal Balance - sd
+All
+[1] 36.69053
+
+
+1Y. Sagittal Balance
+1Y. Sagittal Balance - mean
+All
+[1] 26.83361
+1Y. Sagittal Balance - sd
+All
+[1] 44.58791
 
 
 2Y. Sagittal Balance
-[1] &quot;mean&quot;
-[1] 38.87554
-[1] &quot;sd&quot;
-[1] 43.56012
+2Y. Sagittal Balance - mean
+All
+[1] 35.75598
+2Y. Sagittal Balance - sd
+All
+[1] 41.64468
 
 
 5Y. Sagittal Balance
-[1] &quot;mean&quot;
-[1] 39.5941
-[1] &quot;sd&quot;
-[1] 42.93271
+5Y. Sagittal Balance - mean
+All
+[1] 41.05918
+5Y. Sagittal Balance - sd
+All
+[1] 51.98873
 
 
 Sagittal Balance tests
 Preop vs 6w p-value
-1.363372e-08
+6.6573e-11
 
 Preop vs 2y p-value
-3.813122e-05
+5.294967e-07
 
 Preop vs 5y p-value
-0.0002399814
+0.0003408509
 
 6w vs 2y p-value
-0.06388062
+0.06838847
 
 2y vs 5y p-value
-0.9347063
+0.5454224
 
 Sagittal T2-T5
-[1] &quot;mean&quot;
-[1] 9.777162
-[1] &quot;sd&quot;
-[1] 8.16925
+Sagittal T2-T5 - mean
+All
+[1] 10.13783
+Sagittal T2-T5 - sd
+All
+[1] 8.674203
 
 
 6W. Sagittal T2-T5
-[1] &quot;mean&quot;
-[1] 13.08914
-[1] &quot;sd&quot;
-[1] 8.538077
+6W. Sagittal T2-T5 - mean
+All
+[1] 13.9567
+6W. Sagittal T2-T5 - sd
+All
+[1] 8.755625
+
+
+6M. Sagittal T2-T5
+6M. Sagittal T2-T5 - mean
+All
+[1] 12.75733
+6M. Sagittal T2-T5 - sd
+All
+[1] 7.876879
+
+
+1Y. Sagittal T2-T5
+1Y. Sagittal T2-T5 - mean
+All
+[1] 12.5406
+1Y. Sagittal T2-T5 - sd
+All
+[1] 9.108455
 
 
 2Y. Sagittal T2-T5
-[1] &quot;mean&quot;
-[1] 11.25015
-[1] &quot;sd&quot;
-[1] 8.501348
+2Y. Sagittal T2-T5 - mean
+All
+[1] 12.72951
+2Y. Sagittal T2-T5 - sd
+All
+[1] 9.080996
 
 
 5Y. Sagittal T2-T5
-[1] &quot;mean&quot;
-[1] 16.3441
-[1] &quot;sd&quot;
-[1] 9.866445
+5Y. Sagittal T2-T5 - mean
+All
+[1] 15.53755
+5Y. Sagittal T2-T5 - sd
+All
+[1] 10.45196
 
 
 Sagittal T2-T5 tests
 Preop vs 6w p-value
-0.01885621
+0.00373668
 
 Preop vs 2y p-value
-0.3011499
+0.05665321
 
 Preop vs 5y p-value
-0.0006882028
+0.002690377
 
 6w vs 2y p-value
-0.2123359
+0.3716658
 
 2y vs 5y p-value
-0.009100346
+0.1219793
 
 Sagittal T5-T12
-[1] &quot;mean&quot;
-[1] 28.49013
-[1] &quot;sd&quot;
-[1] 18.08615
+Sagittal T5-T12 - mean
+All
+[1] 29.33642
+Sagittal T5-T12 - sd
+All
+[1] 18.36859
 
 
 6W. Sagittal T5-T12
-[1] &quot;mean&quot;
-[1] 36.05421
-[1] &quot;sd&quot;
-[1] 14.4835
+6W. Sagittal T5-T12 - mean
+All
+[1] 34.95936
+6W. Sagittal T5-T12 - sd
+All
+[1] 14.21917
+
+
+6M. Sagittal T5-T12
+6M. Sagittal T5-T12 - mean
+All
+[1] 37.45267
+6M. Sagittal T5-T12 - sd
+All
+[1] 13.9539
+
+
+1Y. Sagittal T5-T12
+1Y. Sagittal T5-T12 - mean
+All
+[1] 37.41671
+1Y. Sagittal T5-T12 - sd
+All
+[1] 13.70754
 
 
 2Y. Sagittal T5-T12
-[1] &quot;mean&quot;
-[1] 39.41833
-[1] &quot;sd&quot;
-[1] 14.86939
+2Y. Sagittal T5-T12 - mean
+All
+[1] 38.51843
+2Y. Sagittal T5-T12 - sd
+All
+[1] 14.69517
 
 
 5Y. Sagittal T5-T12
-[1] &quot;mean&quot;
-[1] 43.26
-[1] &quot;sd&quot;
-[1] 15.73224
+5Y. Sagittal T5-T12 - mean
+All
+[1] 42.23551
+5Y. Sagittal T5-T12 - sd
+All
+[1] 16.4497
 
 
 Sagittal T5-T12 tests
 Preop vs 6w p-value
-0.004902843
+0.01963662
 
 Preop vs 2y p-value
-0.0001165207
+0.0002870564
 
 Preop vs 5y p-value
-1.82229e-05
+4.052032e-05
 
 6w vs 2y p-value
-0.175774
+0.1044059
 
 2y vs 5y p-value
-0.2210932
+0.1954515
 
 Sagittal T2-T12
-[1] &quot;mean&quot;
-[1] 34.4291
-[1] &quot;sd&quot;
-[1] 18.78764
+Sagittal T2-T12 - mean
+All
+[1] 35.30292
+Sagittal T2-T12 - sd
+All
+[1] 18.53653
 
 
 6W. Sagittal T2-T12
-[1] &quot;mean&quot;
-[1] 44.53613
-[1] &quot;sd&quot;
-[1] 14.11216
+6W. Sagittal T2-T12 - mean
+All
+[1] 44.47548
+6W. Sagittal T2-T12 - sd
+All
+[1] 14.25467
+
+
+6M. Sagittal T2-T12
+6M. Sagittal T2-T12 - mean
+All
+[1] 47.69419
+6M. Sagittal T2-T12 - sd
+All
+[1] 14.51608
+
+
+1Y. Sagittal T2-T12
+1Y. Sagittal T2-T12 - mean
+All
+[1] 46.4412
+1Y. Sagittal T2-T12 - sd
+All
+[1] 14.45611
 
 
 2Y. Sagittal T2-T12
-[1] &quot;mean&quot;
-[1] 46.68061
-[1] &quot;sd&quot;
-[1] 15.53635
+2Y. Sagittal T2-T12 - mean
+All
+[1] 46.63095
+2Y. Sagittal T2-T12 - sd
+All
+[1] 15.954
 
 
 5Y. Sagittal T2-T12
-[1] &quot;mean&quot;
-[1] 52.62923
-[1] &quot;sd&quot;
-[1] 17.14498
+5Y. Sagittal T2-T12 - mean
+All
+[1] 51.48612
+5Y. Sagittal T2-T12 - sd
+All
+[1] 16.95076
 
 
 Sagittal T2-T12 tests
 Preop vs 6w p-value
-0.0002368146
+0.0001838279
 
 Preop vs 2y p-value
-3.379437e-05
+1.812798e-05
 
 Preop vs 5y p-value
-1.204816e-06
+7.470177e-07
 
 6w vs 2y p-value
-0.3949108
+0.346595
 
 2y vs 5y p-value
-0.07954062
+0.1068125
 
 Lordosis (top of L1-S1)
-[1] &quot;mean&quot;
-[1] -31.74595
-[1] &quot;sd&quot;
-[1] 17.05947
+Lordosis (top of L1-S1) - mean
+All
+[1] -32.79278
+Lordosis (top of L1-S1) - sd
+All
+[1] 17.57734
 
 
 6W. Lordosis (top of L1-S1)
-[1] &quot;mean&quot;
-[1] -51.78645
-[1] &quot;sd&quot;
-[1] 12.04017
+6W. Lordosis (top of L1-S1) - mean
+All
+[1] -52.24362
+6W. Lordosis (top of L1-S1) - sd
+All
+[1] 13.09043
+
+
+6M. Lordosis (top of L1-S1)
+6M. Lordosis (top of L1-S1) - mean
+All
+[1] -51.46227
+6M. Lordosis (top of L1-S1) - sd
+All
+[1] 12.97327
+
+
+1Y. Lordosis (top of L1-S1)
+1Y. Lordosis (top of L1-S1) - mean
+All
+[1] -49.39407
+1Y. Lordosis (top of L1-S1) - sd
+All
+[1] 12.37036
 
 
 2Y. Lordosis (top of L1-S1)
-[1] &quot;mean&quot;
-[1] -49.35103
-[1] &quot;sd&quot;
-[1] 12.52506
+2Y. Lordosis (top of L1-S1) - mean
+All
+[1] -49.55535
+2Y. Lordosis (top of L1-S1) - sd
+All
+[1] 13.36741
 
 
 5Y. Lordosis (top of L1-S1)
-[1] &quot;mean&quot;
-[1] -50.895
-[1] &quot;sd&quot;
-[1] 13.32167
+5Y. Lordosis (top of L1-S1) - mean
+All
+[1] -49.5928
+5Y. Lordosis (top of L1-S1) - sd
+All
+[1] 13.1366
 
 
 Lordosis (top of L1-S1) tests
 Preop vs 6w p-value
-2.874315e-14
+2.334469e-15
 
 Preop vs 2y p-value
-3.374704e-11
+9.010626e-12
 
 Preop vs 5y p-value
-1.243213e-09
+1.516803e-09
 
 6w vs 2y p-value
-0.2375217
+0.1752145
 
 2y vs 5y p-value
-0.5538667
+0.9873231
 
 Pelvic Incidence
-[1] &quot;mean&quot;
-[1] 56.37392
-[1] &quot;sd&quot;
-[1] 12.65855
+Pelvic Incidence - mean
+All
+[1] 56.04546
+Pelvic Incidence - sd
+All
+[1] 13.04045
 
 
 6W. Pelvic Incidence
-[1] &quot;mean&quot;
-[1] 56.57893
-[1] &quot;sd&quot;
-[1] 12.51655
+6W. Pelvic Incidence - mean
+All
+[1] 56.09247
+6W. Pelvic Incidence - sd
+All
+[1] 12.61719
+
+
+6M. Pelvic Incidence
+6M. Pelvic Incidence - mean
+All
+[1] 55.93943
+6M. Pelvic Incidence - sd
+All
+[1] 12.95054
+
+
+1Y. Pelvic Incidence
+1Y. Pelvic Incidence - mean
+All
+[1] 55.31802
+1Y. Pelvic Incidence - sd
+All
+[1] 12.12408
 
 
 2Y. Pelvic Incidence
-[1] &quot;mean&quot;
-[1] 55.44594
-[1] &quot;sd&quot;
-[1] 12.46884
+2Y. Pelvic Incidence - mean
+All
+[1] 55.25103
+2Y. Pelvic Incidence - sd
+All
+[1] 12.61072
 
 
 5Y. Pelvic Incidence
-[1] &quot;mean&quot;
-[1] 55.60475
-[1] &quot;sd&quot;
-[1] 11.89757
+5Y. Pelvic Incidence - mean
+All
+[1] 55.4412
+5Y. Pelvic Incidence - sd
+All
+[1] 12.60897
 
 
 Pelvic Incidence tests
 Preop vs 6w p-value
-0.9196559
+0.9798788
 
 Preop vs 2y p-value
-0.6544847
+0.6751247
 
 Preop vs 5y p-value
-0.7452511
+0.7861191
 
 6w vs 2y p-value
-0.5874898
+0.6552487
 
 2y vs 5y p-value
-0.9475437
+0.9324438
 
 Pelvic Tilt
-[1] &quot;mean&quot;
-[1] 27.67759
-[1] &quot;sd&quot;
-[1] 9.660102
+Pelvic Tilt - mean
+All
+[1] 27.30124
+Pelvic Tilt - sd
+All
+[1] 9.777705
 
 
 6W. Pelvic Tilt
-[1] &quot;mean&quot;
-[1] 20.51427
-[1] &quot;sd&quot;
-[1] 8.980713
+6W. Pelvic Tilt - mean
+All
+[1] 19.69914
+6W. Pelvic Tilt - sd
+All
+[1] 8.855268
+
+
+6M. Pelvic Tilt
+6M. Pelvic Tilt - mean
+All
+[1] 22.14102
+6M. Pelvic Tilt - sd
+All
+[1] 8.534646
+
+
+1Y. Pelvic Tilt
+1Y. Pelvic Tilt - mean
+All
+[1] 22.97593
+1Y. Pelvic Tilt - sd
+All
+[1] 9.283452
 
 
 2Y. Pelvic Tilt
-[1] &quot;mean&quot;
-[1] 22.48188
-[1] &quot;sd&quot;
-[1] 8.348236
+2Y. Pelvic Tilt - mean
+All
+[1] 22.4257
+2Y. Pelvic Tilt - sd
+All
+[1] 8.004201
 
 
 5Y. Pelvic Tilt
-[1] &quot;mean&quot;
-[1] 23.63975
-[1] &quot;sd&quot;
-[1] 8.194219
+5Y. Pelvic Tilt - mean
+All
+[1] 23.783
+5Y. Pelvic Tilt - sd
+All
+[1] 8.923465
 
 
 Pelvic Tilt tests
 Preop vs 6w p-value
-4.310805e-06
+6.781586e-08
 
 Preop vs 2y p-value
-0.0005964533
+0.0002799196
 
 Preop vs 5y p-value
-0.0190288
+0.03060204
 
 6w vs 2y p-value
-0.1751902
+0.03183929
 
 2y vs 5y p-value
-0.4820838
+0.3769397
 
 Sacral Slope
-[1] &quot;mean&quot;
-[1] 28.6581
-[1] &quot;sd&quot;
-[1] 10.13581
+Sacral Slope - mean
+All
+[1] 28.71309
+Sacral Slope - sd
+All
+[1] 11.01433
 
 
 6W. Sacral Slope
-[1] &quot;mean&quot;
-[1] 36.158
-[1] &quot;sd&quot;
-[1] 10.57698
+6W. Sacral Slope - mean
+All
+[1] 36.4686
+6W. Sacral Slope - sd
+All
+[1] 10.66256
+
+
+6M. Sacral Slope
+6M. Sacral Slope - mean
+All
+[1] 33.77557
+6M. Sacral Slope - sd
+All
+[1] 10.51717
+
+
+1Y. Sacral Slope
+1Y. Sacral Slope - mean
+All
+[1] 32.30733
+1Y. Sacral Slope - sd
+All
+[1] 9.336442
 
 
 2Y. Sacral Slope
-[1] &quot;mean&quot;
-[1] 32.90594
-[1] &quot;sd&quot;
-[1] 9.65179
+2Y. Sacral Slope - mean
+All
+[1] 33.14057
+2Y. Sacral Slope - sd
+All
+[1] 10.16704
 
 
 5Y. Sacral Slope
-[1] &quot;mean&quot;
-[1] 31.9635
-[1] &quot;sd&quot;
-[1] 9.338898
+5Y. Sacral Slope - mean
+All
+[1] 31.6574
+5Y. Sacral Slope - sd
+All
+[1] 9.094866
 
 
 Sacral Slope tests
 Preop vs 6w p-value
-1.417122e-05
+1.787634e-06
 
 Preop vs 2y p-value
-0.01002863
+0.005099966
 
 Preop vs 5y p-value
-0.08005893
+0.08672339
 
 6w vs 2y p-value
-0.05570674
+0.03343144
 
 2y vs 5y p-value
-0.6172798
+0.3808987
 
 RLL
-[1] &quot;mean&quot;
-[1] -32.20608
-[1] &quot;sd&quot;
-[1] 16.73043
+RLL - mean
+All
+[1] -30.95557
+RLL - sd
+All
+[1] 16.53437
 
 
 6W. RLL
-[1] &quot;mean&quot;
-[1] -12.25507
-[1] &quot;sd&quot;
-[1] 10.47099
+6W. RLL - mean
+All
+[1] -11.4986
+6W. RLL - sd
+All
+[1] 11.33264
+
+
+6M. RLL
+6M. RLL - mean
+All
+[1] -12.22023
+6M. RLL - sd
+All
+[1] 10.89265
+
+
+1Y. RLL
+1Y. RLL - mean
+All
+[1] -13.90314
+1Y. RLL - sd
+All
+[1] 10.95304
 
 
 2Y. RLL
-[1] &quot;mean&quot;
-[1] -13.87456
-[1] &quot;sd&quot;
-[1] 10.63235
+2Y. RLL - mean
+All
+[1] -13.57942
+2Y. RLL - sd
+All
+[1] 11.20021
 
 
 5Y. RLL
-[1] &quot;mean&quot;
-[1] -12.58025
-[1] &quot;sd&quot;
-[1] 10.94096
+5Y. RLL - mean
+All
+[1] -13.7816
+5Y. RLL - sd
+All
+[1] 12.00952
 
 
 RLL tests
 Preop vs 6w p-value
-3.406424e-15
+1.986774e-17
 
 Preop vs 2y p-value
-4.294652e-13
+1.693461e-14
 
 Preop vs 5y p-value
-7.341138e-12
+4.662292e-11
 
 6w vs 2y p-value
-0.3611365
+0.2185409
 
 2y vs 5y p-value
-0.5502722
+0.9229158
 
 Global Tilt
-[1] &quot;mean&quot;
-[1] 37.05266
-[1] &quot;sd&quot;
-[1] 16.27436
+Global Tilt - mean
+All
+[1] 36.31742
+Global Tilt - sd
+All
+[1] 16.26602
 
 
 6W. Global Tilt
-[1] &quot;mean&quot;
-[1] 21.75931
-[1] &quot;sd&quot;
-[1] 10.86744
+6W. Global Tilt - mean
+All
+[1] 20.83511
+6W. Global Tilt - sd
+All
+[1] 10.6085
+
+
+6M. Global Tilt
+6M. Global Tilt - mean
+All
+[1] 22.64264
+6M. Global Tilt - sd
+All
+[1] 11.46156
+
+
+1Y. Global Tilt
+1Y. Global Tilt - mean
+All
+[1] 24.42321
+1Y. Global Tilt - sd
+All
+[1] 12.23415
 
 
 2Y. Global Tilt
-[1] &quot;mean&quot;
-[1] 26.18169
-[1] &quot;sd&quot;
-[1] 11.6845
+2Y. Global Tilt - mean
+All
+[1] 25.68341
+2Y. Global Tilt - sd
+All
+[1] 11.28989
 
 
 5Y. Global Tilt
-[1] &quot;mean&quot;
-[1] 27.132
-[1] &quot;sd&quot;
-[1] 11.75257
+5Y. Global Tilt - mean
+All
+[1] 27.7442
+5Y. Global Tilt - sd
+All
+[1] 14.50862
 
 
 Global Tilt tests
 Preop vs 6w p-value
-2.353847e-10
+8.025851e-13
 
 Preop vs 2y p-value
-7.44832e-06
+7.489525e-07
 
 Preop vs 5y p-value
-0.0002427834
+0.001509204
 
 6w vs 2y p-value
-0.02382733
+0.004303071
 
 2y vs 5y p-value
-0.6878053
+0.3931269
 
 T1 Sagittal Tilt
-[1] &quot;mean&quot;
-[1] 0.6535861
-[1] &quot;sd&quot;
-[1] 7.239893
+T1 Sagittal Tilt - mean
+All
+[1] 0.6241324
+T1 Sagittal Tilt - sd
+All
+[1] 6.934216
 
 
 6W. T1 Sagittal Tilt
-[1] &quot;mean&quot;
-[1] -3.912135
-[1] &quot;sd&quot;
-[1] 3.724916
+6W. T1 Sagittal Tilt - mean
+All
+[1] -3.767206
+6W. T1 Sagittal Tilt - sd
+All
+[1] 3.563869
+
+
+6M. T1 Sagittal Tilt
+6M. T1 Sagittal Tilt - mean
+All
+[1] -4.380591
+6M. T1 Sagittal Tilt - sd
+All
+[1] 3.923536
+
+
+1Y. T1 Sagittal Tilt
+1Y. T1 Sagittal Tilt - mean
+All
+[1] -4.276342
+1Y. T1 Sagittal Tilt - sd
+All
+[1] 4.733942
 
 
 2Y. T1 Sagittal Tilt
-[1] &quot;mean&quot;
-[1] -3.241225
-[1] &quot;sd&quot;
-[1] 4.170148
+2Y. T1 Sagittal Tilt - mean
+All
+[1] -3.408427
+2Y. T1 Sagittal Tilt - sd
+All
+[1] 4.04017
 
 
 5Y. T1 Sagittal Tilt
-[1] &quot;mean&quot;
-[1] -2.460716
-[1] &quot;sd&quot;
-[1] 4.663232
+5Y. T1 Sagittal Tilt - mean
+All
+[1] -2.099361
+5Y. T1 Sagittal Tilt - sd
+All
+[1] 6.329189
 
 
 T1 Sagittal Tilt tests
 Preop vs 6w p-value
-1.109291e-05
+8.769214e-07
 
 Preop vs 2y p-value
-0.0002280764
+1.029692e-05
 
 Preop vs 5y p-value
-0.007463604
+0.02164948
 
 6w vs 2y p-value
-0.345528
+0.5530282
 
 2y vs 5y p-value
-0.3939009</code></pre>
+0.19682
+
+LDI
+LDI - mean
+All
+[1] 1.056842
+LDI - sd
+All
+[1] 0.5484326
+
+
+6W. LDI
+6W. LDI - mean
+All
+[1] 0.5142857
+6W. LDI - sd
+All
+[1] 0.1601933
+
+
+6M. LDI
+6M. LDI - mean
+All
+[1] 8.632
+6M. LDI - sd
+All
+[1] 18.19506
+
+
+1Y. LDI
+1Y. LDI - mean
+All
+[1] 0.9983333
+1Y. LDI - sd
+All
+[1] 0.9511975
+
+
+2Y. LDI
+2Y. LDI - mean
+All
+[1] 0.765
+2Y. LDI - sd
+All
+[1] 0.2671013
+
+
+5Y. LDI
+5Y. LDI - mean
+All
+[1] 0.6747826
+5Y. LDI - sd
+All
+[1] 0.2067821
+
+
+LDI tests
+Preop vs 6w p-value
+0.0007234962
+
+Preop vs 2y p-value
+0.0409719
+
+Preop vs 5y p-value
+0.007854186
+
+6w vs 2y p-value
+0.005666398
+
+2y vs 5y p-value
+0.1229009
+
+RSA
+RSA - mean
+All
+[1] 24.41577
+RSA - sd
+All
+[1] 14.15088
+
+
+6W. RSA
+6W. RSA - mean
+All
+[1] 8.818778
+6W. RSA - sd
+All
+[1] 8.224981
+
+
+6M. RSA
+6M. RSA - mean
+All
+[1] 10.78644
+6M. RSA - sd
+All
+[1] 8.981948
+
+
+1Y. RSA
+1Y. RSA - mean
+All
+[1] 12.8325
+1Y. RSA - sd
+All
+[1] 9.478109
+
+
+2Y. RSA
+2Y. RSA - mean
+All
+[1] 14.12
+2Y. RSA - sd
+All
+[1] 9.040701
+
+
+5Y. RSA
+5Y. RSA - mean
+All
+[1] 16.1316
+5Y. RSA - sd
+All
+[1] 11.48116
+
+
+RSA tests
+Preop vs 6w p-value
+1.23255e-16
+
+Preop vs 2y p-value
+2.157258e-08
+
+Preop vs 5y p-value
+0.0002131745
+
+6w vs 2y p-value
+9.22873e-05
+
+2y vs 5y p-value
+0.2942261
+
+RPV
+RPV - mean
+All
+[1] -13.3534
+RPV - sd
+All
+[1] 8.05655
+
+
+6W. RPV
+6W. RPV - mean
+All
+[1] -5.625699
+6W. RPV - sd
+All
+[1] 7.466348
+
+
+6M. RPV
+6M. RPV - mean
+All
+[1] -8.228636
+6M. RPV - sd
+All
+[1] 6.912491
+
+
+1Y. RPV
+1Y. RPV - mean
+All
+[1] -9.330465
+1Y. RPV - sd
+All
+[1] 7.150767
+
+
+2Y. RPV
+2Y. RPV - mean
+All
+[1] -8.457816
+2Y. RPV - sd
+All
+[1] 6.706173
+
+
+5Y. RPV
+5Y. RPV - mean
+All
+[1] -10.052
+5Y. RPV - sd
+All
+[1] 6.514459
+
+
+RPV tests
+Preop vs 6w p-value
+9.62669e-11
+
+Preop vs 2y p-value
+1.237875e-05
+
+Preop vs 5y p-value
+0.008414954
+
+6w vs 2y p-value
+0.008043576
+
+2y vs 5y p-value
+0.1754449</code></pre>
 </div>
 <div id="quality-of-life" class="section level3">
 <h3>Quality of Life</h3>
 <pre><code>ODI - Score (%)
-[1] &quot;mean&quot;
-[1] 45.45946
-[1] &quot;sd&quot;
-[1] 17.50709
+ODI - Score (%) - mean
+All
+[1] 44.56522
+ODI - Score (%) - sd
+All
+[1] 18.04165
+
+
+6M. ODI - Score (%)
+6M. ODI - Score (%) - mean
+All
+[1] 31.98889
+6M. ODI - Score (%) - sd
+All
+[1] 19.21229
+
+
+1Y. ODI - Score (%)
+1Y. ODI - Score (%) - mean
+All
+[1] 30.44944
+1Y. ODI - Score (%) - sd
+All
+[1] 18.07623
 
 
 2Y. ODI - Score (%)
-[1] &quot;mean&quot;
-[1] 32.40845
-[1] &quot;sd&quot;
-[1] 22.86768
+2Y. ODI - Score (%) - mean
+All
+[1] 32.13483
+2Y. ODI - Score (%) - sd
+All
+[1] 22.46168
 
 
 5Y. ODI - Score (%)
-[1] &quot;mean&quot;
-[1] 37.85246
-[1] &quot;sd&quot;
-[1] 24.55255
+5Y. ODI - Score (%) - mean
+All
+[1] 36.36364
+5Y. ODI - Score (%) - sd
+All
+[1] 24.4373
 
 
 ODI - Score (%) tests
-Preop vs 6w p-value
-9.776417e-05
+Preop vs 6m p-value
+9.873532e-06
 
 Preop vs 2y p-value
-0.0001855929
+6.497438e-05
 
 
 Preop vs 5y p-value
-0.0447372
+0.01594088
 2y vs 5y p-value
-0.1923337
+0.2501981
 
 SRS22 - Function / Activity
-[1] &quot;mean&quot;
-[1] 2.730649
-[1] &quot;sd&quot;
-[1] 0.7322143
+SRS22 - Function / Activity - mean
+All
+[1] 2.760632
+SRS22 - Function / Activity - sd
+All
+[1] 0.7209226
+
+
+6M. SRS22 - Function / Activity
+6M. SRS22 - Function / Activity - mean
+All
+[1] 3.082222
+6M. SRS22 - Function / Activity - sd
+All
+[1] 0.7064833
+
+
+1Y. SRS22 - Function / Activity
+1Y. SRS22 - Function / Activity - mean
+All
+[1] 3.112308
+1Y. SRS22 - Function / Activity - sd
+All
+[1] 0.7948348
 
 
 2Y. SRS22 - Function / Activity
-[1] &quot;mean&quot;
-[1] 3.23493
-[1] &quot;sd&quot;
-[1] 0.9063882
+2Y. SRS22 - Function / Activity - mean
+All
+[1] 3.24809
+2Y. SRS22 - Function / Activity - sd
+All
+[1] 0.8921283
 
 
 5Y. SRS22 - Function / Activity
-[1] &quot;mean&quot;
-[1] 3.18871
-[1] &quot;sd&quot;
-[1] 0.9533126
+5Y. SRS22 - Function / Activity - mean
+All
+[1] 3.196795
+5Y. SRS22 - Function / Activity - sd
+All
+[1] 0.9413771
 
 
 SRS22 - Function / Activity tests
-Preop vs 6w p-value
-0.004656274
+Preop vs 6m p-value
+0.00251496
 
 Preop vs 2y p-value
-0.0003085203
+7.479396e-05
 
 
 Preop vs 5y p-value
-0.002333197
+0.0009949779
 2y vs 5y p-value
-0.7758126
+0.7193349
 
 SRS22 - Pain
-[1] &quot;mean&quot;
-[1] 2.28961
-[1] &quot;sd&quot;
-[1] 0.7657941
+SRS22 - Pain - mean
+All
+[1] 2.347895
+SRS22 - Pain - sd
+All
+[1] 0.8271804
+
+
+6M. SRS22 - Pain
+6M. SRS22 - Pain - mean
+All
+[1] 3.386111
+6M. SRS22 - Pain - sd
+All
+[1] 0.9098718
+
+
+1Y. SRS22 - Pain
+1Y. SRS22 - Pain - mean
+All
+[1] 3.50978
+1Y. SRS22 - Pain - sd
+All
+[1] 1.032239
 
 
 2Y. SRS22 - Pain
-[1] &quot;mean&quot;
-[1] 3.402113
-[1] &quot;sd&quot;
-[1] 1.184737
+2Y. SRS22 - Pain - mean
+All
+[1] 3.401685
+2Y. SRS22 - Pain - sd
+All
+[1] 1.176292
 
 
 5Y. SRS22 - Pain
-[1] &quot;mean&quot;
-[1] 3.180645
-[1] &quot;sd&quot;
-[1] 1.219593
+5Y. SRS22 - Pain - mean
+All
+[1] 3.151282
+5Y. SRS22 - Pain - sd
+All
+[1] 1.20127
 
 
 SRS22 - Pain tests
-Preop vs 6w p-value
-3.420822e-12
+Preop vs 6m p-value
+7.907843e-14
 
 Preop vs 2y p-value
-6.675097e-10
+7.559873e-11
 
 
 Preop vs 5y p-value
-2.393946e-06
+1.701709e-06
 2y vs 5y p-value
-0.2917368
+0.1766603
 
 SRS22 - Self image / Appearance
-[1] &quot;mean&quot;
-[1] 2.047143
-[1] &quot;sd&quot;
-[1] 0.6788901
+SRS22 - Self image / Appearance - mean
+All
+[1] 2.030842
+SRS22 - Self image / Appearance - sd
+All
+[1] 0.6503561
+
+
+6M. SRS22 - Self image / Appearance
+6M. SRS22 - Self image / Appearance - mean
+All
+[1] 3.417222
+6M. SRS22 - Self image / Appearance - sd
+All
+[1] 0.8457149
+
+
+1Y. SRS22 - Self image / Appearance
+1Y. SRS22 - Self image / Appearance - mean
+All
+[1] 3.410989
+1Y. SRS22 - Self image / Appearance - sd
+All
+[1] 0.80734
 
 
 2Y. SRS22 - Self image / Appearance
-[1] &quot;mean&quot;
-[1] 3.316197
-[1] &quot;sd&quot;
-[1] 0.9687169
+2Y. SRS22 - Self image / Appearance - mean
+All
+[1] 3.351124
+2Y. SRS22 - Self image / Appearance - sd
+All
+[1] 0.9580691
 
 
 5Y. SRS22 - Self image / Appearance
-[1] &quot;mean&quot;
-[1] 3.082258
-[1] &quot;sd&quot;
-[1] 1.081517
+5Y. SRS22 - Self image / Appearance - mean
+All
+[1] 3.133974
+5Y. SRS22 - Self image / Appearance - sd
+All
+[1] 1.047151
 
 
 SRS22 - Self image / Appearance tests
-Preop vs 6w p-value
-2.224791e-18
+Preop vs 6m p-value
+1.363002e-25
 
 Preop vs 2y p-value
-1.344771e-15
+9.298444e-21
 
 
 Preop vs 5y p-value
-2.48438e-09
+4.321582e-13
 2y vs 5y p-value
-0.1939553
+0.1661988
 
 SRS22 - Mental health
-[1] &quot;mean&quot;
-[1] 2.94026
-[1] &quot;sd&quot;
-[1] 0.9375584
+SRS22 - Mental health - mean
+All
+[1] 2.947895
+SRS22 - Mental health - sd
+All
+[1] 0.9008541
+
+
+6M. SRS22 - Mental health
+6M. SRS22 - Mental health - mean
+All
+[1] 3.504222
+6M. SRS22 - Mental health - sd
+All
+[1] 0.8627744
+
+
+1Y. SRS22 - Mental health
+1Y. SRS22 - Mental health - mean
+All
+[1] 3.537912
+1Y. SRS22 - Mental health - sd
+All
+[1] 0.8651378
 
 
 2Y. SRS22 - Mental health
-[1] &quot;mean&quot;
-[1] 3.41338
-[1] &quot;sd&quot;
-[1] 1.019452
+2Y. SRS22 - Mental health - mean
+All
+[1] 3.42191
+2Y. SRS22 - Mental health - sd
+All
+[1] 1.01287
 
 
 5Y. SRS22 - Mental health
-[1] &quot;mean&quot;
-[1] 3.267742
-[1] &quot;sd&quot;
-[1] 1.09601
+5Y. SRS22 - Mental health - mean
+All
+[1] 3.310897
+5Y. SRS22 - Mental health - sd
+All
+[1] 1.048333
 
 
 SRS22 - Mental health tests
-Preop vs 6w p-value
-0.0006557681
+Preop vs 6m p-value
+2.884734e-05
 
 Preop vs 2y p-value
-0.003936587
+0.001002112
 
 
 Preop vs 5y p-value
-0.06443238
+0.01700967
 2y vs 5y p-value
-0.4311985
+0.4889347
 
 SRS22 - SRS Subtotal score
-[1] &quot;mean&quot;
-[1] 2.505325
-[1] &quot;sd&quot;
-[1] 0.6056762
+SRS22 - SRS Subtotal score - mean
+All
+[1] 2.524947
+SRS22 - SRS Subtotal score - sd
+All
+[1] 0.5895939
+
+
+6M. SRS22 - SRS Subtotal score
+6M. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.346889
+6M. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.6691982
+
+
+1Y. SRS22 - SRS Subtotal score
+1Y. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.404396
+1Y. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.7252237
 
 
 2Y. SRS22 - SRS Subtotal score
-[1] &quot;mean&quot;
-[1] 3.340282
-[1] &quot;sd&quot;
-[1] 0.8939079
+2Y. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.355169
+2Y. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.8785527
 
 
 5Y. SRS22 - SRS Subtotal score
-[1] &quot;mean&quot;
-[1] 3.179355
-[1] &quot;sd&quot;
-[1] 0.9637459
+5Y. SRS22 - SRS Subtotal score - mean
+All
+[1] 3.2
+5Y. SRS22 - SRS Subtotal score - sd
+All
+[1] 0.9328535
 
 
 SRS22 - SRS Subtotal score tests
-Preop vs 6w p-value
-6.343583e-12
+Preop vs 6m p-value
+9.040721e-16
 
 Preop vs 2y p-value
-1.146106e-09
+5.587867e-12
 
 
 Preop vs 5y p-value
-5.763763e-06
+1.666516e-07
 2y vs 5y p-value
-0.3223596
+0.2721586
 
 SF36 - PCS
-[1] &quot;mean&quot;
-[1] 32.4972
-[1] &quot;sd&quot;
-[1] 7.093347
+SF36 - PCS - mean
+All
+[1] 33.27312
+SF36 - PCS - sd
+All
+[1] 7.785528
+
+
+6M. SF36 - PCS
+6M. SF36 - PCS - mean
+All
+[1] 38.50701
+6M. SF36 - PCS - sd
+All
+[1] 8.953122
+
+
+1Y. SF36 - PCS
+1Y. SF36 - PCS - mean
+All
+[1] 39.06888
+1Y. SF36 - PCS - sd
+All
+[1] 8.984458
 
 
 2Y. SF36 - PCS
-[1] &quot;mean&quot;
-[1] 40.43901
-[1] &quot;sd&quot;
-[1] 10.31588
+2Y. SF36 - PCS - mean
+All
+[1] 40.15727
+2Y. SF36 - PCS - sd
+All
+[1] 10.29273
 
 
 5Y. SF36 - PCS
-[1] &quot;mean&quot;
-[1] 37.75541
-[1] &quot;sd&quot;
-[1] 11.58556
+5Y. SF36 - PCS - mean
+All
+[1] 37.72286
+5Y. SF36 - PCS - sd
+All
+[1] 11.45773
 
 
 SF36 - PCS tests
-Preop vs 6w p-value
-5.788999e-06
+Preop vs 6m p-value
+4.778989e-05
 
 Preop vs 2y p-value
-3.418151e-07
+1.160478e-06
 
 
 Preop vs 5y p-value
-0.002522381
+0.004403834
 2y vs 5y p-value
-0.1654799
+0.1554949
 
 SF36 - MCS
-[1] &quot;mean&quot;
-[1] 41.28
-[1] &quot;sd&quot;
-[1] 11.96511
+SF36 - MCS - mean
+All
+[1] 41.22871
+SF36 - MCS - sd
+All
+[1] 12.29288
+
+
+6M. SF36 - MCS
+6M. SF36 - MCS - mean
+All
+[1] 46.52713
+6M. SF36 - MCS - sd
+All
+[1] 12.0857
+
+
+1Y. SF36 - MCS
+1Y. SF36 - MCS - mean
+All
+[1] 46.17303
+1Y. SF36 - MCS - sd
+All
+[1] 12.18157
 
 
 2Y. SF36 - MCS
-[1] &quot;mean&quot;
-[1] 45.5931
-[1] &quot;sd&quot;
-[1] 12.25158
+2Y. SF36 - MCS - mean
+All
+[1] 45.67591
+2Y. SF36 - MCS - sd
+All
+[1] 12.28804
 
 
 5Y. SF36 - MCS
-[1] &quot;mean&quot;
-[1] 43.60295
-[1] &quot;sd&quot;
-[1] 12.31855
+5Y. SF36 - MCS - mean
+All
+[1] 44.45545
+5Y. SF36 - MCS - sd
+All
+[1] 12.59954
 
 
 SF36 - MCS tests
-Preop vs 6w p-value
-0.01983608
+Preop vs 6m p-value
+0.004015133
 
 Preop vs 2y p-value
-0.03320448
+0.01595555
 
 
 Preop vs 5y p-value
-0.2700168
+0.09479246
 2y vs 5y p-value
-0.3553076</code></pre>
+0.5309449</code></pre>
 </div>
 <div id="surgery" class="section level3">
 <h3>Surgery</h3>
 <pre><code>Total Operative Blood Loss st1+st2+st3
-[1] &quot;mean&quot;
-[1] 1862
-[1] &quot;sd&quot;
-[1] 1402.774
+Total Operative Blood Loss st1+st2+st3 - mean
+All
+[1] 1955.143
+Total Operative Blood Loss st1+st2+st3 - sd
+All
+[1] 1431.513
 
 
 Total surgical time st1+st2+st3
-[1] &quot;mean&quot;
-[1] 302.425
-[1] &quot;sd&quot;
-[1] 175.6961
+Total surgical time st1+st2+st3 - mean
+All
+[1] 316.4898
+Total surgical time st1+st2+st3 - sd
+All
+[1] 181.7305
 
 
 Number of Posterior Instrumented Levels
-[1] &quot;mean&quot;
-[1] 10.55128
-[1] &quot;sd&quot;
-[1] 3.698534
+Number of Posterior Instrumented Levels - mean
+All
+[1] 10.8125
+Number of Posterior Instrumented Levels - sd
+All
+[1] 3.858859
 
 
 Pelvic fixation
-[1] &quot;table&quot;
+Pelvic fixation - table
+All
 variable
 Yes 
- 80 
-[1] &quot;proportion&quot;
+ 98 
+Pelvic fixation - proportion
+All
 variable
 Yes 
   1 
 
 
 Surgical Approach
-[1] &quot;table&quot;
+Surgical Approach - table
+All
 variable
           Anterior-Posterior                    Posterior 
-                           1                           73 
+                           1                           88 
           Posterior-Anterior Posterior-Posterior-Anterior 
-                           5                            1 
-[1] &quot;proportion&quot;
+                           8                            1 
+Surgical Approach - proportion
+All
 variable
           Anterior-Posterior                    Posterior 
-                      0.0125                       0.9125 
+                  0.01020408                   0.89795918 
           Posterior-Anterior Posterior-Posterior-Anterior 
-                      0.0625                       0.0125 
+                  0.08163265                   0.01020408 
 
 
 Number of Interbody Fusions
-[1] &quot;mean&quot;
-[1] 1.1375
-[1] &quot;sd&quot;
-[1] 1.260337
+Number of Interbody Fusions - mean
+All
+[1] 1.153061
+Number of Interbody Fusions - sd
+All
+[1] 1.229802
 
 
 Decompression
-[1] &quot;table&quot;
+Decompression - table
+All
 variable
  No Yes 
- 60  20 
-[1] &quot;proportion&quot;
+ 73  25 
+Decompression - proportion
+All
 variable
-  No  Yes 
-0.75 0.25 
+      No      Yes 
+0.744898 0.255102 
 
 
 Interbody Fusion
-[1] &quot;table&quot;
+Interbody Fusion - table
+All
 variable
  No Yes 
- 32  48 
-[1] &quot;proportion&quot;
+ 38  60 
+Interbody Fusion - proportion
+All
 variable
- No Yes 
-0.4 0.6 
+       No       Yes 
+0.3877551 0.6122449 
 
 
 Osteotomy
-[1] &quot;table&quot;
+Osteotomy - table
+All
 variable
  No Yes 
- 32  48 
-[1] &quot;proportion&quot;
+ 38  60 
+Osteotomy - proportion
+All
 variable
- No Yes 
-0.4 0.6 
+       No       Yes 
+0.3877551 0.6122449 
 
 
 3CO
-[1] &quot;table&quot;
+3CO - table
+All
 variable
  No Yes 
- 58  22 
-[1] &quot;proportion&quot;
+ 72  26 
+3CO - proportion
+All
 variable
-   No   Yes 
-0.725 0.275 </code></pre>
+       No       Yes 
+0.7346939 0.2653061 </code></pre>
 </div>
 <div id="complications" class="section level3">
 <h3>Complications</h3>
-<p>Number of reinterventions: 64</p>
-<pre><code>   Complication Impact  N
-1:  Minor Complication 82
-2:  Major Complication 77
-3:       Adverse Event  2</code></pre>
-<pre><code>          Category of the complication  N
-1:            Mechanical complications 87
-2:                 Other complications 31
-3:                          Iatrogenic 13
-4:                                Pain  6
-5: Peripheral neurologic complications 15
-6:            Infectious complications  9</code></pre>
+<p>Number of reinterventions: 81</p>
+<pre><code>   Complication Impact   N
+1:  Minor Complication 111
+2:  Major Complication  98
+3:       Adverse Event   2</code></pre>
+<pre><code>          Category of the complication   N
+1:            Mechanical complications 114
+2:                 Other complications  38
+3:                          Iatrogenic  18
+4:                                Pain   8
+5: Peripheral neurologic complications  22
+6:            Infectious complications  11</code></pre>
+</div>
+<div id="number-of-patients-in-complications" class="section level3">
+<h3>Number of patients in Complications</h3>
+<p>Number of patients with reinterventions: 33</p>
+<pre><code>   Complication Impact patients_complications
+1:  Minor Complication                     57
+2:  Major Complication                     41
+3:       Adverse Event                      1</code></pre>
+<pre><code>          Category of the complication patients_complications
+1:            Mechanical complications                     54
+2:                 Other complications                     23
+3:                          Iatrogenic                     15
+4:                                Pain                      8
+5: Peripheral neurologic complications                     18
+6:            Infectious complications                      8</code></pre>
 </div>
 
 

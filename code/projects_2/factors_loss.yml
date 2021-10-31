@@ -1,0 +1,40 @@
+demographic_0:
+  - Age
+  # - Gender
+  - Site
+demographic_1:
+  - Prior Spine Surgery
+  # - ASA classification
+  # - BMI_First Visit
+  - Osteoporosis / osteopenia 
+  - essg_category
+  # - Tobacco use_First Visit
+surgical:
+  - Non_instrumented_segments
+radiologic:
+  - Static Major curve Cobb angle # Major curve Cobb angle
+  - Coronal Balance (C7PL to CSVL)
+  - Sagittal Balance
+  - Sagittal T2-T5
+  - Sagittal T5-T12
+  - Sagittal T2-T12
+  - Lordosis (top of L1-S1)
+  - Pelvic Incidence 
+  - Pelvic Tilt 
+  - Sacral Slope 
+  - RLL
+  - Global Tilt 
+  - T1 Sagittal Tilt 
+  - "Thoracolumbar L2-T10"
+  # - LDI
+  - RSA
+  - RPV
+  # - GAP Score
+  # - LDI
+  # - Maximal Lordosis Upper Arc
+  # - Maximal Kyphosis Lower Arc
+qualitylife:
+  - "ODI - Score (%)"
+  - "SRS22 - SRS Subtotal score"
+  - "SF36 - PCS"
+  - "SF36 - MCS"

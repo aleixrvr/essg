@@ -1,0 +1,86 @@
+---
+title: "Pelvis UT vs Pelvis LT stability"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('patient_selection.R')
+factors_loss <- read_yaml('factors_loss.yml')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data()
+```
+
+- Upper Thoracic (UT): T1-T9-Pelvis
+- Lower Thoracic (LT): T10-T12- Iliac
+
+```{r}
+treatment_ <- 'thoracic_type'
+treatment_vals <- c('UT', 'LT')
+```
+
+*Selection criteria*
+```{r include=TRUE, echo=TRUE}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_ %<>% .[post_intr_fusion == 'Iliac']
+
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) ->
+  post_intr_fusion
+
+UT <- paste("T", 1:9, sep="")
+LT <- paste("T", 10:12, sep="")
+
+data_[post_intr_fusion %chin% UT, thoracic_type := 'UT']
+data_[post_intr_fusion %chin% LT, thoracic_type := 'LT']
+
+data_ %<>% .[!is.na(get(treatment_))]
+```
+
+Patients: `r data_[, .N]`
+
+
+
+*Increment = Future - Baseline*
+
+<!-- ### Estability Increment Quality of Life -->
+
+<!-- ```{r include=TRUE} -->
+<!-- demo <- c( -->
+<!--   factors_loss$demographic_0, -->
+<!--   factors_loss$demographic_1, -->
+<!--   factors_loss$surgical -->
+<!-- ) -->
+<!-- calc_estability(data_, factors_loss$qualitylife, demo,  -->
+<!--   treatment = treatment_) -->
+<!-- ``` -->
+
+### Estability Increment Radiology
+
+```{r include=TRUE}
+demo <- c(
+  factors_loss$demographic_0,
+  factors_loss$demographic_1,
+  factors_loss$surgical
+)
+calc_estability(data_, factors_loss$radiologic, demo,
+   treatment = treatment_)
+```
+

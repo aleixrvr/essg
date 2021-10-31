@@ -22,6 +22,10 @@ radiology:
   - RLL
   - Global Tilt 
   - T1 Sagittal Tilt 
+  - "Thoracolumbar L2-T10"
+  # - LDI
+  - RSA
+  - RPV
 quality:
   - ODI - Score (%) 
   - SRS22 - Function / Activity
