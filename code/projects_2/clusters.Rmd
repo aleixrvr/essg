@@ -16,7 +16,6 @@ library(yaml)
 library(stats)
 
 source('patient_selection.R')
-source('clusters_aux.R')
 ```
 
 ```{r, message=FALSE}
@@ -26,11 +25,16 @@ analysis_vars <- read_yaml('descriptive.yml')
 cluster_num <- 3
 ```
 
+```{r include=TRUE}
+print(cluster_vars)
+```
+
+
 
 ```{r echo=TRUE}
 data_ %>% 
-  # .[followup_2y==TRUE] %>% 
-  # .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] %>% 
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] %>%
   .[Study=='Op'] %>% 
   .[Site != 'ANK Op'] %>% 
   .[`Vital status` == 'Alive'] -> 
@@ -298,38 +302,38 @@ for(var_ in analysis_vars$surgery  ){
 }
 ```
 
-```{r}
+```{r include=TRUE}
 do.call(rbind, res_vars_num)
 ```
 
-```{r}
+```{r include=TRUE}
 print(res_vars_cats)
 ```
 
-<!-- # Reinterventions -->
+# Reinterventions
 
-<!-- ```{r} -->
-<!-- res <- calc_complications(data_, treatment_vals) -->
-<!-- ``` -->
+```{r}
+res <- calc_complications_many(data_, treatment_vals, treatment_)
+```
 
-<!-- ```{r include=TRUE} -->
-<!-- res$number_reiqs -->
-<!-- ``` -->
+```{r include=TRUE}
+res$number_reiqs
+```
 
-<!-- ```{r include=TRUE} -->
-<!-- res$p_vals_reiqs -->
-<!-- ``` -->
+```{r include=TRUE}
+res$p_vals_reiqs
+```
 
-<!-- # Impacts -->
+# Impacts
 
-<!-- ```{r include=TRUE} -->
-<!-- res$impacts -->
-<!-- ``` -->
+```{r include=TRUE}
+res$impacts
+```
 
-<!-- # Categories -->
+# Categories
 
-<!-- ```{r include=TRUE} -->
-<!-- res$categories -->
-<!-- ``` -->
+```{r include=TRUE}
+res$categories
+```
 
 

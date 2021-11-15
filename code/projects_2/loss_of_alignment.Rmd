@@ -56,6 +56,12 @@ Without complications (PJK, PJF, DJK, DJF) before 6 months after surgery: `r dat
 <!-- ``` -->
 <!-- With 5Y FU: `r data_[, .N]` -->
 
+```{r include)TRUE}
+data_[, .N, Non_instrumented_segments] %>% 
+  setorder(Non_instrumented_segments) %>% print
+```
+
+
 
 ### Demographics
 ```{r echo=FALSE, comment="", include=TRUE}
@@ -220,6 +226,11 @@ complication_data[, .N, `Complication Impact`]
 complication_data[, .N, `Category of the complication`]
 ```
 
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .N, `Category of the complication`]
+```
+
 ### Number of patients in Complications
 ```{r}
 selected_patients <- data_[, `Code of the patient` %>% unique]
@@ -242,4 +253,7 @@ complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `C
 complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
 ```
 
-
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
+```

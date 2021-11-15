@@ -89,7 +89,7 @@ get_data <- function(){
     .[Study=='Op'] %>% 
     .[Site != 'ANK Op'] %>% 
     .[`Vital status` == 'Alive'] %>% 
-    .[!(`Code of the patient` %in% discarded_patients)] %>% 
+    # .[!(`Code of the patient` %in% discarded_patients)] %>% 
     .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] ->
     data_
   
@@ -244,7 +244,7 @@ calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No')){
   return(p.val)
 }
 
-calc_complications <- function(data_, treatment_vals){
+calc_complications <- function(data_, treatment_vals, treatment_){
   
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
@@ -261,6 +261,7 @@ calc_complications <- function(data_, treatment_vals){
   number_reiqs <- list()
   impacts <- list()
   categories <- list()
+  categories_major <- list()
   for( name_ in names(patient_groups) ){
     complication_data %>% 
       .[`Code of the patient` %chin% patient_groups[[name_]]] ->
@@ -289,6 +290,16 @@ calc_complications <- function(data_, treatment_vals){
       .(cat_name = uniqueN(`Code of the patient`)), `Category of the complication`] %>% 
       setnames('cat_name', cat_name)
     categories[[name_]] <- merge(cat_num, cat_patients)
+    
+    cat_name <- paste(name_, 'num', sep='_')
+    cat_num <- comp_[`Complication Impact`=='Major Complication',
+      .(cat_name = .N), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    cat_name <- paste(name_, 'patients', sep='_')
+    cat_patients <- comp_[`Complication Impact`=='Major Complication', 
+      .(cat_name = uniqueN(`Code of the patient`)), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    categories_major[[name_]] <- merge(cat_num, cat_patients)
   }
   
   number_reiqs <- do.call(rbind, number_reiqs)
@@ -300,6 +311,10 @@ calc_complications <- function(data_, treatment_vals){
     merge(categories[[2]], all=TRUE ) %>% 
     merge(categories[[3]], all=TRUE) 
   categories[is.na(categories)] <- 0
+  categories_major <- categories_major[[1]] %>% 
+    merge(categories_major[[2]], all=TRUE ) %>% 
+    merge(categories_major[[3]], all=TRUE) 
+  categories_major[is.na(categories_major)] <- 0
   
   total_all <- data_[, .N]
   total_1 <- data_[get(treatment_) == treatment_vals[1], .N]
@@ -314,6 +329,10 @@ calc_complications <- function(data_, treatment_vals){
   categories[, total_all := total_all]
   categories[, c(treatment_vals[1]) := total_1]
   categories[, c(treatment_vals[2]) := total_2]
+  
+  categories_major[, total_all := total_all]
+  categories_major[, c(treatment_vals[1]) := total_1]
+  categories_major[, c(treatment_vals[2]) := total_2]
   
   var_1 <- paste(treatment_vals[1], 'patients', sep='_')
   var_2 <- paste(treatment_vals[2], 'patients', sep='_')
@@ -373,14 +392,215 @@ calc_complications <- function(data_, treatment_vals){
   )$p.val , 1:nrow(categories)]
   
   
+  rows_notna <- categories_major[, !any(is.na(.SD)), 1:nrow(categories_major)][,V1]
+  categories_major[rows_notna, p_val_1_total := binom.test(
+    c(get(var_1), all_patients),
+    c(get(treatment_vals[1]), total_all)
+  )$p.val , 1:nrow(categories_major)]
+  
+  categories_major[rows_notna, p_val_2_total := binom.test(
+    c(get(var_2), all_patients),
+    c(get(treatment_vals[2]), total_all)
+  )$p.val , 1:nrow(categories_major)]
+  
+  categories_major[rows_notna, p_val_1_2 := binom.test(
+    c(get(var_1), get(var_2)),
+    c(get(treatment_vals[1]), get(treatment_vals[2]))
+  )$p.val , 1:nrow(categories_major)]
+
   return(list(
     impacts = impacts,
     categories = categories,
     number_reiqs = number_reiqs,
-    p_vals_reiqs = p_vals_reiqs
+    p_vals_reiqs = p_vals_reiqs,
+    categories_major = categories_major
   ))
 }
 
+
+calc_complications_many <- function(data_, treatment_vals, treatment_){
+  
+  complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+    as.data.table() %>% 
+    .[`Days since surgery` < 5*365] 
+  
+  patient_groups <- list()
+  patient_groups$all <- data_[, `Code of the patient` %>% unique]
+  
+  for( val_ in treatment_vals){
+    patient_groups[[val_]] <- data_ %>% 
+      .[get(treatment_) == val_, `Code of the patient` %>% unique]
+  }
+  
+  number_reiqs <- list()
+  impacts <- list()
+  categories <- list()
+  categories_major <- list()
+  for( name_ in names(patient_groups) ){
+    complication_data %>% 
+      .[`Code of the patient` %chin% patient_groups[[name_]]] ->
+      comp_
+    
+    number_reiqs[[name_]] <- data.table(
+      group=name_, 
+      reiqs = comp_[`Reoperation Due to Complication` =='Yes', .N],
+      patients = comp_[`Reoperation Due to Complication` =='Yes', uniqueN(`Code of the patient`)]
+    )
+    
+    impact_name <- paste(name_, 'num', sep='_')
+    imp_num <- comp_[, .(impact_name = .N), `Complication Impact`] %>% 
+      setnames('impact_name', impact_name)
+    impact_name <- paste(name_, 'patients', sep='_')
+    imp_patients <- comp_[,
+      .(impact_name = uniqueN(`Code of the patient`)), `Complication Impact`] %>% 
+      setnames('impact_name', impact_name)
+    impacts[[name_]] <- merge(imp_num, imp_patients)
+    
+    cat_name <- paste(name_, 'num', sep='_')
+    cat_num <- comp_[, .(cat_name = .N), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    cat_name <- paste(name_, 'patients', sep='_')
+    cat_patients <- comp_[, 
+      .(cat_name = uniqueN(`Code of the patient`)), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    categories[[name_]] <- merge(cat_num, cat_patients)
+    
+    cat_name <- paste(name_, 'num', sep='_')
+    cat_num <- comp_[`Complication Impact`=='Major Complication',
+      .(cat_name = .N), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    cat_name <- paste(name_, 'patients', sep='_')
+    cat_patients <- comp_[`Complication Impact`=='Major Complication', 
+      .(cat_name = uniqueN(`Code of the patient`)), `Category of the complication`] %>% 
+      setnames('cat_name', cat_name)
+    categories_major[[name_]] <- merge(cat_num, cat_patients)
+  }
+  
+  number_reiqs <- do.call(rbind, number_reiqs)
+  
+  impacts_ <- impacts[['all']] 
+  for( val_ in treatment_vals){
+    impacts_ %<>% merge(impacts[[val_]], all=TRUE )
+  }
+  impacts <- impacts_
+  impacts[is.na(impacts)] <- 0
+  
+  categories_ <- categories[['all']] 
+  for( val_ in treatment_vals){
+    categories_ %<>% merge(categories[[val_]], all=TRUE )
+  }
+  categories <- categories_
+  categories[is.na(categories)] <- 0
+  
+  categories_major_ <- categories_major[['all']] 
+  for( val_ in treatment_vals){
+    categories_major_ %<>% merge(categories_major[[val_]], all=TRUE )
+  }
+  categories_major <- categories_major_
+  categories_major[is.na(categories_major)] <- 0
+  
+  total_patients <- list()
+  total_patients[['all']] <- data_[, `Code of the patient` %>% uniqueN]
+  for( val_ in treatment_vals){
+    total_patients[[val_]] <- data_[
+      get(treatment_) == val_, 
+      `Code of the patient` %>% uniqueN]
+  }
+  
+  total_patients_dt <- total_patients %>% 
+    as.data.table() %>%
+    melt %>% 
+    setnames('variable', 'group') %>% 
+    setnames('value', 'total')
+  number_reiqs <- merge(number_reiqs, total_patients_dt)
+  
+  
+  for(name_ in names(total_patients) ){
+    impacts[, c(name_) := total_patients[[name_]]]
+  }
+  
+  for(name_ in names(total_patients) ){
+    categories[, c(name_) := total_patients[[name_]]]
+  }
+  
+  for(name_ in names(total_patients) ){
+    categories_major[, c(name_) := total_patients[[name_]]]
+  }
+  
+  
+  p_vals_reiqs <- data.table(to_remove=NA)
+  for(pos_1 in 1:(len(total_patients) - 1)){
+    val_1 <- names(total_patients)[pos_1]
+    for(pos_2 in (pos_1 + 1):len(total_patients)){
+      val_2 <- names(total_patients)[pos_2]
+      p_val <- binom.test(
+        c(number_reiqs[group==val_1, patients],
+          number_reiqs[group==val_2, patients]),
+        c(number_reiqs[group==val_1, total],
+          number_reiqs[group==val_2, total])
+      )$p.val %>% round(4)
+      name_vals <- paste("p_val", val_1, val_2, sep="_")
+      p_vals_reiqs[[name_vals]] <- p_val
+    }  
+  }
+  p_vals_reiqs[, to_remove := NULL]
+  
+  rows_notna <- impacts[, !any(is.na(.SD)), 1:nrow(impacts)][,V1]
+  for(pos_1 in 1:(len(total_patients) - 1)){
+    val_1 <- names(total_patients)[pos_1]
+    for(pos_2 in (pos_1 + 1):len(total_patients)){
+      val_2 <- names(total_patients)[pos_2]
+      
+      var_1 <- paste(val_1, 'patients', sep='_')
+      var_2 <- paste(val_2, 'patients', sep='_')
+      name_vals <- paste("p_val", val_1, val_2, sep="_")
+      impacts[rows_notna, c(name_vals) := binom.test(
+        c(get(var_1), get(var_2)),
+        c(get(val_1), get(val_2))
+      )$p.val %>% round(4) , 1:nrow(impacts)]
+    }  
+  }
+  
+  rows_notna <- categories[, !any(is.na(.SD)), 1:nrow(categories)][,V1]
+  for(pos_1 in 1:(len(total_patients) - 1)){
+    val_1 <- names(total_patients)[pos_1]
+    for(pos_2 in (pos_1 + 1):len(total_patients)){
+      val_2 <- names(total_patients)[pos_2]
+      
+      var_1 <- paste(val_1, 'patients', sep='_')
+      var_2 <- paste(val_2, 'patients', sep='_')
+      name_vals <- paste("p_val", val_1, val_2, sep="_")
+      categories[rows_notna, c(name_vals) := binom.test(
+        c(get(var_1), get(var_2)),
+        c(get(val_1), get(val_2))
+      )$p.val %>% round(4) , 1:nrow(categories)]
+    }  
+  }
+  
+  rows_notna <- categories_major[, !any(is.na(.SD)), 1:nrow(categories_major)][,V1]
+  for(pos_1 in 1:(len(total_patients) - 1)){
+    val_1 <- names(total_patients)[pos_1]
+    for(pos_2 in (pos_1 + 1):len(total_patients)){
+      val_2 <- names(total_patients)[pos_2]
+      
+      var_1 <- paste(val_1, 'patients', sep='_')
+      var_2 <- paste(val_2, 'patients', sep='_')
+      name_vals <- paste("p_val", val_1, val_2, sep="_")
+      categories_major[rows_notna, c(name_vals) := binom.test(
+        c(get(var_1), get(var_2)),
+        c(get(val_1), get(val_2))
+      )$p.val %>% round(4) , 1:nrow(categories_major)]
+    }  
+  }
+  
+  return(list(
+    impacts = impacts,
+    categories = categories,
+    number_reiqs = number_reiqs,
+    p_vals_reiqs = p_vals_reiqs,
+    categories_major = categories_major
+  ))
+}
 
 get_time_points <- function(tps){
   sapply(tps, get_time_point)
@@ -389,6 +609,7 @@ get_time_points <- function(tps){
 get_time_point <- function(tp){
   tp_pre <- substr(tp, 1,2)
   time_val <- 0
+  if( tp_pre == '6W') return( 6/52 )
   if( tp_pre == '6M') return( 0.5 )
   else{
     return(substr(tp_pre, 1, 1))
@@ -396,7 +617,7 @@ get_time_point <- function(tp){
 }
 
 
-calc_estability <- function(data_, factors_, demo, treatment=NULL){
+calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL){
   time_points <- c('6M.', paste(1:5, 'Y.', sep=""))
   
   for(qual_ in factors_){
@@ -419,36 +640,59 @@ calc_estability <- function(data_, factors_, demo, treatment=NULL){
       calc_long_format(data_, ., treatment, base_tp, base_tp_num, qual_)  %>%
       create_lme_model(treatment)
 
-    # print("\n\n Basic Demographics" %>% f)
-    # c(
-    #   base_tp, 
-    #   paste(time_points, qual_),
-    #   'Code of the patient',
-    #   demo[['level_0']],
-    #   treatment
-    # ) %>% unique %>% 
-    #   calc_long_format(data_, ., treatment, base_tp, base_tp_num, demo[['level_0']]) %>% 
-    #   create_lme_model(treatment, demo[['level_0']])
 
-    # print("\n\n Preop Demographics" %>% f)
-    c(
-      base_tp,
-      paste(time_points, qual_),
-      'Code of the patient',
-      demo %>% unlist,
-      treatment
-    ) %>% unique %>%
-      calc_long_format(data_, ., treatment, base_tp, base_tp_num, qual_, demo %>% unlist) %>%
-      create_lme_model(treatment, demo %>% unlist)
+    
+    if( !is.null(demo) ){
+      qual_preop <- qual_
+      if( qual_ == 'RSA' ){
+        qual_preop <- 'Global Tilt'
+      }else if(qual_ == 'RPV'){
+        qual_preop <- 'Sacral Slope'
+      }
+      
+      print("\n\nPreop & Inc preop variable: {qual_preop}" %>% f)
+      
+      print("\nBasic Demographics" %>% f)
+      c(
+        base_tp,
+        paste(time_points, qual_),
+        'Code of the patient',
+        demo[['demographic_0']],
+        treatment
+      ) %>% unique %>%
+        calc_long_format(
+          data_, ., treatment, base_tp, base_tp_num, qual_preop, demo[['demographic_0']]
+        ) %>%
+        create_lme_model(treatment, demo[['demographic_0']], include_preop = FALSE)
+      
+      print("\n\n Factors" %>% f)
+      c(
+        base_tp,
+        paste(time_points, qual_),
+        'Code of the patient',
+        demo %>% unlist,
+        treatment
+      ) %>% unique %>%
+        calc_long_format(
+          data_, ., treatment, base_tp, base_tp_num, 
+          qual_preop, demo %>% unlist
+        ) %>%
+        create_lme_model(treatment, demo %>% unlist)
+    }
+    
   }
 }
 
-calc_long_format <- function(data_, cols_, treatment, base_tp, base_tp_num, qual_, demo_=NULL){
-  data_[, .SD, .SDcols = c(cols_, qual_)] %>% 
-    melt(id.vars =c('Code of the patient', demo_, treatment, base_tp, qual_)) %>% 
+calc_long_format <- function(data_, cols_, treatment, base_tp, base_tp_num, qual_preop, demo_=NULL){
+  base_qual_preop <- paste(substr(base_tp, 1, 3), qual_preop)
+  data_[, .SD, .SDcols = c(cols_, qual_preop, base_qual_preop)] %>% 
+    melt(id.vars =c(
+      'Code of the patient', demo_, treatment, base_tp, 
+      qual_preop, base_qual_preop) %>% unique
+    ) %>% 
     .[, value := value - get(base_tp)] %>%
-    .[, preop := get(qual_)] %>%
-    .[, inc_preop := get(base_tp) - get(qual_)] %>%
+    .[, preop := get(qual_preop)] %>%
+    .[, inc_preop := get(base_qual_preop) - get(qual_preop)] %>%
     .[, time_point := get_time_points(variable)] %>%
     .[, time_point := as.numeric(as.character(time_point)) - base_tp_num] %>%
     setnames('Code of the patient', 'patient_id') %>% 
@@ -462,34 +706,128 @@ calc_long_format <- function(data_, cols_, treatment, base_tp, base_tp_num, qual
   return(long_data)
 }
 
-create_lme_model <- function(long_data, treatment, demo_=NULL){
+create_lme_model <- function(long_data, treatment, demo_=NULL, include_preop=TRUE){
   
   if( !is.null(treatment) ){
     if(!is.null(demo_)){
-      control_vars <- c(demo_, 'inc_preop', 'preop')
+      if( !include_preop ){
+        control_vars <- demo_
+      }else{
+        control_vars <- c(demo_, 'inc_preop', 'preop')
+      }
       formula_ <- paste("`", control_vars, "`", sep="", collapse=" + ")
       formula_ <- "value ~ {formula_} + time_point + {treatment} + (time_point - 1|patient_id)" %>%
         f %>% as.formula
       smodel <- lmer(formula_, data=long_data)
+      if( isSingular(smodel) ){
+        model_summmary <- summary(smodel)
+        model_summmary <- as.data.table(model_summmary$varcor)
+        cov_pat <- model_summmary[grp=='patient_id', vcov]
+        
+        if(cov_pat < 1e-10){
+          formula_ <- paste("`", control_vars, "`", sep="", collapse=" + ")
+          formula_ <- "value ~ {formula_} + time_point + {treatment}" %>%
+            f %>% as.formula
+          smodel <- lm(formula_, data=long_data) 
+        }else{
+          stop()
+        }
+      }
     }else{
       formula_ <- "value ~ time_point + {treatment} + (time_point - 1|patient_id)" %>% 
         f %>% as.formula
       smodel <- lmer(formula_, data=long_data)  
+      if( isSingular(smodel) ){
+        model_summmary <- summary(smodel)
+        model_summmary <- as.data.table(model_summmary$varcor)
+        cov_pat <- model_summmary[grp=='patient_id', vcov]
+        
+        if(cov_pat < 1e-10){
+          formula_ <- "value ~ time_point + {treatment}" %>% 
+            f %>% as.formula
+          smodel <- lm(formula_, data=long_data) 
+        }else{
+          stop()
+        }
+      }
     }
   }else{
     if(!is.null(demo_)){
-      control_vars <- c(demo_, 'inc_preop', 'preop')
+      if( !include_preop ){
+        control_vars <- demo_
+      }else{
+        control_vars <- c(demo_, 'inc_preop', 'preop')
+      }
       formula_ <- paste("`", control_vars, "`", sep="", collapse=" + ")
       formula_ <- "value ~ {formula_} + time_point + (time_point - 1|patient_id)" %>%
         f %>% as.formula
       smodel <- lmer(formula_, data=long_data)
+      if( isSingular(smodel) ){
+        model_summmary <- summary(smodel)
+        model_summmary <- as.data.table(model_summmary$varcor)
+        cov_pat <- model_summmary[grp=='patient_id', vcov]
+        
+        if(cov_pat < 1e-10){
+          formula_ <- paste("`", control_vars, "`", sep="", collapse=" + ")
+          formula_ <- "value ~ {formula_} + time_point" %>%
+            f %>% as.formula
+          smodel <- lm(formula_, data=long_data) 
+        }else{
+          stop()
+        }
+      }
     }else{
       smodel <- lmer(value ~ time_point + (time_point - 1|patient_id), data=long_data) 
+      if( isSingular(smodel) ){
+        model_summmary <- summary(smodel)
+        model_summmary <- as.data.table(model_summmary$varcor)
+        cov_pat <- model_summmary[grp=='patient_id', vcov]
+        
+        if(cov_pat < 1e-10){
+          smodel <- lm(value ~ time_point , data=long_data) 
+        }else{
+          stop()
+        }
+      }
     }
   }
   
-  if( isSingular(smodel)) stop('Singular Model')
+  # if( isSingular(smodel)) stop('Singular Model')
   # print(smodel %>% summary)
   # ranef(smodel)
   print(summary(smodel)$coefficients %>% round(4))
+}
+
+
+
+calc_time_p_values <- function(data__, var_, var_6_b, var_2y, var_5y, cluster_name){
+  val_ <- data__[[var_]]
+  val_6_b <- data__[[var_6_b]]
+  val_2y <- data__[[var_2y]]
+  val_5y <- data__[[var_5y]]
+  value_6_b <- substr(var_6_b, 1, 2)
+  
+  time_p_vals <- data.frame()
+  time_p_vals %<>% 
+    rbind(data.frame(
+      t0='Preop', t1=value_6_b, p.val=t.test(val_6_b, val_)$p.val %>% round(4)
+    )) %>% 
+    rbind(data.frame(
+      t0='Preop', t1='2Y', p.val=t.test(val_2y, val_)$p.val %>% round(4)
+    )) %>% 
+    rbind(data.frame(
+      t0='Preop', t1='5Y', p.val=t.test(val_5y, val_)$p.val %>% round(4)
+    )) %>% 
+    rbind(data.frame(
+      t0=value_6_b, t1='2Y', p.val=t.test(val_2y, val_6_b)$p.val %>% round(4)
+    )) %>% 
+    rbind(data.frame(
+      t0=value_6_b, t1='5Y', p.val=t.test(val_5y, val_6_b)$p.val %>% round(4)
+    )) %>% 
+    rbind(data.frame(
+      t0='2Y', t1='5Y', p.val=t.test(val_5y, val_2y)$p.val %>% round(4)
+    ))  
+  time_p_vals$group <- cluster_name
+  
+  return(time_p_vals)
 }

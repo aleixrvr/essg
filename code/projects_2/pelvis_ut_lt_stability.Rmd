@@ -60,26 +60,17 @@ Patients: `r data_[, .N]`
 
 *Increment = Future - Baseline*
 
-<!-- ### Estability Increment Quality of Life -->
+### Estability Increment Quality of Life
 
-<!-- ```{r include=TRUE} -->
-<!-- demo <- c( -->
-<!--   factors_loss$demographic_0, -->
-<!--   factors_loss$demographic_1, -->
-<!--   factors_loss$surgical -->
-<!-- ) -->
-<!-- calc_estability(data_, factors_loss$qualitylife, demo,  -->
-<!--   treatment = treatment_) -->
-<!-- ``` -->
+```{r include=TRUE}
+calc_estability(data_, factors_loss$qualitylife, treatment = treatment_)
+```
 
 ### Estability Increment Radiology
 
+
 ```{r include=TRUE}
-demo <- c(
-  factors_loss$demographic_0,
-  factors_loss$demographic_1,
-  factors_loss$surgical
-)
+demo <- factors_loss[c('demographic_0', 'demographic_1', 'surgical')]
 calc_estability(data_, factors_loss$radiologic, demo,
    treatment = treatment_)
 ```

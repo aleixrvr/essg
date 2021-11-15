@@ -73,6 +73,55 @@ data_2 <- data_[get(treatment_) == treatment_vals[2]]
 ```
 
 
+P-valor ASA 1 UT vs LT 
+```{r include=TRUE}
+var_ <- "ASA classification"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+data__[, variable := ifelse(as.character(variable) == 1, 1, 2)]
+res <- data__[, .(asa_1 = sum(variable == 1), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+
+prop.test(
+  c(
+    res[treatment==treatment_vals[1]]$asa_1,
+    res[treatment==treatment_vals[2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[1]]$N,
+    res[treatment==treatment_vals[2]]$N
+  ))$p.val
+```
+
+
+P-valor Prior Spine Surgery Yes UT vs LT 
+```{r include=TRUE}
+var_ <- "Prior Spine Surgery"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+
+prop.test(
+  c(
+    res[treatment==treatment_vals[1]]$prior_yes,
+    res[treatment==treatment_vals[2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[1]]$N,
+    res[treatment==treatment_vals[2]]$N
+  ))$p.val
+```
+
+
 ### Demographics
 ```{r echo=FALSE, comment="", include=TRUE}
 for(var_ in analysis_vars$demographics ){
@@ -388,7 +437,7 @@ for(var_ in analysis_vars$surgery ){
 # Reinterventions
 
 ```{r}
-res <- calc_complications(data_, treatment_vals)
+res <- calc_complications(data_, treatment_vals, treatment_)
 ```
 
 ```{r include=TRUE}
@@ -411,4 +460,8 @@ res$impacts
 res$categories
 ```
 
+# Categories Major Complications
 
+```{r include=TRUE}
+res$categories_major
+```
