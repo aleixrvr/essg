@@ -1,0 +1,138 @@
+---
+title: "Long/Short ATEs"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, comment='', message=FALSE, warning=FALSE)
+```
+
+```{r}
+library(readxl)
+library(yaml)
+library(kableExtra)
+library(pROC)
+library(htmltools)
+source('utils.R')
+source('train.R')
+treatment_name <- 'longshort'
+xls_path <- '../data/ESSG extraction July 2021 DEF.xlsx'
+default_degree <- 0
+tuneLength <- 8
+```
+
+```{r, include=FALSE, cache=FALSE}
+knitr::read_chunk('data_preparation.R')
+```
+
+```{r, read_data}
+```
+
+For the `r "\"{colnames(diagnosis) %>% intersect(vars$confounders)}\"" %>% f` variables, we take the first diagnosis (among the many there are).
+
+```{r, long_short}
+```
+
+
+### Data Transformation
+
+- Missing "Cobb LS curve (Degree)" and "Cobb TL/L curve (Degree)" imputed with `r default_degree` degrees
+- "Degenerative disease: Spinal Stenosis" = Yes, means if it has Central, Left Foraminal and Right Foraminal at the same time
+
+```{r, variable_transformations}
+```
+
+### Patient Selection
+```{r echo=TRUE, patient_selection}
+```
+
+### Selecting comparable patients
+```{r echo=TRUE, comparable_patients}
+```
+
+```{r}
+data_ %>% 
+  .[, .N, longshort]
+```
+
+### Confounding Variables
+
+```{r}
+confounders <- vars$confounders
+outcomes <- vars$outcomes
+vars_ <- c(confounders, 'longshort')
+confounders %>% as.yaml %>% cat
+```
+
+
+# Propensity Score
+
+## Elastic Net
+
+```{r}
+vars_propensity <- c(vars_, 'Code of the patient')
+data_propensity <- data_ %>% 
+  .[, .SD, .SDcols = vars_propensity] %>% 
+  na.omit
+
+data_propensity_anonym <- data_propensity %>% 
+  .[, -'Code of the patient'] 
+
+propensity_model <- data_propensity_anonym %>% 
+  as.data.table %>% 
+  train_model(treatment_name, models='elastic', tuneLength = tuneLength)
+data_propensity_anonym %<>% cross_fitting(propensity_model, treatment_name)
+data_propensity[, propensity := data_propensity_anonym[, propensity]]
+```
+
+```{r}
+propensities <- data_propensity %>% 
+  .[, .(propensity=propensity, treatment = longshort)]
+auc_result <- auc(roc(propensities$treatment, propensities$propensity))
+ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
+  geom_density(alpha = 0.1) +
+  xlim(c(0, 1)) +
+  ggtitle('Propensity of being short\nAUC: {auc_result}' %>% f)
+```
+
+# Average Treatment Effects
+
+```{r}
+for( outcome in outcomes ){
+  vars_outcome_ <- c('longshort', 'propensity')
+  vars_outcome <- c(vars_outcome_, outcome)
+
+  data_outcomes <- data_ %>% 
+    merge(data_propensity[, .(`Code of the patient`, propensity)], all=FALSE) %>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    na.omit
+  
+  data_short <- data_outcomes %>% 
+    .[longshort=='short'] %>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    .[, -'longshort'] %>% 
+    na.omit
+  
+  data_long <- data_outcomes %>% 
+    .[longshort=='long'] %>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    .[, -'longshort'] %>% 
+    na.omit
+  
+  short_model <- data_short %>% 
+    as.data.table %>% 
+    train_model(outcome, models='boosting', tuneLength = tuneLength)
+  long_model <- data_long %>% 
+    as.data.table %>% 
+    train_model(outcome, models='boosting', tuneLength = tuneLength)
+  
+  ITEs <- cross_fitting_t_learner(
+    data_outcomes, short_model, long_model,
+    outcome_name = outcome, prediction_name='outcome_long'
+    )
+  
+  print_model_results(outcome, short_model, data_short, long_model, data_long)
+  print_ates(outcome, ITEs)
+}
+```
+

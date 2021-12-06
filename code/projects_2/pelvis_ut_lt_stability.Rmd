@@ -45,8 +45,8 @@ data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>%
   sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) ->
   post_intr_fusion
 
-UT <- paste("T", 1:9, sep="")
-LT <- paste("T", 10:12, sep="")
+UT <- paste("T", 2:6, sep="")
+LT <- paste("T", 7:12, sep="")
 
 data_[post_intr_fusion %chin% UT, thoracic_type := 'UT']
 data_[post_intr_fusion %chin% LT, thoracic_type := 'LT']

@@ -244,11 +244,13 @@ calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No')){
   return(p.val)
 }
 
-calc_complications <- function(data_, treatment_vals, treatment_){
+calc_complications <- function(data_, treatment_vals, treatment_, 
+  lower_years=0, upper_years=5){
   
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
-    .[`Days since surgery` < 5*365] 
+    .[`Days since surgery` < upper_years * 365] %>% 
+    .[`Days since surgery` > lower_years * 365] 
   
   patient_groups <- list()
   patient_groups$all <- data_[, `Code of the patient` %>% unique]

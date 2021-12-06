@@ -1,5 +1,5 @@
 ---
-title: "Pelvis UT vs Pelvis LT"
+title: "LIV L4/L5"
 output:
   pdf_document: default
   html_document: default
@@ -28,43 +28,46 @@ data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
 ```
 With Posterior Instrumented Fusion: `r data_[, .N]`
 
-```{r}
+
+
+
+```{r include=TRUE}
 data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
   sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
   post_intr_fusion
 
-data_ %<>% .[post_intr_fusion == 'Iliac']
-```
-Posterior Instrumental Fusion is Iliac: `r data_[, .N]`
+data_[post_intr_fusion == 'L4', type := 'L4']
+data_[post_intr_fusion == 'L5', type := 'L5']
 
-
-- Upper Thoracic (UT): T2-T6-Pelvis
-- Lower Thoracic (LT): T7-T12- Iliac
-```{r include=TRUE}
-data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
-  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) ->
-  post_intr_fusion
-
-UT <- paste("T", 2:6, sep="")
-LT <- paste("T", 7:12, sep="")
-
-data_[post_intr_fusion %chin% UT, thoracic_type := 'UT']
-data_[post_intr_fusion %chin% LT, thoracic_type := 'LT']
-
-data_[, .N, thoracic_type]
+data_[, .N, type]
 ```
 
 <!-- With 5Y FU -->
 <!-- ```{r include=TRUE} -->
 <!-- data_ %<>% .[followup_5y==TRUE] -->
-<!-- data_[, .N, thoracic_type] -->
+<!-- data_[, .N, type] -->
 <!-- ``` -->
+
+
+Patients who end up intrumented until pelvis
+```{r include=TRUE, echo=TRUE}
+revision <- read_excel(xls_path, sheet="Revision surgeries") %>% 
+  as.data.table()
+
+revision[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
+
+data_[`Code of the patient` %in% reint_iliac, `Code of the patient` %>% uniqueN, type]
+```
 
 
 
 ```{r}
-treatment_ <- 'thoracic_type'
-treatment_vals <- c('UT', 'LT')
+treatment_ <- 'type'
+treatment_vals <- c('L4', 'L5')
 ```
 
 ```{r}
@@ -72,8 +75,13 @@ data_1 <- data_[get(treatment_) == treatment_vals[1]]
 data_2 <- data_[get(treatment_) == treatment_vals[2]]
 ```
 
+```{r include)TRUE}
+data_[, .N, c("Non_instrumented_segments", treatment_)] %>% 
+  setorder(type, Non_instrumented_segments) %>% na.omit %>% print
+```
 
-P-valor ASA 1 UT vs LT 
+
+P-valor ASA 1 L4 vs L5 
 ```{r include=TRUE}
 var_ <- "ASA classification"
 data_[, .(
@@ -98,7 +106,7 @@ prop.test(
 ```
 
 
-P-valor Prior Spine Surgery Yes UT vs LT 
+P-valor Prior Spine Surgery Yes L4 vs L5
 ```{r include=TRUE}
 var_ <- "Prior Spine Surgery"
 data_[, .(
@@ -120,6 +128,7 @@ prop.test(
     res[treatment==treatment_vals[2]]$N
   ))$p.val
 ```
+
 
 
 ### Demographics
@@ -344,6 +353,7 @@ for(var_ in analysis_vars$quality ){
   cat('6w vs 5y p-value\n')
   cat(t.test(val_5y, val_6w)$p.val)
   cat('\n\n')
+
   
   cat('{var_} tests {treatment_vals[1]}\n' %>% f)
   val_ <- data_1[[var_]]
@@ -433,13 +443,11 @@ for(var_ in analysis_vars$surgery ){
 }
 ```
 
-# Before 2Y
 
-## Reinterventions
+# Reinterventions
 
 ```{r}
-res <- calc_complications(data_, treatment_vals, treatment_,
-  upper_year=2)
+res <- calc_complications(data_, treatment_vals, treatment_)
 ```
 
 ```{r include=TRUE}
@@ -450,55 +458,21 @@ res$number_reiqs
 res$p_vals_reiqs
 ```
 
-## Impacts
+# Impacts
 
 ```{r include=TRUE}
 res$impacts
 ```
 
-## Categories
+# Categories
 
 ```{r include=TRUE}
 res$categories
 ```
 
-## Categories Major Complications
+# Categories Major Complications
 
 ```{r include=TRUE}
 res$categories_major
 ```
 
-
-# From 2Y - 5Y
-
-## Reinterventions
-
-```{r}
-res <- calc_complications(data_, treatment_vals, treatment_, lower_year=2, upper_year=5)
-```
-
-```{r include=TRUE}
-res$number_reiqs
-```
-
-```{r include=TRUE}
-res$p_vals_reiqs
-```
-
-## Impacts
-
-```{r include=TRUE}
-res$impacts
-```
-
-## Categories
-
-```{r include=TRUE}
-res$categories
-```
-
-## Categories Major Complications
-
-```{r include=TRUE}
-res$categories_major
-```
