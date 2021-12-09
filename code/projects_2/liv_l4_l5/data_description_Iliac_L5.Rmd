@@ -1,0 +1,72 @@
+---
+title: "LIV Iliac/L5"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('liv_l4_l5/utils.R')
+source('patient_selection.R')
+
+
+treatment_name <- 'type'
+treatment_vals <- c('Iliac', 'L5')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+vars <- read_yaml('liv_l4_l5/variables.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+```
+With Posterior Instrumented Fusion: `r data_[, .N]`
+
+
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
+```
+
+# Comparability constraints
+```{r echo=TRUE}
+data_ %<>% 
+  .[`Surgical Approach`=='Posterior']
+```
+
+```{r}
+data_[, .N, type]
+```
+
+
+```{r include=TRUE}
+descriptive_vars <- vars$confounders
+for(var_ in descriptive_vars ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun_var(data_[, .SD, .SDcols = c(var_, treatment_name)], var_, treatment_name)
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```

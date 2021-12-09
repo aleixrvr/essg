@@ -1,65 +1,61 @@
 ---
-title: "Long/Short Propensity Analysis"
+title: "L5/Iliac Propensity Analysis"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, comment='', message=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
 ```
 
+
 ```{r}
-library(readxl)
+library(data.table)
+library(magrittr)
 library(yaml)
 library(kableExtra)
 library(pROC)
-source('utils.R')
-source('train.R')
-treatment_name <- 'longshort'
-xls_path <- '../data/ESSG extraction July 2021 DEF.xlsx'
-default_degree <- 0
-tuneLength <- 15
+source('patient_selection.R')
+source('liv_l4_l5/utils.R')
+source('liv_l4_l5/train.R')
+
+tuneLength <- 8
+
+treatment_name <- 'type'
+treatment_vals <- c('Iliac', 'L5')
+
 ```
 
-```{r, include=FALSE, cache=FALSE}
-knitr::read_chunk('data_preparation.R')
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+vars <- read_yaml('liv_l4_l5/variables.yml')
+data_ <- get_data()
 ```
-
-```{r, read_data}
-```
-
-For the `r "\"{colnames(diagnosis) %>% intersect(vars$confounders)}\"" %>% f` variables, we take the first diagnosis (among the many there are).
-
-### Long - Short defintion
-```{r, long_short}
-```
-
-
-### Data Transformation
-
-- Missing "Cobb LS curve (Degree)" and "Cobb TL/L curve (Degree)" imputed with `r default_degree` degrees
-- "Degenerative disease: Spinal Stenosis" = Yes, means if it has Central, Left Foraminal and Right Foraminal at the same time
-
-```{r, variable_transformations}
-```
-
-### Patient Selection
-```{r echo=TRUE, patient_selection}
-```
-
-
-## Patient Stats
-
-### Selected Patients
+Initial Patients: `r data_[, .N]`
 
 ```{r}
-data_ %>% 
-  .[, .N, longshort]
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+ 
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
 ```
 
+# Comparability constraints
+```{r echo=TRUE}
+data_ %<>% 
+  .[`Surgical Approach`=='Posterior'] %>% 
+  .[`Pelvic Tilt` < 35] %>% 
+  .[`Ideal GT` < 21] %>% 
+  .[`RLL` > -42] 
+```
 
-### Selecting comparable patients
-
-```{r echo=TRUE, comparable_patients}
+```{r}
+data_[, .N, type]
 ```
 
 
@@ -67,8 +63,8 @@ data_ %>%
 
 ```{r}
 confounders <- vars$confounders
-outcomes <- vars$outcomes
-vars_ <- c(confounders, 'longshort')
+# outcomes <- vars$outcomes
+vars_ <- c(confounders, treatment_name)
 confounders %>% as.yaml %>% cat
 ```
 
@@ -82,19 +78,18 @@ data_model <- data_ %>%
   .[, .SD, .SDcols = vars_] %>% 
   na.omit 
 best_model <- data_model %>% 
-  as.data.table %>% 
-  train_model('longshort', models='lm')
-data_model %<>% cross_fitting(best_model, treatment_name)
+  train_model(treatment_name, models='lm')
+data_model %<>% cross_fitting(best_model, treatment_name, treatment_vals[1])
 ```
 
 ```{r}
 propensities <- data_model %>% 
-  .[, .(propensity=propensity, treatment = longshort)]
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
 auc_result <- auc(roc(propensities$treatment, propensities$propensity))
 ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
   geom_density(alpha = 0.1) +
   xlim(c(0, 1)) +
-  ggtitle('Propensity of being short\nAUC: {auc_result}' %>% f)
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
 ```
 
 
@@ -108,17 +103,17 @@ data_model <- data_ %>%
 best_model <- data_model %>% 
   as.data.table %>% 
   train_model(treatment_name, models='elastic', tuneLength = tuneLength)
-data_model %<>% cross_fitting(best_model, treatment_name)
+data_model %<>% cross_fitting(best_model, treatment_name, treatment_vals[1])
 ```
 
 ```{r}
 propensities <- data_model %>% 
-  .[, .(propensity=propensity, treatment = longshort)]
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
 auc_result <- auc(roc(propensities$treatment, propensities$propensity))
 ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
   geom_density(alpha = 0.1) +
   xlim(c(0, 1)) +
-  ggtitle('Propensity of being short\nAUC: {auc_result}' %>% f)
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
 ```
 
 ## Boosting
@@ -130,15 +125,15 @@ data_model <- data_ %>%
 best_model <- data_model %>% 
   as.data.table %>% 
   train_model(treatment_name, models='boosting', tuneLength = tuneLength)
-data_model %<>% cross_fitting(best_model, treatment_name)
+data_model %<>% cross_fitting(best_model, treatment_name, treatment_vals[1])
 ```
 
 ```{r}
 propensities <- data_model %>% 
-  .[, .(propensity=propensity, treatment = longshort)]
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
 auc_result <- auc(roc(propensities$treatment, propensities$propensity))
 ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
   geom_density(alpha = 0.1) +
   xlim(c(0, 1)) +
-  ggtitle('Propensity of being short\nAUC: {auc_result}' %>% f)
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
 ```

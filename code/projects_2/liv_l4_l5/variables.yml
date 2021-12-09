@@ -1,0 +1,25 @@
+category_split:
+  - Surgical Approach
+outcomes:
+  - 5Y. ODI - Score (%)
+  - 5Y. SRS22 - SRS Subtotal score
+  - 5Y. SF36 - MCS
+  - 5Y. SF36 - PCS
+  - major_complications
+  - reiqs
+confounders:
+  - Age
+  - BMI_First Visit
+  - ASA classification
+  - Prior Spine Surgery
+  - Pelvic Tilt
+  - Interbody Fusion
+  # - ESSG Diagnosis
+  - essg_category
+  - Number of Posterior Instrumented Levels
+  - Decompression
+  - Osteotomy
+  - 3CO
+  - Ideal GT
+  - RLL
+  - Thoracolumbar L2-T10

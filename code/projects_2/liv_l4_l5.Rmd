@@ -444,10 +444,13 @@ for(var_ in analysis_vars$surgery ){
 ```
 
 
-# Reinterventions
+
+# Before 2Y
+
+## Reinterventions
 
 ```{r}
-res <- calc_complications(data_, treatment_vals, treatment_)
+res <- calc_complications(data_, treatment_vals, treatment_, upper_years=2)
 ```
 
 ```{r include=TRUE}
@@ -458,21 +461,55 @@ res$number_reiqs
 res$p_vals_reiqs
 ```
 
-# Impacts
+## Impacts
 
 ```{r include=TRUE}
 res$impacts
 ```
 
-# Categories
+## Categories
 
 ```{r include=TRUE}
 res$categories
 ```
 
-# Categories Major Complications
+## Categories Major Complications
 
 ```{r include=TRUE}
 res$categories_major
 ```
 
+
+# From 2Y - 5Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications(data_, treatment_vals, treatment_, lower_years=2, upper_years=5)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```

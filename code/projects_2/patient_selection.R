@@ -250,7 +250,8 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
     .[`Days since surgery` < upper_years * 365] %>% 
-    .[`Days since surgery` > lower_years * 365] 
+    .[`Days since surgery` > lower_years * 365] %>% 
+    .[`Complication Type`=='Primary']
   
   patient_groups <- list()
   patient_groups$all <- data_[, `Code of the patient` %>% unique]
@@ -341,20 +342,20 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   
   p_vals_reiqs <- data.frame(
     p_val_1_total = binom.test(
-      c(number_reiqs[group==treatment_vals[1], reiqs],
-        number_reiqs[group=='all', reiqs]),
+      c(number_reiqs[group==treatment_vals[1], patients],
+        number_reiqs[group=='all', patients]),
       c(number_reiqs[group==treatment_vals[1], total],
         number_reiqs[group=='all', total])
     )$p.val, 
     p_val_2_total = binom.test(
-      c(number_reiqs[group==treatment_vals[2], reiqs],
-        number_reiqs[group=='all', reiqs]),
+      c(number_reiqs[group==treatment_vals[2], patients],
+        number_reiqs[group=='all', patients]),
       c(number_reiqs[group==treatment_vals[2], total],
         number_reiqs[group=='all', total])
     )$p.val, 
     p_val_1_2 = binom.test(
-      c(number_reiqs[group==treatment_vals[1], reiqs],
-        number_reiqs[group==treatment_vals[2], reiqs]),
+      c(number_reiqs[group==treatment_vals[1], patients],
+        number_reiqs[group==treatment_vals[2], patients]),
       c(number_reiqs[group==treatment_vals[1], total],
         number_reiqs[group==treatment_vals[2], total])
     )$p.val
@@ -424,7 +425,8 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
   
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
-    .[`Days since surgery` < 5*365] 
+    .[`Days since surgery` < 5*365] %>% 
+    .[`Complication Type`=='Primary']
   
   patient_groups <- list()
   patient_groups$all <- data_[, `Code of the patient` %>% unique]

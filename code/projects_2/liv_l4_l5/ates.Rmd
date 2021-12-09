@@ -1,73 +1,100 @@
 ---
-title: "Long/Short ATEs"
+title: "L5/Iliac ATEs"
 output: html_document
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, comment='', message=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
 ```
 
+
 ```{r}
-library(readxl)
+library(data.table)
+library(magrittr)
 library(yaml)
 library(kableExtra)
 library(pROC)
-library(htmltools)
-source('utils.R')
-source('train.R')
-treatment_name <- 'longshort'
-xls_path <- '../data/ESSG extraction July 2021 DEF.xlsx'
-default_degree <- 0
+source('patient_selection.R')
+source('liv_l4_l5/utils.R')
+source('liv_l4_l5/train.R')
+
 tuneLength <- 8
+
+treatment_name <- 'type'
+treatment_vals <- c('Iliac', 'L5')
+propensity_threshold <- 0.75
+
 ```
 
-```{r, include=FALSE, cache=FALSE}
-knitr::read_chunk('data_preparation.R')
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+vars <- read_yaml('liv_l4_l5/variables.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+ 
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
 ```
 
-```{r, read_data}
+
+```{r}
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` < 5 * 365] %>% 
+  .[`Complication Type`=='Primary']
+
+reiqs <- complication_data[, 
+  .(reiqs = sum(`Reoperation Due to Complication` =='Yes')), 
+  `Code of the patient`] 
+
+major_complications <- complication_data[, 
+  .(major_complications = sum(`Complication Impact` == 'Major Complication')), 
+  `Code of the patient`]
+
+data_ %<>% 
+  merge(reiqs, by='Code of the patient', all.x=TRUE, all.y=FALSE) %>% 
+  merge(major_complications, by='Code of the patient', all.x=TRUE, all.y=FALSE)
+
 ```
 
-For the `r "\"{colnames(diagnosis) %>% intersect(vars$confounders)}\"" %>% f` variables, we take the first diagnosis (among the many there are).
-
-```{r, long_short}
-```
-
-
-### Data Transformation
-
-- Missing "Cobb LS curve (Degree)" and "Cobb TL/L curve (Degree)" imputed with `r default_degree` degrees
-- "Degenerative disease: Spinal Stenosis" = Yes, means if it has Central, Left Foraminal and Right Foraminal at the same time
-
-```{r, variable_transformations}
-```
-
-### Patient Selection
-```{r echo=TRUE, patient_selection}
-```
-
-### Selecting comparable patients
-```{r echo=TRUE, comparable_patients}
+# Comparability constraints
+```{r echo=TRUE}
+data_ %<>% 
+  .[`Surgical Approach`=='Posterior'] %>% 
+  .[`Pelvic Tilt` < 35] %>% 
+  .[`Ideal GT` < 21] %>% 
+  .[`RLL` > -42] 
 ```
 
 ```{r}
-data_ %>% 
-  .[, .N, longshort]
+data_[, .N, type]
 ```
+
 
 ### Confounding Variables
 
 ```{r}
 confounders <- vars$confounders
 outcomes <- vars$outcomes
-vars_ <- c(confounders, 'longshort')
+vars_ <- c(confounders, treatment_name)
 confounders %>% as.yaml %>% cat
 ```
 
 
 # Propensity Score
 
-## Elastic Net
+
+## Boosting
 
 ```{r}
 vars_propensity <- c(vars_, 'Code of the patient')
@@ -80,26 +107,39 @@ data_propensity_anonym <- data_propensity %>%
 
 propensity_model <- data_propensity_anonym %>% 
   as.data.table %>% 
-  train_model(treatment_name, models='elastic', tuneLength = tuneLength)
-data_propensity_anonym %<>% cross_fitting(propensity_model, treatment_name)
+  train_model(treatment_name, models='boosting', tuneLength = tuneLength)
+data_propensity_anonym %<>% cross_fitting(
+  propensity_model, treatment_name, treatment_vals[1]
+)
 data_propensity[, propensity := data_propensity_anonym[, propensity]]
 ```
 
 ```{r}
 propensities <- data_propensity %>% 
-  .[, .(propensity=propensity, treatment = longshort)]
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
 auc_result <- auc(roc(propensities$treatment, propensities$propensity))
 ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
   geom_density(alpha = 0.1) +
   xlim(c(0, 1)) +
-  ggtitle('Propensity of being short\nAUC: {auc_result}' %>% f)
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
 ```
+
+
+```{r include=TRUE}
+data_propensity %<>% .[propensity <= propensity_threshold] 
+```
+
+Propensity threshold `r propensity_threshold`
+```{r include=TRUE}
+data_propensity[, .N, treatment_name]
+```
+
 
 # Average Treatment Effects
 
 ```{r}
+vars_outcome_ <- c(treatment_name, 'propensity')
 for( outcome in outcomes ){
-  vars_outcome_ <- c('longshort', 'propensity')
   vars_outcome <- c(vars_outcome_, outcome)
 
   data_outcomes <- data_ %>% 
@@ -107,31 +147,32 @@ for( outcome in outcomes ){
     .[, .SD, .SDcols = vars_outcome] %>% 
     na.omit
   
-  data_short <- data_outcomes %>% 
-    .[longshort=='short'] %>% 
+  data_1 <- data_outcomes %>% 
+    .[get(treatment_name)==treatment_vals[1]] %>% 
     .[, .SD, .SDcols = vars_outcome] %>% 
-    .[, -'longshort'] %>% 
+    .[, c(treatment_name) := NULL] %>% 
     na.omit
   
-  data_long <- data_outcomes %>% 
-    .[longshort=='long'] %>% 
+  data_2 <- data_outcomes %>% 
+    .[get(treatment_name)==treatment_vals[2]] %>% 
     .[, .SD, .SDcols = vars_outcome] %>% 
-    .[, -'longshort'] %>% 
+    .[, c(treatment_name) := NULL] %>% 
     na.omit
   
-  short_model <- data_short %>% 
+  model_1 <- data_1 %>% 
     as.data.table %>% 
     train_model(outcome, models='boosting', tuneLength = tuneLength)
-  long_model <- data_long %>% 
+  model_2 <- data_2 %>% 
     as.data.table %>% 
     train_model(outcome, models='boosting', tuneLength = tuneLength)
   
   ITEs <- cross_fitting_t_learner(
-    data_outcomes, short_model, long_model,
-    outcome_name = outcome, prediction_name='outcome_long'
+    data_outcomes, model_1, model_2,
+    outcome_name = outcome, prediction_name='outcome_pred',
+    treatment_name=treatment_name, outcome_val=treatment_vals[1]
     )
   
-  print_model_results(outcome, short_model, data_short, long_model, data_long)
+  print_model_results(outcome, model_1, data_1, model_2, data_2)
   print_ates(outcome, ITEs)
 }
 ```

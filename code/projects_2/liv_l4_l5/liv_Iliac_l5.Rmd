@@ -1,5 +1,5 @@
 ---
-title: "LIV L4/L5"
+title: "LIV Iliac/L5"
 output:
   pdf_document: default
   html_document: default
@@ -7,12 +7,16 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+knitr::opts_knit$set(root.dir = '../')
 ```
 
 ```{r}
 library(data.table)
 library(magrittr)
 library(yaml)
+
+treatment_name <- 'type'
+treatment_vals <- c('Iliac', 'L5')
 
 source('patient_selection.R')
 ```
@@ -36,8 +40,9 @@ data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>%
   sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
   post_intr_fusion
 
-data_[post_intr_fusion == 'L4', type := 'L4']
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
 data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
 
 data_[, .N, type]
 ```
@@ -49,26 +54,6 @@ data_[, .N, type]
 <!-- ``` -->
 
 
-Patients who end up intrumented until pelvis
-```{r include=TRUE, echo=TRUE}
-revision <- read_excel(xls_path, sheet="Revision surgeries") %>% 
-  as.data.table()
-
-revision[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
-  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
-  post_intr_fusion
-
-reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
-
-data_[`Code of the patient` %in% reint_iliac, `Code of the patient` %>% uniqueN, type]
-```
-
-
-
-```{r}
-treatment_ <- 'type'
-treatment_vals <- c('L4', 'L5')
-```
 
 ```{r}
 data_1 <- data_[get(treatment_) == treatment_vals[1]]
@@ -81,7 +66,7 @@ data_[, .N, c("Non_instrumented_segments", treatment_)] %>%
 ```
 
 
-P-valor ASA 1 L4 vs L5 
+P-valor ASA 1 Iliac vs L5 
 ```{r include=TRUE}
 var_ <- "ASA classification"
 data_[, .(
@@ -106,7 +91,7 @@ prop.test(
 ```
 
 
-P-valor Prior Spine Surgery Yes L4 vs L5
+P-valor Prior Spine Surgery Yes Iliac vs L5
 ```{r include=TRUE}
 var_ <- "Prior Spine Surgery"
 data_[, .(

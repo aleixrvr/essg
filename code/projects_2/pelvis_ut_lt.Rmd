@@ -438,8 +438,7 @@ for(var_ in analysis_vars$surgery ){
 ## Reinterventions
 
 ```{r}
-res <- calc_complications(data_, treatment_vals, treatment_,
-  upper_year=2)
+res <- calc_complications(data_, treatment_vals, treatment_, upper_years=2)
 ```
 
 ```{r include=TRUE}
@@ -474,7 +473,7 @@ res$categories_major
 ## Reinterventions
 
 ```{r}
-res <- calc_complications(data_, treatment_vals, treatment_, lower_year=2, upper_year=5)
+res <- calc_complications(data_, treatment_vals, treatment_, lower_years=2, upper_years=5)
 ```
 
 ```{r include=TRUE}

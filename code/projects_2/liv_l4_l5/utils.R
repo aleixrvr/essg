@@ -2,19 +2,18 @@ library(data.table)
 library(magrittr)
 library(stringr)
 library(ggplot2)
-source('base.R')
 
 
 print_model_results <- function(
-  outcome, short_model, data_short, long_model, data_long){
+  outcome, model_1, data_1, model_2, data_2){
   
   outcome_vals <- c(
-    data_short[, get(outcome)],
-    data_long[, get(outcome)]
+    data_1[, get(outcome)],
+    data_2[, get(outcome)]
   )
   
-  total_obs <- data_short[, .N] + data_long[, .N]
-  rmse <- short_model$rmse * data_short[, .N] + long_model$rmse * data_long[, .N] 
+  total_obs <- data_1[, .N] + data_2[, .N]
+  rmse <- model_1$rmse * data_1[, .N] + model_2$rmse * data_2[, .N] 
   rmse <- rmse / total_obs
   rmse <- rmse / sqrt(total_obs)
   relative_rmse <- rmse / sd(outcome_vals)
@@ -36,7 +35,15 @@ print_ates <- function(outcome, ITEs){
   return(invisible())
 }
 
-stats_fun <- function(dt, var_){
+stats_fun_var <- function(dt, var_, treatment_name){
+  dt[, .(treatment=get(treatment_name), outcome=get(var_))] %>% 
+    ggplot(aes(treatment, outcome)) +
+    ggtitle(var_) +
+    xlab(treatment_name) +
+    geom_jitter(width = 0.05, height = 0.05) ->
+    res_plot
+  print(res_plot)
+  
   if( class(dt[, get(var_)]) == 'numeric' ){
     res_global <- dt[, .(
       mean = mean(get(var_), na.rm=TRUE),
@@ -46,6 +53,7 @@ stats_fun <- function(dt, var_){
       mean = mean(get(var_), na.rm=TRUE),
       sd = sd(get(var_), na.rm = TRUE)
     ), treatment_name]
+    
     return( list(
       global = res_global,
       treatment = res_treatment

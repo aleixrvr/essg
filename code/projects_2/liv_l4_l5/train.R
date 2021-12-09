@@ -4,27 +4,41 @@ library(caret)
 # library(MLmetrics)
 library(pROC)
 
-auc_metric <- function(data, lev=NULL, model=NULL){
-  auc_res <- auc(roc(data$obs, data$short))
-  return(c(AUC=auc_res))
-}
+
 
 train_model <- function(
   dt, outcome_name, k_fold=5, tuneLength=5, 
   models=c('lm', 'boosting', 'elastic'), verbose=FALSE,
-  only_one=FALSE, tuneGrid = NULL
+  only_one=FALSE, tuneGrid = NULL, split_vars = NULL
 ){
   results <- list()
   pred_formula <- '`{outcome_name}` ~ .' %>% f %>% as.formula
   
-  y <- dt[, get(outcome_name)]
-  index <- createFolds(y, k_fold, returnTrain = TRUE)
+  numeric_types <- c('numeric', 'integer')
+  model_type <- ifelse(class(dt[[outcome_name]]) %in% numeric_types, 'regression', 'classification')
+  if( model_type == 'classification' ){
+    split_cat <- dt[, .SD, .SDcols = c(outcome_name, split_vars)]
+    y_folds <- split_cat %>% 
+      .[, 
+        .(new_cat = paste(.SD, collapse="")), 
+        1:nrow(split_cat)] %>% 
+      .[, new_cat]
+  }else{
+    y_folds <- dt[[outcome_name]]
+  }
+  
+  index <- createFolds(y_folds, k_fold, returnTrain = TRUE)
   # trControl <-  caret::trainControl(method = "cv", number = k_fold, index=index)
-  model_type <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'regression', 'classification')
+  
   method <- ifelse(model_type == 'regression' & model_type=='classification', 'lm', 'glm')
   
+  outcome_val <- dt[[outcome_name]] %>% unique %>% .[1] %>% as.character()
+  auc_metric <- function(data, lev=NULL, model=NULL){
+    auc_res <- auc(roc(data$obs, data[[outcome_val]]))
+    return(c(AUC=auc_res))
+  }
+  
   if( model_type == 'classification' ){
-    # metric <- 'Accuracy'
     metric <- 'AUC'
     objective <- 'binary:logistic'
     if( only_one ){
@@ -36,7 +50,6 @@ train_model <- function(
       trControl <- caret::trainControl(
         method = "cv", number = k_fold, classProbs = TRUE, 
         summaryFunction=auc_metric, savePredictions='all', index=index)
-      # summaryFunction=prSummary
     }
   }else{
     metric <- 'RMSE'
@@ -142,10 +155,17 @@ select_best_model <- function(results_model, model_type){
   return(best_model)
 }
 
-cross_fitting <- function(dt_0, best_model, outcome_name,
-  prediction_name='propensity'){
+cross_fitting <- function(dt_0, best_model, outcome_name, outcome_value, 
+  prediction_name='propensity', split_vars=NULL){
   dt_1 <- dt_0 %>% copy
-  folds <- createFolds(dt_0[, get(outcome_name)], k=5)
+  
+  split_cat <- dt_1[, .SD, .SDcols = c(outcome_name, split_vars)]
+  new_cat <- split_cat %>% 
+    .[, 
+      .(new_cat = paste(.SD, collapse="")), 
+      1:nrow(split_cat)] %>% 
+    .[, new_cat]
+  folds <- createFolds(new_cat, k=5)
   
   for( test in folds){
     test_data <- dt_1[test]
@@ -159,7 +179,7 @@ cross_fitting <- function(dt_0, best_model, outcome_name,
     if( class(dt_1[, get(outcome_name)]) == 'numeric' ){
       prediction <- predict(fold_model$model, test_data)
     }else{
-      prediction <- predict(fold_model$model, test_data, type='prob')$short  
+      prediction <- predict(fold_model$model, test_data, type='prob')[[outcome_value]]  
     }
     dt_0[test, c(prediction_name) := prediction]
   }
@@ -168,7 +188,7 @@ cross_fitting <- function(dt_0, best_model, outcome_name,
 }
 
 cross_fitting_t_learner <- function(dt_0, best_model_1, best_model_2, outcome_name,
-  prediction_name='propensity'){
+  prediction_name='propensity', treatment_name, outcome_value){
   dt_1 <- dt_0 %>% copy
   folds <- createFolds(dt_0[, get(treatment_name)], k=5)
   
@@ -179,8 +199,8 @@ cross_fitting_t_learner <- function(dt_0, best_model_1, best_model_2, outcome_na
 
     tuneGrid_1 <- best_model_1$params %>% as.data.frame()
     train_data %>% 
-      .[longshort=='short'] %>% 
-      .[, longshort:=NULL] %>% 
+      .[get(treatment_name)==outcome_value] %>% 
+      .[, c(treatment_name):=NULL] %>% 
       train_model(
         outcome_name = outcome_name,
         only_one = TRUE, tuneGrid = tuneGrid_1,
@@ -190,8 +210,8 @@ cross_fitting_t_learner <- function(dt_0, best_model_1, best_model_2, outcome_na
     
     tuneGrid_2 <- best_model_2$params %>% as.data.frame()
     train_data %>% 
-      .[longshort=='long'] %>% 
-      .[, longshort:=NULL] %>% 
+      .[get(treatment_name)!=outcome_value] %>% 
+      .[, c(treatment_name):=NULL] %>% 
       train_model(
         outcome_name = outcome_name,
         only_one = TRUE, tuneGrid = tuneGrid_2,

@@ -46,9 +46,9 @@ data_ %<>% .[!(`Code of the patient` %in% greater_than_10)]
 Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): `r data_[, .N]`
 
 ```{r}
-data_ %<>% .[complications_bf_6m=='No']
+data_ %<>% .[complications_ever=='No']
 ```
-Without complications (PJK, PJF, DJK, DJF) before 6 months after surgery: `r data_[, .N]`
+Without complications (PJK, PJF, DJK, DJF) ever after surgery: `r data_[, .N]`
 
 
 <!-- ```{r} -->
@@ -211,6 +211,7 @@ selected_patients <- data_[, `Code of the patient` %>% unique]
 complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
   as.data.table() %>% 
   .[`Days since surgery` < 5*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
   .[`Code of the patient` %chin% selected_patients]
 
 number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
@@ -238,6 +239,7 @@ selected_patients <- data_[, `Code of the patient` %>% unique]
 complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
   as.data.table() %>% 
   .[`Days since surgery` < 5*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
   .[`Code of the patient` %chin% selected_patients]
 
 number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', uniqueN(`Code of the patient`)]
