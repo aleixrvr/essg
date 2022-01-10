@@ -1,6 +1,8 @@
 ---
 title: "L5/Iliac ATEs"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -23,7 +25,7 @@ tuneLength <- 8
 
 treatment_name <- 'type'
 treatment_vals <- c('Iliac', 'L5')
-propensity_threshold <- 0.75
+propensity_threshold <- 0
 
 ```
 
@@ -126,7 +128,7 @@ ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
 
 
 ```{r include=TRUE}
-data_propensity %<>% .[propensity <= propensity_threshold] 
+data_propensity %<>% .[propensity >= propensity_threshold] 
 ```
 
 Propensity threshold `r propensity_threshold`
@@ -173,7 +175,7 @@ for( outcome in outcomes ){
     )
   
   print_model_results(outcome, model_1, data_1, model_2, data_2)
-  print_ates(outcome, ITEs)
+  print_ates(outcome, ITEs, treatment_vals)
 }
 ```
 

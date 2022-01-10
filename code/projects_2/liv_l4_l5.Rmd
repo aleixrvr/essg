@@ -63,7 +63,16 @@ reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
 data_[`Code of the patient` %in% reint_iliac, `Code of the patient` %>% uniqueN, type]
 ```
 
-
+UIV frequencies
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) -> 
+  post_intr_fusion_upper 
+data.table(uiv = post_intr_fusion_upper) %>% 
+  .[, .N, uiv] %>% 
+  setorder(uiv) %>% 
+  print
+```
 
 ```{r}
 treatment_ <- 'type'
@@ -375,8 +384,8 @@ for(var_ in analysis_vars$quality ){
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
-  cat('6w vs 5y p-value\n')
-  cat(t.test(val_5y, val_6w)$p.val)
+  cat('6m vs 5y p-value\n')
+  cat(t.test(val_5y, val_6m)$p.val)
   cat('\n\n')
   
   cat('{var_} tests {treatment_vals[2]}\n' %>% f)
@@ -486,6 +495,40 @@ res$categories_major
 
 ```{r}
 res <- calc_complications(data_, treatment_vals, treatment_, lower_years=2, upper_years=5)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```
+
+# Before 5Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications(data_, treatment_vals, treatment_, lower_years=0, upper_years=5)
 ```
 
 ```{r include=TRUE}

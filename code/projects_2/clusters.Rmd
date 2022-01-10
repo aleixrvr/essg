@@ -22,7 +22,7 @@ source('patient_selection.R')
 data_ <- get_data_base()
 cluster_vars <- read_yaml('cluster_vars.yml')
 analysis_vars <- read_yaml('descriptive.yml')
-cluster_num <- 3
+cluster_num <- 5
 ```
 
 ```{r include=TRUE}
@@ -150,7 +150,6 @@ for(var_ in analysis_vars$radiology ){
         val_2 <- treatment_vals[val_2_pos]
         p.val <- calc_p_vals(data_, var_y, treatment_, c(val_1, val_2)) %>% 
           round(4)
-        if( is.null(p.val) ) p.val <- NA
         p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
       }
     }

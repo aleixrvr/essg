@@ -12,7 +12,7 @@ train_model <- function(
   index <- createFolds(y, k_fold, returnTrain = TRUE)
   trControl <-  caret::trainControl(method = "cv", number = k_fold, index=index)
   # trControl <-  caret::trainControl(method = "cv", number = k_fold, classProbs = TRUE)
-  model_type <- ifelse(class(dt[[outcome_name]]) == 'numeric', 'regression', 'classification')
+  model_type <- ifelse(class(dt[[outcome_name]]) %in% c('numeric', 'integer'), 'regression', 'classification')
   method <- ifelse(model_type == 'regression', 'lm', 'glm')
   
   if( model_type == 'classification' ){

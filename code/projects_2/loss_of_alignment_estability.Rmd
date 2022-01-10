@@ -18,30 +18,40 @@ library(lme4)
 library(lmerTest)
 
 source('patient_selection.R')
-```
-
-```{r, message=FALSE}
-data_ <- get_data()
 factors_loss <- read_yaml('factors_loss.yml')
 ```
-Initial Patients: `r data_[, .N]`
 
-*Selection criteria*
-```{r echo=TRUE, include=TRUE}
+```{r}
+data_ <- get_data()
+```
+
+
+```{r}
 data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+```
+With Posterior Instrumented Fusion: `r data_[, .N]`
+
+```{r}
 data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
   sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
   post_intr_fusion
 
 data_ %<>% .[post_intr_fusion == 'Iliac']
+```
+Posterior Instrumental Fusion is Iliac: `r data_[, .N]`
 
+```{r}
 non_stable <- readLines('non_stable_degree.txt')
 greater_than_10 <- data_[abs(diff_lordosis) >= 10, `Code of the patient`]
 greater_than_10 <- greater_than_10 %¡in% non_stable
 data_ %<>% .[!(`Code of the patient` %in% greater_than_10)]
-
-data_ %<>% .[complications_bf_6m=='No']
 ```
+Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): `r data_[, .N]`
+
+```{r}
+data_ %<>% .[complications_ever=='No']
+```
+Without complications (PJK, PJF, DJK, DJF) ever after surgery: `r data_[, .N]`
 
 
 *Increment = Future - Baseline*

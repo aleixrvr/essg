@@ -1569,22 +1569,13 @@ pre code {
 
 
 <p>Initial Patients: 372</p>
-<p><strong>Selection criteria</strong></p>
-<pre class="r"><code>data_ %&lt;&gt;% .[`Posterior Instrumented Fusion` == &#39;Yes&#39;]
-data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %&gt;% 
-  sapply(. %&gt;% strsplit(&#39;-&#39;) %&gt;% .[[1]] %&gt;% .[2]) -&gt;
-  post_intr_fusion
-
-data_ %&lt;&gt;% .[post_intr_fusion == &#39;Iliac&#39;]
-
-non_stable &lt;- readLines(&#39;non_stable_degree.txt&#39;)
-greater_than_10 &lt;- data_[abs(diff_lordosis) &gt;= 10, `Code of the patient`]
-greater_than_10 &lt;- greater_than_10 %¡in% non_stable
-data_ %&lt;&gt;% .[!(`Code of the patient` %in% greater_than_10)]</code></pre>
+<p>With Posterior Instrumented Fusion: 348</p>
+<p>Posterior Instrumental Fusion is Iliac: 134</p>
+<p>Differences smaller than 10º in 6W-2Y Lordosis (top of L1-S1): 112</p>
+<p>Without complications (PJK, PJF, DJK, DJF) ever after surgery: 81</p>
 <p>Numer of patients with complications (pjf/pjk/djk/djf) before 6m</p>
 <pre><code>   complications_ever  N
-1:                 No 81
-2:                Yes 31</code></pre>
+1:                 No 81</code></pre>
 <p>“- j -” stands for: pjk/pjf/djk/djf</p>
 <div id="demographic-factors--j-" class="section level1">
 <h1>Demographic Factors -j-</h1>
@@ -1593,28 +1584,25 @@ Call:
 glm(formula = complications_ever ~ ., family = &quot;binomial&quot;, data = .)
 
 Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--1.4871  -0.7541  -0.5510   1.0513   2.3678  
+       Min          1Q      Median          3Q         Max  
+-2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  
 
 Coefficients:
-              Estimate Std. Error z value Pr(&gt;|z|)   
-(Intercept)   -6.03582    1.95347  -3.090  0.00200 **
-Age            0.08373    0.02960   2.829  0.00467 **
-GenderMale    -0.44107    0.74114  -0.595  0.55176   
-SiteBOR Op    -0.70124    0.52697  -1.331  0.18329   
-SiteIST Op   -17.43180 1691.21913  -0.010  0.99178   
-SiteMAD Op     0.64659    0.73649   0.878  0.37997   
-SiteZUR Op     1.48742    1.40679   1.057  0.29037   
----
-Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+              Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept) -2.657e+01  2.434e+05       0        1
+Age          6.452e-16  3.987e+03       0        1
+SiteBOR Op  -2.550e-14  9.395e+04       0        1
+SiteIST Op  -2.610e-14  1.818e+05       0        1
+SiteMAD Op  -2.351e-14  1.652e+05       0        1
+SiteZUR Op  -2.352e-14  3.663e+05       0        1
 
 (Dispersion parameter for binomial family taken to be 1)
 
-    Null deviance: 132.14  on 111  degrees of freedom
-Residual deviance: 112.57  on 105  degrees of freedom
-AIC: 126.57
+    Null deviance: 0.0000e+00  on 80  degrees of freedom
+Residual deviance: 4.6993e-10  on 75  degrees of freedom
+AIC: 12
 
-Number of Fisher Scoring iterations: 16</code></pre>
+Number of Fisher Scoring iterations: 25</code></pre>
 </div>
 <div id="demographic-factors-2--j--before-6m" class="section level1">
 <h1>Demographic Factors 2 -j- before 6m</h1>
@@ -1623,36 +1611,29 @@ Call:
 glm(formula = complications_ever ~ ., family = &quot;binomial&quot;, data = .)
 
 Deviance Residuals: 
-    Min       1Q   Median       3Q      Max  
--1.8898  -0.6594  -0.4210   0.7824   2.6175  
+       Min          1Q      Median          3Q         Max  
+-2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  
 
 Coefficients:
-                                    Estimate Std. Error z value Pr(&gt;|z|)    
-(Intercept)                         -9.58221    2.83030  -3.386  0.00071 ***
-Age                                  0.09356    0.03613   2.589  0.00962 ** 
-GenderMale                          -0.87788    0.88427  -0.993  0.32082    
-SiteBOR Op                          -1.04620    0.65170  -1.605  0.10842    
-SiteIST Op                         -19.38383 1617.92244  -0.012  0.99044    
-SiteMAD Op                           1.05831    0.92761   1.141  0.25391    
-SiteZUR Op                           1.73527    1.51830   1.143  0.25308    
-`Prior Spine Surgery`Yes            -0.21544    0.56268  -0.383  0.70181    
-`ASA classification`2               -2.19896    0.85413  -2.574  0.01004 *  
-`ASA classification`3               -2.09136    1.12115  -1.865  0.06213 .  
-`BMI_First Visit`                    0.14349    0.07530   1.906  0.05671 .  
-`Osteoporosis / osteopenia`Yes       0.61197    0.61190   1.000  0.31726    
-`Tobacco use_First Visit`Ex          1.59507    1.04276   1.530  0.12610    
-`Tobacco use_First Visit`Non-User    1.19616    0.94167   1.270  0.20399    
----
-Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+                                 Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)                    -2.657e+01  2.777e+05       0        1
+Age                             6.501e-16  4.214e+03       0        1
+SiteBOR Op                     -2.657e-14  1.002e+05       0        1
+SiteIST Op                     -4.895e-14  1.849e+05       0        1
+SiteMAD Op                     -2.621e-14  1.774e+05       0        1
+SiteZUR Op                     -5.313e-14  3.725e+05       0        1
+`Prior Spine Surgery`Yes        1.789e-14  8.745e+04       0        1
+`Osteoporosis / osteopenia`Yes -1.078e-14  1.009e+05       0        1
+essg_categoryidiopathic        -1.251e-14  9.239e+04       0        1
+essg_categoryothers            -1.765e-14  1.319e+05       0        1
 
 (Dispersion parameter for binomial family taken to be 1)
 
-    Null deviance: 131.484  on 110  degrees of freedom
-Residual deviance:  99.281  on  97  degrees of freedom
-  (1 observation deleted due to missingness)
-AIC: 127.28
+    Null deviance: 0.0000e+00  on 80  degrees of freedom
+Residual deviance: 4.6993e-10  on 71  degrees of freedom
+AIC: 20
 
-Number of Fisher Scoring iterations: 16</code></pre>
+Number of Fisher Scoring iterations: 25</code></pre>
 </div>
 <div id="baseline-factors--j--ever" class="section level1">
 <h1>Baseline Factors -j- ever</h1>
@@ -1662,51 +1643,47 @@ glm(formula = complications_ever ~ ., family = &quot;binomial&quot;, data = .)
 
 Deviance Residuals: 
        Min          1Q      Median          3Q         Max  
--2.212e-05  -1.990e-06  -2.110e-08   2.110e-08   2.257e-05  
+-2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  -2.409e-06  
 
 Coefficients:
-                                    Estimate Std. Error z value Pr(&gt;|z|)
-(Intercept)                       -1.019e+06  2.329e+09   0.000    1.000
-Age                                1.365e+00  9.507e+03   0.000    1.000
-GenderMale                        -1.835e+02  3.072e+05  -0.001    1.000
-SiteBOR Op                        -2.547e+01  2.131e+05   0.000    1.000
-SiteIST Op                         1.517e+02  7.319e+05   0.000    1.000
-SiteMAD Op                         1.342e+02  1.832e+05   0.001    0.999
-SiteZUR Op                         1.992e+02  7.059e+05   0.000    1.000
-`Prior Spine Surgery`Yes          -2.956e+01  1.421e+05   0.000    1.000
-`ASA classification`2             -7.870e+01  2.145e+05   0.000    1.000
-`ASA classification`3              1.249e+02  2.485e+05   0.001    1.000
-`BMI_First Visit`                 -4.201e+00  1.747e+04   0.000    1.000
-`Osteoporosis / osteopenia`Yes    -2.293e+01  1.135e+05   0.000    1.000
-`Tobacco use_First Visit`Ex        1.870e+02  1.657e+05   0.001    0.999
-`Tobacco use_First Visit`Non-User  5.914e+01  2.515e+05   0.000    1.000
-`Static Major curve Cobb angle`   -2.265e+00  3.851e+03  -0.001    1.000
-`Coronal Balance (C7PL to CSVL)`  -2.373e+00  2.995e+03  -0.001    0.999
-`Sagittal Balance`                 3.366e+00  7.578e+03   0.000    1.000
-`Sagittal T2-T5`                   2.947e+00  3.355e+04   0.000    1.000
-`Sagittal T5-T12`                 -9.048e-01  1.582e+04   0.000    1.000
-`Sagittal T2-T12`                  7.493e+00  2.412e+04   0.000    1.000
-`Lordosis (top of L1-S1)`         -2.675e+04  7.962e+07   0.000    1.000
-`Pelvic Incidence`                -5.729e+03  4.339e+07   0.000    1.000
-`Pelvic Tilt`                     -2.590e+02  5.268e+05   0.000    1.000
-`Sacral Slope`                    -3.472e+03  1.861e+07   0.000    1.000
-RLL                               -2.676e+04  7.962e+07   0.000    1.000
-`Global Tilt`                     -1.812e+04  1.764e+07  -0.001    0.999
-`T1 Sagittal Tilt`                -3.950e+01  6.855e+04  -0.001    1.000
-`Thoracolumbar L2-T10`             5.008e+00  5.664e+03   0.001    0.999
-RSA                                1.812e+04  1.764e+07   0.001    0.999
-RPV                                3.231e+03  1.871e+07   0.000    1.000
-`ODI - Score (%)`                 -1.633e+00  9.098e+03   0.000    1.000
-`SRS22 - SRS Subtotal score`      -8.081e+01  3.008e+05   0.000    1.000
-`SF36 - PCS`                      -2.508e+00  1.501e+04   0.000    1.000
-`SF36 - MCS`                       6.066e+00  9.996e+03   0.001    1.000
+                                   Estimate Std. Error z value Pr(&gt;|z|)
+(Intercept)                      -2.657e+01  1.111e+09       0        1
+Age                               2.401e-17  9.913e+03       0        1
+SiteBOR Op                        1.495e-15  2.281e+05       0        1
+SiteIST Op                       -1.752e-14  5.145e+05       0        1
+SiteMAD Op                        7.827e-15  3.678e+05       0        1
+SiteZUR Op                        1.952e-14  1.115e+06       0        1
+`Prior Spine Surgery`Yes          1.018e-14  1.878e+05       0        1
+`Osteoporosis / osteopenia`Yes    1.276e-15  1.746e+05       0        1
+essg_categoryidiopathic           7.936e-15  1.914e+05       0        1
+essg_categoryothers              -1.276e-14  2.693e+05       0        1
+`Static Major curve Cobb angle`   2.712e-16  5.055e+03       0        1
+`Coronal Balance (C7PL to CSVL)` -2.431e-17  3.733e+03       0        1
+`Sagittal Balance`               -5.935e-16  9.944e+03       0        1
+`Sagittal T2-T5`                 -9.182e-16  1.850e+04       0        1
+`Sagittal T5-T12`                -7.495e-16  1.713e+04       0        1
+`Sagittal T2-T12`                 8.969e-16  1.826e+04       0        1
+`Lordosis (top of L1-S1)`        -2.638e-12  3.228e+07       0        1
+`Pelvic Incidence`               -2.657e-12  4.971e+07       0        1
+`Pelvic Tilt`                     8.180e-15  4.844e+05       0        1
+`Sacral Slope`                   -7.218e-13  4.581e+07       0        1
+RLL                              -2.638e-12  3.228e+07       0        1
+`Global Tilt`                     3.008e-12  6.207e+07       0        1
+`T1 Sagittal Tilt`                3.609e-15  8.010e+04       0        1
+`Thoracolumbar L2-T10`           -3.138e-16  5.030e+03       0        1
+RSA                              -3.008e-12  6.208e+07       0        1
+RPV                               7.298e-13  4.570e+07       0        1
+`ODI - Score (%)`                -2.886e-16  7.097e+03       0        1
+`SRS22 - SRS Subtotal score`     -2.289e-14  2.367e+05       0        1
+`SF36 - PCS`                      8.136e-16  1.442e+04       0        1
+`SF36 - MCS`                      5.404e-16  7.512e+03       0        1
 
 (Dispersion parameter for binomial family taken to be 1)
 
-    Null deviance: 9.3253e+01  on 73  degrees of freedom
-Residual deviance: 7.5606e-09  on 40  degrees of freedom
-  (38 observations deleted due to missingness)
-AIC: 68
+    Null deviance: 0.0000e+00  on 49  degrees of freedom
+Residual deviance: 2.9008e-10  on 20  degrees of freedom
+  (31 observations deleted due to missingness)
+AIC: 60
 
 Number of Fisher Scoring iterations: 25</code></pre>
 </div>

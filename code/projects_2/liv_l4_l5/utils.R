@@ -25,9 +25,9 @@ print_model_results <- function(
 }
 
 
-print_ates <- function(outcome, ITEs){
+print_ates <- function(outcome, ITEs, treatment_vals){
   
-  'ATE (short - long): {mean(ITEs)}' %>% f %>% print
+  'ATE ({treatment_vals[1]} - {treatment_vals[2]}): {mean(ITEs)}' %>% f %>% print
   'ATE (std Error) {sd(ITEs)/sqrt(len(ITEs))}' %>% f %>% print
   p.val <- t.test(ITEs, alternative = 'two.sided')$p.val
   't.test p-value {p.val}' %>% f %>% print

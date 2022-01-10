@@ -1,0 +1,79 @@
+---
+title: "Pelvis Fused T2-Iliac"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('patient_selection.R')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data(followup_2y_opts=c(TRUE, FALSE))
+```
+Initial Patients elegible 5Y (without 2Y FU): `r data_[, .N]`
+
+```{r}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_ %<>% 
+  .[post_intr_fusion == 'Iliac'] %>% 
+  .[`Posterior Instrumented Fusion` == 'Yes'] 
+```
+Posterior Instrumental Fusion is Iliac: `r data_[, .N]`
+
+Posterior Instrumental Fusion is Iliac + 2YFU: `r data_[followup_2y==TRUE, .N]`
+
+Posterior Instrumental Fusion is Iliac + 5YFU: `r data_[followup_5y==TRUE, .N]`
+
+Characteristics elegible 5Y
+### Demographics
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$demographics ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(data_[[var_]])
+  for( res_name in names(res) ){
+    cat(var_)
+    cat(' - ')
+    cat(res_name)
+    cat('\n')
+    
+    cat('All\n')
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+
+### Surgery
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$surgery ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(data_[[var_]])
+  for( res_name in names(res) ){
+    cat(var_)
+    cat(' - ')
+    cat(res_name)
+    cat('\n')
+    
+    cat('All\n')
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+

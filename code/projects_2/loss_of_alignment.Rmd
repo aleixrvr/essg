@@ -61,6 +61,16 @@ data_[, .N, Non_instrumented_segments] %>%
   setorder(Non_instrumented_segments) %>% print
 ```
 
+UIV frequencies
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) -> 
+  post_intr_fusion_upper 
+data.table(uiv = post_intr_fusion_upper) %>% 
+  .[, .N, uiv] %>% 
+  setorder(uiv) %>% 
+  print
+```
 
 
 ### Demographics
@@ -177,8 +187,8 @@ for(var_ in analysis_vars$quality ){
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
-  cat('6w vs 5y p-value\n')
-  cat(t.test(val_5y, val_6w)$p.val)
+  cat('6m vs 5y p-value\n')
+  cat(t.test(val_5y, val_6m)$p.val)
   cat('\n\n')
 }
 ```
@@ -204,7 +214,121 @@ for(var_ in analysis_vars$surgery ){
 ```
 
 
-### Complications
+### Complications before 2Y
+```{r}
+selected_patients <- data_[, `Code of the patient` %>% unique]
+
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` < 2*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
+  .[`Code of the patient` %chin% selected_patients]
+
+number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
+```
+
+Number of reinterventions: `r number_reiqs`
+
+```{r include=TRUE}
+complication_data[, .N, `Complication Impact`]
+```
+
+```{r include=TRUE}
+complication_data[, .N, `Category of the complication`]
+```
+
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .N, `Category of the complication`]
+```
+
+### Number of patients in Complications before 2Y
+```{r}
+selected_patients <- data_[, `Code of the patient` %>% unique]
+
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` < 2*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
+  .[`Code of the patient` %chin% selected_patients]
+
+number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', uniqueN(`Code of the patient`)]
+```
+
+Number of patients with reinterventions: `r number_reiqs`
+
+```{r include=TRUE}
+complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `Complication Impact`]
+```
+
+```{r include=TRUE}
+complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
+```
+
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
+```
+
+### Complications between 2Y and 5Y
+```{r}
+selected_patients <- data_[, `Code of the patient` %>% unique]
+
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` > 2*365] %>% 
+  .[`Days since surgery` < 5*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
+  .[`Code of the patient` %chin% selected_patients]
+
+number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', .N]
+```
+
+Number of reinterventions: `r number_reiqs`
+
+```{r include=TRUE}
+complication_data[, .N, `Complication Impact`]
+```
+
+```{r include=TRUE}
+complication_data[, .N, `Category of the complication`]
+```
+
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .N, `Category of the complication`]
+```
+
+### Number of patients in Complications between 2Y and 5Y
+```{r}
+selected_patients <- data_[, `Code of the patient` %>% unique]
+
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` > 2*365] %>% 
+  .[`Days since surgery` < 5*365] %>% 
+  .[`Complication Type`=='Primary'] %>% 
+  .[`Code of the patient` %chin% selected_patients]
+
+number_reiqs <- complication_data[`Reoperation Due to Complication` =='Yes', uniqueN(`Code of the patient`)]
+```
+
+Number of patients with reinterventions: `r number_reiqs`
+
+```{r include=TRUE}
+complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `Complication Impact`]
+```
+
+```{r include=TRUE}
+complication_data[, .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
+```
+
+Category of Complication for Major Complications
+```{r include=TRUE}
+complication_data[`Complication Impact` == 'Major Complication', .(patients_complications=uniqueN(`Code of the patient`)), `Category of the complication`]
+```
+
+### Complications before 5Y
 ```{r}
 selected_patients <- data_[, `Code of the patient` %>% unique]
 
@@ -232,7 +356,7 @@ Category of Complication for Major Complications
 complication_data[`Complication Impact` == 'Major Complication', .N, `Category of the complication`]
 ```
 
-### Number of patients in Complications
+### Number of patients in Complications before 5Y
 ```{r}
 selected_patients <- data_[, `Code of the patient` %>% unique]
 

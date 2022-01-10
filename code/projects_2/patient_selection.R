@@ -47,7 +47,7 @@ get_data_base <- function(){
   return(clinical_data)
 }
 
-get_data <- function(){
+get_data <- function(followup_2y_opts = TRUE){
   clinical_data <- get_data_base()
   
   analysis_vars <- read_yaml('descriptive.yml')
@@ -85,7 +85,7 @@ get_data <- function(){
     .SDcols=lordosis]
   
   clinical_data %>% 
-    .[followup_2y==TRUE] %>% 
+    .[followup_2y %in% followup_2y_opts] %>% 
     .[Study=='Op'] %>% 
     .[Site != 'ANK Op'] %>% 
     .[`Vital status` == 'Alive'] %>% 
@@ -203,13 +203,13 @@ get_patients_with_complications <- function(){
 
 stats_fun <- function(variable){
   if( class(variable) == 'numeric' ){
-    # return( list(
-    #   mean = mean(variable, na.rm=TRUE),
-    #   sd = sd(variable, na.rm = TRUE)
-    # ))
     return( list(
-      mean = mean(variable, na.rm=TRUE) %>% round(2)
+      mean = mean(variable, na.rm=TRUE) %>% round(2),
+      sd = sd(variable, na.rm = TRUE) %>% round(2)
     ))
+    # return( list(
+    #   mean = mean(variable, na.rm=TRUE) %>% round(2)
+    # ))
   }else{
     res_table <- table(variable)
     return(list(
@@ -224,7 +224,7 @@ calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No')){
   treat_1 <- treatment_vals[1]
   treat_2 <- treatment_vals[2]
   
-  p.val <- NULL
+  p.val <- NA
   if(class(dt[, get(var_)]) == 'numeric'){
     p.val <- t.test(
       dt[get(treatment_)==treat_1][,get(var_)],
@@ -238,7 +238,7 @@ calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No')){
       p.val <- prop.test(rbind(t1, t2))$p.val
     }
   }else{
-    p.val <- NULL
+    p.val <- NA
   }
   
   return(p.val)
@@ -249,7 +249,7 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
-    .[`Days since surgery` < upper_years * 365] %>% 
+    .[`Days since surgery` <= upper_years * 365] %>% 
     .[`Days since surgery` > lower_years * 365] %>% 
     .[`Complication Type`=='Primary']
   
@@ -341,19 +341,19 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   var_2 <- paste(treatment_vals[2], 'patients', sep='_')
   
   p_vals_reiqs <- data.frame(
-    p_val_1_total = binom.test(
+    p_val_1_total = prop.test(
       c(number_reiqs[group==treatment_vals[1], patients],
         number_reiqs[group=='all', patients]),
       c(number_reiqs[group==treatment_vals[1], total],
         number_reiqs[group=='all', total])
     )$p.val, 
-    p_val_2_total = binom.test(
+    p_val_2_total = prop.test(
       c(number_reiqs[group==treatment_vals[2], patients],
         number_reiqs[group=='all', patients]),
       c(number_reiqs[group==treatment_vals[2], total],
         number_reiqs[group=='all', total])
     )$p.val, 
-    p_val_1_2 = binom.test(
+    p_val_1_2 = prop.test(
       c(number_reiqs[group==treatment_vals[1], patients],
         number_reiqs[group==treatment_vals[2], patients]),
       c(number_reiqs[group==treatment_vals[1], total],
@@ -363,50 +363,50 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   
   
   rows_notna <- impacts[, !any(is.na(.SD)), 1:nrow(impacts)][,V1]
-  impacts[rows_notna, p_val_1_total := binom.test(
+  impacts[rows_notna, p_val_1_total := prop.test(
     c(get(var_1), all_patients),
     c(get(treatment_vals[1]), total_all)
   )$p.val , 1:nrow(impacts)]
   
-  impacts[rows_notna, p_val_2_total := binom.test(
+  impacts[rows_notna, p_val_2_total := prop.test(
     c(get(var_2), all_patients),
     c(get(treatment_vals[2]), total_all)
   )$p.val , 1:nrow(impacts)]
   
-  impacts[rows_notna, p_val_1_2 := binom.test(
+  impacts[rows_notna, p_val_1_2 := prop.test(
     c(get(var_1), get(var_2)),
     c(get(treatment_vals[1]), get(treatment_vals[2]))
   )$p.val , 1:nrow(impacts)]
   
   rows_notna <- categories[, !any(is.na(.SD)), 1:nrow(categories)][,V1]
-  categories[rows_notna, p_val_1_total := binom.test(
+  categories[rows_notna, p_val_1_total := prop.test(
     c(get(var_1), all_patients),
     c(get(treatment_vals[1]), total_all)
   )$p.val , 1:nrow(categories)]
   
-  categories[rows_notna, p_val_2_total := binom.test(
+  categories[rows_notna, p_val_2_total := prop.test(
     c(get(var_2), all_patients),
     c(get(treatment_vals[2]), total_all)
   )$p.val , 1:nrow(categories)]
   
-  categories[rows_notna, p_val_1_2 := binom.test(
+  categories[rows_notna, p_val_1_2 := prop.test(
     c(get(var_1), get(var_2)),
     c(get(treatment_vals[1]), get(treatment_vals[2]))
   )$p.val , 1:nrow(categories)]
   
   
   rows_notna <- categories_major[, !any(is.na(.SD)), 1:nrow(categories_major)][,V1]
-  categories_major[rows_notna, p_val_1_total := binom.test(
+  categories_major[rows_notna, p_val_1_total := prop.test(
     c(get(var_1), all_patients),
     c(get(treatment_vals[1]), total_all)
   )$p.val , 1:nrow(categories_major)]
   
-  categories_major[rows_notna, p_val_2_total := binom.test(
+  categories_major[rows_notna, p_val_2_total := prop.test(
     c(get(var_2), all_patients),
     c(get(treatment_vals[2]), total_all)
   )$p.val , 1:nrow(categories_major)]
   
-  categories_major[rows_notna, p_val_1_2 := binom.test(
+  categories_major[rows_notna, p_val_1_2 := prop.test(
     c(get(var_1), get(var_2)),
     c(get(treatment_vals[1]), get(treatment_vals[2]))
   )$p.val , 1:nrow(categories_major)]
@@ -537,7 +537,7 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
     val_1 <- names(total_patients)[pos_1]
     for(pos_2 in (pos_1 + 1):len(total_patients)){
       val_2 <- names(total_patients)[pos_2]
-      p_val <- binom.test(
+      p_val <- prop.test(
         c(number_reiqs[group==val_1, patients],
           number_reiqs[group==val_2, patients]),
         c(number_reiqs[group==val_1, total],
@@ -558,7 +558,7 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
       var_1 <- paste(val_1, 'patients', sep='_')
       var_2 <- paste(val_2, 'patients', sep='_')
       name_vals <- paste("p_val", val_1, val_2, sep="_")
-      impacts[rows_notna, c(name_vals) := binom.test(
+      impacts[rows_notna, c(name_vals) := prop.test(
         c(get(var_1), get(var_2)),
         c(get(val_1), get(val_2))
       )$p.val %>% round(4) , 1:nrow(impacts)]
@@ -574,7 +574,7 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
       var_1 <- paste(val_1, 'patients', sep='_')
       var_2 <- paste(val_2, 'patients', sep='_')
       name_vals <- paste("p_val", val_1, val_2, sep="_")
-      categories[rows_notna, c(name_vals) := binom.test(
+      categories[rows_notna, c(name_vals) := prop.test(
         c(get(var_1), get(var_2)),
         c(get(val_1), get(val_2))
       )$p.val %>% round(4) , 1:nrow(categories)]
@@ -590,7 +590,7 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
       var_1 <- paste(val_1, 'patients', sep='_')
       var_2 <- paste(val_2, 'patients', sep='_')
       name_vals <- paste("p_val", val_1, val_2, sep="_")
-      categories_major[rows_notna, c(name_vals) := binom.test(
+      categories_major[rows_notna, c(name_vals) := prop.test(
         c(get(var_1), get(var_2)),
         c(get(val_1), get(val_2))
       )$p.val %>% round(4) , 1:nrow(categories_major)]
@@ -607,7 +607,12 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
 }
 
 get_time_points <- function(tps){
-  sapply(tps, get_time_point)
+  tps %>% 
+    sapply(get_time_point) %>% 
+    sapply(. %>% as.character %>% as.numeric) ->
+    tps_
+  tps_[is.na(tps_)] <- 0
+  tps_
 }
 
 get_time_point <- function(tp){

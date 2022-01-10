@@ -6,7 +6,7 @@ output:
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_knit$set(echo = TRUE, root.dir=normalizePath('../../'))
+knitr::opts_knit$set(echo = TRUE, root.dir=normalizePath('../../../'))
 ```
 
 ```{r warning=FALSE, include=FALSE}
@@ -15,21 +15,21 @@ library(magrittr)
 library(kableExtra)
 library(yaml)
 
-source('code/fenestrated/fenestrated-utils.R')
-source('code/propensity-utils.R')
+source('code/projects_1/fenestrated/fenestrated-utils.R')
+source('code/projects_1/propensity-utils.R')
 
 tuneLenghtPropensity <- 8
 modelsPropensity <- c('elastic')
 tuneLenghtATE <- 8
 modelsATE <- c('boosting')
-replicas_boot <- 10L
+replicas_boot <- 100L
 repetitions <- 10
 
 
 c(sel_data, matching_vars) %<-% get_data()
 covariates_data <- sel_data[, .SD, .SDcols=matching_vars$covariates]
 treatment_name <- 'fenestrated'
-exploration <- TRUE
+exploration <- FALSE
 ```
 
 ### Selected Variables
@@ -80,40 +80,6 @@ print(table_ci)
 ```
 
 
-
-## Visual Inspection
-
-```{r warning=FALSE, echo=FALSE}
-
-if( exploration== TRUE){
-  matching_vars$covariates %!in% c(treatment_name, 'Propensity') ->
-    matching_covariates
-  
-  for(matching_var in matching_covariates){
-    if( class(best_model$clean_data[[matching_var]]) == 'numeric' ){
-      best_model$clean_data %>% 
-        copy %>% 
-        setnames(matching_var, 'var_') %>% 
-        setnames(treatment_name, 'Treatment') %>% 
-        ggplot(aes(Propensity, var_, color=Treatment)) +
-        geom_point(alpha = 0.2, size = 1.3) +
-        geom_smooth(method = "loess", se = TRUE) +
-        ylab(matching_var) +
-        xlab("Propensity score") ->
-        res_plot
-      print(res_plot)
-    }else{
-      # best_model$clean_data %>%
-      #   ggplot(aes_string(matching_var, 'propensity', color='Alif')) +
-      #   geom_boxplot() +
-      #   xlab("Propensity score") ->
-      #   res_plot
-    }
-  }
-}
-```
-
-
 ```{r echo=FALSE}
 propensities <- best_model$clean_data %>% 
   .[, .(patient_id, Propensity)] %>% 
@@ -131,47 +97,37 @@ predictive_variates <- c(treatment_name, 'Propensity')
 ```
 
 
-# Average Treatment Effects - Complications
+# Average Treatment Effects - Reinterventions
 
-```{r complications, warning=FALSE, echo=FALSE, comment=""}
-
+```{r reqis_calc, message=FALSE, warning=FALSE, comment="", include=FALSE}
 # predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
 
 predictive_variates <- c(treatment_name, 'Propensity')
-outcome = 'complication'
+outcome = 'reinterventions_n'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
   ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
-
-print_ates(treatment_name, outcome, results, is_classification)
 ```
 
 
-```{r major_complications, warning=FALSE, echo=FALSE, comment=""}
+```{r reiqs, warning=FALSE, echo=FALSE, comment="", message=FALSE}
+print_ates(treatment_name, outcome, results, is_classification)
+```
 
+```{r reqis_calc_y, message=FALSE, warning=FALSE, comment="", include=FALSE}
 # predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
 
 predictive_variates <- c(treatment_name, 'Propensity')
-outcome = 'major_complication'
+outcome = 'has_reintervention'
 is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
 results <- calc_ate(
   ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
 )
+```
 
+
+```{r reiqs_y, warning=FALSE, echo=FALSE, comment="", message=FALSE}
 print_ates(treatment_name, outcome, results, is_classification)
 ```
 
-```{r mechanical_complications, warning=FALSE, echo=FALSE, comment=""}
-
-# predictive_variates <- c(matching_vars$covariates, matching_vars$predictive) %>% unique
-
-predictive_variates <- c(treatment_name, 'Propensity')
-outcome = 'mechanical_complication'
-is_classification <- class(ate_data[[outcome]]) %in% c('character', 'factor')
-results <- calc_ate(
-  ate_data, outcome, treatment_name=treatment_name, predictive_variates, first_visit=FALSE, tuneLenghtATE, modelsATE, incremental=FALSE, is_classification, repetitions
-)
-
-print_ates(treatment_name, outcome, results, is_classification)
-```

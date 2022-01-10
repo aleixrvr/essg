@@ -1,0 +1,316 @@
+---
+title: "Clusters Descriptives"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(stats)
+library(lme4)
+library(lmerTest)
+library(ggplot2)
+library(emmeans)
+library(nnet)
+library(crayon)
+
+source('patient_selection.R')
+source('clusters/utils_clusters.R')
+```
+
+```{r, message=FALSE}
+data_ <- get_data_base()
+cluster_vars <- read_yaml('clusters/cluster_vars.yml')
+analysis_vars <- read_yaml('clusters/descriptive.yml')
+cluster_num <- 3
+```
+
+```{r include=TRUE}
+print(cluster_vars)
+```
+
+```{r echo=TRUE}
+data_ %>% 
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] %>%
+  .[Study=='Op'] %>% 
+  .[Site != 'ANK Op'] %>% 
+  .[`Vital status` == 'Alive'] -> 
+  data_
+```
+Initial Patients: `r data_[, .N]`
+
+
+# Complications
+
+```{r echo=TRUE, include=TRUE}
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Complication Type`=='Primary']
+```
+
+
+```{r}
+for(y in 1:5){
+  reiqs_name <- paste(y, 'Y. Reinterventions', sep="")
+  reiqs_prop_name <- paste(y, 'Y. Reinterventions Proportion', sep="")
+  mc_name <- paste(y, 'Y. Major Complications', sep="")
+  mc_prop_name <- paste(y, 'Y. Major Complications Proportion', sep="")
+  comp_ <- complication_data %>% 
+    .[`Days since surgery` <= y * 365] %>%
+    .[`Days since surgery` > (y-1) * 365] %>% 
+    .[, .(
+      reiqs = sum(`Reoperation Due to Complication` =='Yes'), 
+      major_complications = sum(`Complication Impact`=='Major Complication')
+    ), `Code of the patient`] %>% 
+    setnames('reiqs', reiqs_name) %>% 
+    setnames('major_complications', mc_name)
+  
+  data_ %<>% 
+    merge(comp_, all.x=TRUE, all.y=FALSE, by='Code of the patient') %>% 
+    .[is.na(get(reiqs_name)), c(reiqs_name) := 0] %>% 
+    .[is.na(get(mc_name)), c(mc_name) := 0] %>% 
+    .[, c(reiqs_prop_name) := ifelse(get(reiqs_name) > 0, 1, 0)] %>% 
+    .[, c(mc_prop_name) := ifelse(get(mc_name) > 0, 1, 0)]
+}
+```
+
+
+# Clustering Creation
+
+```{r, message=FALSE}
+data_ %>% 
+  .[, .SD, .SDcols = cluster_vars$vars] %>% 
+  scale %>% 
+  dist %>% 
+  hclust(method="ward.D2") ->
+  clusters
+
+data_[, cluster := as.factor(cutree(clusters,k=cluster_num))]
+```
+
+
+Number of patients
+```{r include=TRUE}
+data_[, .N, cluster]
+```
+
+Coefficients of multinomial regression (p-values in parenthesis)
+```{r}
+formula <- paste('`', cluster_vars$vars, '`', collapse=' + ', sep='')
+formula <- paste('cluster', formula, sep=' ~ ')
+res <- multinom(formula, data_)
+```
+
+
+```{r include =TRUE, message=FALSE}
+z <- summary(res)$coefficients/summary(res)$standard.errors
+p <- (1 - pnorm(abs(z), 0, 1)) * 2
+
+coefs <- cbind(coefficients(res) %>% t, p %>% t)
+p_vals_cols <- (ncol(coefs)/2 + 1):ncol(coefs)
+colnames(coefs)[p_vals_cols] <- paste('p_value', colnames(coefs)[p_vals_cols])
+multi_vars <- rownames(coefs)
+coefs %<>% as.data.table
+coefs[, variable := multi_vars]
+
+cluster_names_reg <- summary(res)$coefficients %>% rownames()
+
+for( cluster in cluster_names_reg){
+  coefs[, c(cluster) := paste(
+    get(cluster) %>% round(2), ' (', 
+    get(paste('p_value', cluster)) %>% round(4),
+    ')', sep='')]
+}
+
+coefs[, .SD, .SDcols = c('variable', cluster_names_reg)]
+```
+
+
+
+```{r}
+treatment_ <- 'cluster'
+treatment_vals <- data_[, levels(cluster)]
+treatments_n <- len(treatment_vals)
+```
+
+```{r}
+data_treats <- list()
+for(val_ in treatment_vals){
+  data_treats[[val_]] <- data_[get(treatment_) == val_]
+}
+```
+
+```{r}
+predictive_summary <- list()
+contrasts_summary <- list()
+```
+
+<!-- https://biostats.w.uib.no/post-hoc-tests-multiple-comparisons-in-linear-mixed-effect-models/ -->
+<!-- https://aosmith.rbind.io/2019/03/25/getting-started-with-emmeans/ -->
+
+# Radiology
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$radiology ){
+  tps_names <- c('6W', '6M', paste(1:5, 'Y', sep="")) %>%
+    paste(". {var_}", sep="") %>%
+    sapply(f, USE.NAMES = FALSE)
+
+  results <- analyze_cluster(data_, tps_names)
+  contrasts_summary[[var_]] <- list()
+  contrasts_summary[[var_]][['global']] <- results$contrasts_results
+  contrasts_summary[[var_]][['tps']] <- results$contrasts_results_tps
+
+  cat('\n\n\n')
+
+  results$evol_plot %>% print
+
+  cat('\n\n')
+  cat('Global differences between clusters\n' %>% bold)
+  print(results$contrasts_results$emmeans %>% as.data.frame)
+  print(results$contrasts_results$contrasts %>% as.data.frame)
+
+  cat('\n\n')
+  cat('Time point differences between clusters\n' %>% bold)
+  for( tp in names(results$contrasts_results_tps) ){
+    cat('\n\n\t\tYear: {tp}\n\n' %>% f %>% bold)
+    print(results$contrasts_results_tps[[tp]]$emmeans %>% as.data.frame)
+    print(results$contrasts_results_tps[[tp]]$contrasts %>% as.data.frame)
+  }
+
+  cat('\nPredictive Capability')
+  print(results$predictive)
+  results$predictive[, outcome := var_]
+  predictive_summary[[var_]] <- results$predictive
+  cat('\n\n')
+}
+```
+
+
+# Quality of Life
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$quality ){
+  tps_names <- c('6M', paste(1:5, 'Y', sep="")) %>%
+    paste(". {var_}", sep="") %>%
+    sapply(f, USE.NAMES = FALSE)
+
+  results <- analyze_cluster(data_, tps_names)
+  contrasts_summary[[var_]] <- list()
+  contrasts_summary[[var_]][['global']] <- results$contrasts_results
+  contrasts_summary[[var_]][['tps']] <- results$contrasts_results_tps
+
+  cat('\n\n\n')
+
+  results$evol_plot %>% print
+
+  cat('\n\n')
+  cat('Global differences between clusters\n' %>% bold)
+  print(results$contrasts_results$emmeans %>% as.data.frame)
+  print(results$contrasts_results$contrasts %>% as.data.frame)
+
+  cat('\n\n')
+  cat('Time point differences between clusters\n' %>% bold)
+  for( tp in names(results$contrasts_results_tps) ){
+    cat('\n\n\t\tYear: {tp}\n\n' %>% f %>% bold)
+    print(results$contrasts_results_tps[[tp]]$emmeans %>% as.data.frame)
+    print(results$contrasts_results_tps[[tp]]$contrasts %>% as.data.frame)
+  }
+
+  cat('\nPredictive Capability')
+  print(results$predictive)
+  results$predictive[, outcome := var_]
+  predictive_summary[[var_]] <- results$predictive
+  cat('\n\n')
+}
+```
+
+
+# Complications
+```{r echo=FALSE, comment="", include=TRUE}
+complications_vars <- c(
+  'Reinterventions', 'Reinterventions Proportion',
+  'Major Complications', 'Major Complications Proportion')
+for(var_ in complications_vars ){
+  tps_names <- c(paste(1:5, 'Y', sep="")) %>% 
+    paste(". {var_}", sep="") %>% 
+    sapply(f, USE.NAMES = FALSE)
+  
+  results <- analyze_cluster(data_, tps_names)
+  contrasts_summary[[var_]] <- list()
+  contrasts_summary[[var_]][['global']] <- results$contrasts_results
+  contrasts_summary[[var_]][['tps']] <- results$contrasts_results_tps
+  
+  cat('\n\n\n')
+  
+  results$evol_plot %>% print
+  
+  cat('\n\n')
+  cat('Global differences between clusters\n' %>% bold)
+  print(results$contrasts_results$emmeans %>% as.data.frame)
+  print(results$contrasts_results$contrasts %>% as.data.frame)
+  
+  cat('\n\n')
+  cat('Time point differences between clusters\n' %>% bold)
+  for( tp in names(results$contrasts_results_tps) ){
+    cat('\n\n\t\tYear: {tp}\n\n' %>% f %>% bold)
+    print(results$contrasts_results_tps[[tp]]$emmeans %>% as.data.frame)
+    print(results$contrasts_results_tps[[tp]]$contrasts %>% as.data.frame)
+  }
+  
+  cat('\nPredictive Capability')
+  print(results$predictive)
+  results$predictive[, outcome := var_]
+  predictive_summary[[var_]] <- results$predictive  
+  cat('\n\n')
+} 
+```
+
+
+
+# Summary
+
+## Root Mean Square Error (in parenthesis Relative RMSE = RMSE/standard deviation(outcome))
+```{r include=TRUE}
+predictive_summary %>% 
+  rbindlist %>% 
+  .[, rmse := paste(rmse %>% round(2), ' (', relative_rmse %>% round(2), ')', sep='')] %>% 
+  .[, time_point := paste(time_point, 'Y', sep="")] %>% 
+  dcast(outcome~time_point, value.var='rmse')
+```
+
+## Global Contrasts
+```{r include =TRUE}
+contrasts_list <- list()
+for(var_ in names(contrasts_summary) ){
+  contrasts_list[[var_]] <- contrasts_summary[[var_]][["global"]]$contrasts %>% 
+    as.data.table
+  contrasts_list[[var_]]$outcome <- var_
+  contrasts_list[[var_]][, estimate := round(estimate, 2)]
+  contrasts_list[[var_]][, p.value := round(p.value, 5)]
+}
+contrasts_list %>% 
+  rbindlist -> 
+  contrasts_table 
+
+contrasts_ <- contrasts_table[, contrast] %>% unique
+
+vars_res <- c('estimate', 'p.value')
+contrasts_table %<>% 
+  dcast(outcome ~ contrast, value.var= vars_res)
+
+lapply(contrasts_, . %>% paste(vars_res, ., sep='_')) %>% 
+  unlist ->
+  vars_
+
+contrasts_table %>% 
+  .[, .SD, .SDcols = c('outcome', vars_)]
+```
+

@@ -5,9 +5,9 @@ library(magrittr)
 library(gridExtra)
 library(selectiveInference)
 
-source('code/basic.R')
-source('code/train.R')
-source('code/utils.R')
+source('code/projects_1/basic.R')
+source('code/projects_1/train.R')
+source('code/projects_1/utils.R')
 
 explore_vars <- function(sel_data, treatment_name) {
   
@@ -187,7 +187,8 @@ stratified_resampling <- function(dt_, outcome_name){
     dt_sample_ <- dt_[inds_, ]
   }else{
     if( dt_[, get(outcome_name) %>% uniqueN] > 2 ){
-      stop('More than 2 classes')
+      inds_ <- sample(1:nrow(dt_), nrow(dt_), replace=TRUE)
+      dt_sample_ <- dt_[inds_, ]
     }else{
       class_names <- dt_[, get(outcome_name) %>% unique %>% sort]
       if( !all(class_names == c('No', 'Yes')) ){

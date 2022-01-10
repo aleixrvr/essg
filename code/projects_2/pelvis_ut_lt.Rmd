@@ -54,13 +54,16 @@ data_[post_intr_fusion %chin% LT, thoracic_type := 'LT']
 data_[, .N, thoracic_type]
 ```
 
-<!-- With 5Y FU -->
-<!-- ```{r include=TRUE} -->
-<!-- data_ %<>% .[followup_5y==TRUE] -->
-<!-- data_[, .N, thoracic_type] -->
-<!-- ``` -->
-
-
+UIV frequencies
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) -> 
+  post_intr_fusion_upper 
+data.table(uiv = post_intr_fusion_upper) %>% 
+  .[, .N, uiv] %>% 
+  setorder(uiv) %>% 
+  print
+```
 
 ```{r}
 treatment_ <- 'thoracic_type'
@@ -98,29 +101,36 @@ prop.test(
 ```
 
 
-P-valor Prior Spine Surgery Yes UT vs LT 
+P-valor between UT vs LT 
 ```{r include=TRUE}
-var_ <- "Prior Spine Surgery"
-data_[, .(
-  treatment=get(treatment_), variable=get(var_))] ->
-  data__
-
-res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
-  .[!is.na(treatment)]
-
-print(res)
-
-prop.test(
-  c(
-    res[treatment==treatment_vals[1]]$prior_yes,
-    res[treatment==treatment_vals[2]]$prior_yes
-  ),
-  c(
-    res[treatment==treatment_vals[1]]$N,
-    res[treatment==treatment_vals[2]]$N
-  ))$p.val
+p_val_vars <- c("Prior Spine Surgery", "3CO", "Decompression", "Interbody Fusion")
+for(var_ in p_val_vars){
+  data_[, .(
+    treatment=get(treatment_), variable=get(var_))] ->
+    data__
+  
+  res <- data__[, .(yes = sum(variable == 'Yes'), .N), treatment] %>% 
+    .[!is.na(treatment)]
+  
+  print('{var_}\nValues\n' %>% f)
+  print(res)
+  
+  p_val <- prop.test(
+    c(
+      res[treatment==treatment_vals[1]]$yes,
+      res[treatment==treatment_vals[2]]$yes
+    ),
+    c(
+      res[treatment==treatment_vals[1]]$N,
+      res[treatment==treatment_vals[2]]$N
+    ))$p.val
+  print("P-value: {p_val}" %>% f)
+}
 ```
 
+
+
+Decompression
 
 ### Demographics
 ```{r echo=FALSE, comment="", include=TRUE}
@@ -341,8 +351,8 @@ for(var_ in analysis_vars$quality ){
   cat('2y vs 5y p-value\n')
   cat(t.test(val_5y, val_2y)$p.val)
   cat('\n\n')
-  cat('6w vs 5y p-value\n')
-  cat(t.test(val_5y, val_6w)$p.val)
+  cat('6m vs 5y p-value\n')
+  cat(t.test(val_5y, val_6m)$p.val)
   cat('\n\n')
   
   cat('{var_} tests {treatment_vals[1]}\n' %>% f)
@@ -474,6 +484,40 @@ res$categories_major
 
 ```{r}
 res <- calc_complications(data_, treatment_vals, treatment_, lower_years=2, upper_years=5)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```
+
+# Before 5Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications(data_, treatment_vals, treatment_, lower_years=0, upper_years=5)
 ```
 
 ```{r include=TRUE}
