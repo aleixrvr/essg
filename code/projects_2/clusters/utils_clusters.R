@@ -82,3 +82,35 @@ analyze_cluster <- function(data_, tps_names, tps_prediction=c(2, 5)){
     predictive = predictive
   ))
 }
+
+
+# Coefficients of multinomial regression (p-values in parenthesis)
+# ```{r}
+# formula <- paste('`', cluster_vars$vars, '`', collapse=' + ', sep='')
+# formula <- paste('cluster', formula, sep=' ~ ')
+# res <- multinom(formula, data_)
+# ```
+# 
+# 
+# ```{r include =TRUE, message=FALSE}
+# z <- summary(res)$coefficients/summary(res)$standard.errors
+# p <- (1 - pnorm(abs(z), 0, 1)) * 2
+# 
+# coefs <- cbind(coefficients(res) %>% t, p %>% t)
+# p_vals_cols <- (ncol(coefs)/2 + 1):ncol(coefs)
+# colnames(coefs)[p_vals_cols] <- paste('p_value', colnames(coefs)[p_vals_cols])
+# multi_vars <- rownames(coefs)
+# coefs %<>% as.data.table
+# coefs[, variable := multi_vars]
+# 
+# cluster_names_reg <- summary(res)$coefficients %>% rownames()
+# 
+# for( cluster in cluster_names_reg){
+#   coefs[, c(cluster) := paste(
+#     get(cluster) %>% round(2), ' (',
+#     get(paste('p_value', cluster)) %>% round(4),
+#     ')', sep='')]
+# }
+# 
+# coefs[, .SD, .SDcols = c('variable', cluster_names_reg)]
+# ```

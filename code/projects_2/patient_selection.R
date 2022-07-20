@@ -11,7 +11,8 @@ xls_path <- '../../data/ESSG extraction July 2021 DEF_v3.xlsx'
 
 get_data_base <- function(){
   
-  discarded_patients <- readLines('discarded_patients')
+  discarded_patients <- readLines('discarded_patients.txt')
+  discarded_patients <- c(discarded_patients)
   
   clinical_data <- read_excel(xls_path) %>% 
     as.data.table() %>% 
@@ -27,6 +28,7 @@ get_data_base <- function(){
   setnames(clinical_data, 'SRS22 - SRS Subtotal score_First Visit', 'SRS22 - SRS Subtotal score')
   setnames(clinical_data, 'SF36 - PCS_First Visit', 'SF36 - PCS')
   setnames(clinical_data, 'SF36 - MCS_First Visit', 'SF36 - MCS') 
+  setnames(clinical_data, 'SRS22 - Satisfaction_First Visit', 'SRS22 - Satisfaction with management')
   
   clinical_data %>% 
     .[grepl('Ex', `Tobacco use_First Visit`, fixed=TRUE),
@@ -43,6 +45,11 @@ get_data_base <- function(){
         !is.na(`6 YEAR VISIT - Date of visit`)]
   
   clinical_data[, `ASA classification` := as.character(`ASA classification`)]
+  
+  clinical_data[`Code of the patient`=='BCNISSY0091-SC',
+    `Posterior Instrumented Fusion: Upper / Lower Levels` := "T7-Iliac"]
+  clinical_data[`Code of the patient`=='BCNISSY0105-SC',
+    `Posterior Instrumented Fusion: Upper / Lower Levels` := "T9-Iliac"]
   
   return(clinical_data)
 }
@@ -201,15 +208,21 @@ get_patients_with_complications <- function(){
   return(patients_with_complications)
 }
 
-stats_fun <- function(variable){
+stats_fun <- function(variable, effect_size=FALSE){
   if( class(variable) == 'numeric' ){
-    return( list(
-      mean = mean(variable, na.rm=TRUE) %>% round(2),
-      sd = sd(variable, na.rm = TRUE) %>% round(2)
-    ))
-    # return( list(
-    #   mean = mean(variable, na.rm=TRUE) %>% round(2)
-    # ))
+    if( effect_size == TRUE ){
+      return( list(
+        mean = mean(variable, na.rm=TRUE) %>% round(2),
+        sd = sd(variable, na.rm = TRUE) %>% round(2),
+        effect_size = (mean(variable, na.rm=TRUE)/sd(variable, na.rm = TRUE)) %>% 
+          round(2)
+      ))
+    }else{
+      return( list(
+        mean = mean(variable, na.rm=TRUE) %>% round(2),
+        sd = sd(variable, na.rm = TRUE) %>% round(2)
+      ))  
+    }
   }else{
     res_table <- table(variable)
     return(list(
@@ -219,20 +232,32 @@ stats_fun <- function(variable){
   }
 }
 
-calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No')){
+
+calc_p_vals <- function(dt, var_, treatment_, treatment_vals=c('Yes', 'No'), 
+  treat_and_co = NULL){
   vals_n <- dt[, get(var_)] %>% uniqueN
   treat_1 <- treatment_vals[1]
   treat_2 <- treatment_vals[2]
   
+  if( !is.null(treat_and_co) ){
+    outcome_1 <- dt[get(treatment_)==treat_and_co][, get(var_)]
+    outcome_2 <- dt[get(treatment_)!=treat_and_co][, get(var_)]
+  }else{
+    outcome_1 <- dt[get(treatment_)==treat_1][, get(var_)]
+    if( treat_1 == 'all' ) outcome_1 <- dt[, get(var_)]
+    outcome_2 <- dt[get(treatment_)==treat_2][, get(var_)]
+    if( treat_2 == 'all' ) outcome_2 <- dt[, get(var_)]
+  }
+  
   p.val <- NA
   if(class(dt[, get(var_)]) == 'numeric'){
     p.val <- t.test(
-      dt[get(treatment_)==treat_1][,get(var_)],
-      dt[get(treatment_)==treat_2][, get(var_)]
+      outcome_1,
+      outcome_2
     )$p.val
   }else if(vals_n == 2){
-    t1 <- table(dt[get(treatment_)==treat_1][, get(var_)])
-    t2 <- table(dt[get(treatment_)==treat_2][, get(var_)])
+    t1 <- table(outcome_1)
+    t2 <- table(outcome_2)
     
     if( dim(t1) == 2 & dim(t2) == 2){
       p.val <- prop.test(rbind(t1, t2))$p.val
@@ -420,12 +445,42 @@ calc_complications <- function(data_, treatment_vals, treatment_,
   ))
 }
 
+calc_time_to_surgery <- function(data_, treatment_, complication_data){
+  complication_data %>% 
+    .[, .(days_to_treatment = min(`Days since surgery`)), "Code of the patient"] %>% 
+    merge(data_[, .(`Code of the patient`, treatment = get(treatment_))], ., all.x=TRUE, all.y=FALSE) ->
+    time_to_treat
+  
+  treatment_vals_ <- data_[, get(treatment_) %>% unique]
+  res <- list()
+  for( treat_1 in 1:(len(treatment_vals_)-1)){
+    val_1 <- treatment_vals_[treat_1]
+    res[[val_1]] <- list()
+    for( treat_2 in (treat_1+1):len(treatment_vals_)){
+      val_2 <- treatment_vals_[treat_2]
+      p_val <- t.test(
+        time_to_treat[treatment == val_1, days_to_treatment],
+        time_to_treat[treatment == val_2, days_to_treatment]
+      )$p.val
+      res[[val_1]][[val_2]] <- p_val
+    }
+  }
+  
+  return(list(
+    p_vals = res %>% unlist,
+    stats = time_to_treat[, .(
+      mean=mean(days_to_treatment, na.rm=TRUE),
+      sd=sd(days_to_treatment, na.rm=TRUE)
+      ), treatment]
+  ))
+}
 
-calc_complications_many <- function(data_, treatment_vals, treatment_){
+calc_complications_many <- function(data_, treatment_vals, treatment_, lower_years=0, upper_years=5){
   
   complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
     as.data.table() %>% 
-    .[`Days since surgery` < 5*365] %>% 
+    .[`Days since surgery` <= upper_years * 365] %>% 
+    .[`Days since surgery` > lower_years * 365] %>% 
     .[`Complication Type`=='Primary']
   
   patient_groups <- list()
@@ -602,7 +657,8 @@ calc_complications_many <- function(data_, treatment_vals, treatment_){
     categories = categories,
     number_reiqs = number_reiqs,
     p_vals_reiqs = p_vals_reiqs,
-    categories_major = categories_major
+    categories_major = categories_major,
+    time_to_surgery = calc_time_to_surgery(data_, treatment_, complication_data)
   ))
 }
 
@@ -626,7 +682,7 @@ get_time_point <- function(tp){
 }
 
 
-calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL){
+calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL, radio_confounding=list()){
   time_points <- c('6M.', paste(1:5, 'Y.', sep=""))
   
   for(qual_ in factors_){
@@ -638,7 +694,7 @@ calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL){
     }
     
     print("\n\n\n### {qual_}" %>% f)
-    print("Base Time point {base_tp}" %>% f)
+    print("Change vs Base Time point {base_tp}" %>% f)
     print("\n\n Time evolution" %>% f)
     c(
       base_tp,
@@ -650,16 +706,15 @@ calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL){
       create_lme_model(treatment)
 
 
-    
     if( !is.null(demo) ){
       qual_preop <- qual_
-      if( qual_ == 'RSA' ){
-        qual_preop <- 'Global Tilt'
-      }else if(qual_ == 'RPV'){
-        qual_preop <- 'Sacral Slope'
-      }
+      # if( qual_ == 'RSA' ){
+      #   qual_preop <- 'Global Tilt'
+      # }else if(qual_ == 'RPV'){
+      #   qual_preop <- 'Sacral Slope'
+      # }
       
-      print("\n\nPreop & Inc preop variable: {qual_preop}" %>% f)
+      # print("\n\nPreop & Inc preop variable: {qual_preop}" %>% f)
       
       print("\nBasic Demographics" %>% f)
       c(
@@ -675,18 +730,19 @@ calc_estability <- function(data_, factors_, demo=NULL, treatment=NULL){
         create_lme_model(treatment, demo[['demographic_0']], include_preop = FALSE)
       
       print("\n\n Factors" %>% f)
+      demo_factors <- c(demo %>% unlist, radio_confounding[[qual_]])
       c(
         base_tp,
         paste(time_points, qual_),
         'Code of the patient',
-        demo %>% unlist,
+        demo_factors,
         treatment
       ) %>% unique %>%
         calc_long_format(
           data_, ., treatment, base_tp, base_tp_num, 
-          qual_preop, demo %>% unlist
+          qual_preop, demo_factors
         ) %>%
-        create_lme_model(treatment, demo %>% unlist)
+        create_lme_model(treatment, demo_factors, include_preop = FALSE)
     }
     
   }
@@ -840,3 +896,32 @@ calc_time_p_values <- function(data__, var_, var_6_b, var_2y, var_5y, cluster_na
   
   return(time_p_vals)
 }
+
+calculate_mae <- function(data_, var__){
+  
+  if( !is.numeric(data_[, get(var__)]) ) return(list(mae=NA, rel_mae=NA))
+  
+  prediction <- data_[, .(get(var__), cluster)]
+  setnames(prediction, 'V1', var__)
+  
+  ind <- 1:(floor(nrow(prediction)/2))
+  data_1 <- prediction[ind]
+  pred_1 <- data_1[, .(pred=mean(get(var__), na.rm=TRUE)), cluster]
+  
+  data_2 <- prediction[-ind]
+  pred_2 <- data_2[, .(pred=mean(get(var__), na.rm=TRUE)), cluster]
+  
+  data_1 <- merge(data_1, pred_2, by='cluster')
+  data_2 <- merge(data_2, pred_1, by='cluster')
+  mae_1 <- data_1[, mean(abs(pred - get(var__)), na.rm=TRUE)]
+  mae_2 <- data_2[, mean(abs(pred - get(var__)), na.rm=TRUE)]
+  
+  val_mean <- mean(data_1[, get(var__)], na.rm=TRUE)
+  val_mean <- val_mean + mean(data_2[, get(var__)], na.rm=TRUE)
+  val_mean <- val_mean/2
+  mae <- (mae_1 + mae_2)
+  rel_mae <- mae/val_mean
+  
+  return(list(mae=mae, rel_mae=rel_mae))
+}
+

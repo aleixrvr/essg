@@ -5,7 +5,7 @@ library(ggplot2)
 
 
 print_model_results <- function(
-  outcome, model_1, data_1, model_2, data_2){
+  outcome, model_1, data_1, model_2, data_2, change_){
   
   outcome_vals <- c(
     data_1[, get(outcome)],
@@ -19,7 +19,8 @@ print_model_results <- function(
   relative_rmse <- rmse / sd(outcome_vals)
   relative_rmse <- floor(relative_rmse*1000)/10
   
-  'Outcome: {outcome}' %>% f %>% print
+  change_name <- ifelse(change_, 'Change ',"")
+  '{change_name}Outcome: {outcome}' %>% f %>% print
   "RMSE: {rmse}" %>% f %>% print
   "Relative RMSE: {relative_rmse} %" %>% f %>% print
 }

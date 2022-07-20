@@ -1,0 +1,247 @@
+---
+title: "FU"
+output: html_document
+---
+
+<!-- Passos a fer: -->
+<!-- Crear un projecte nou. En la carpeta del projecte posar-hi aquest script (noms cal fer-ho una vegada), i l'arxiu discarded_patients.txt. -->
+<!-- En la carpeta del projecte posar-hi el fitxer excel amb les dades -->
+<!-- Posar el nom corresponent al "xls_path". Si voleu canviar els discarded_patients, tb ho podeu fer. -->
+
+
+```{r}
+xls_path <- 'ESSG extraction December 2022.xlsx'
+discarded_patients <- readLines('discarded_patients.txt')
+```
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, comment="", warning = FALSE)
+if(!require("readxl")){
+  install.packages("readxl")
+  library(readxl)
+}
+if(!require("magrittr")){
+  install.packages("magrittr")
+  library(magrittr)
+}
+if(!require("data.table")){
+  install.packages("data.table")
+  library(data.table)
+}
+```
+
+
+# ESSG extraction December 2022.xlsx
+
+## 2Y FU - Op
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2019-03-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Op'] [, .N]
+total
+clinical_data[Study=='Op'] [followup_2y==TRUE, .N]
+clinical_data[Study=='Op'] [followup_2y==TRUE, .N]/total
+clinical_data[Study=='Op'] [, .(.N, sum(followup_2y==TRUE)/.N), Site]
+```
+
+
+## 2Y FU - NonOp
+
+```{r}
+
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`BASELINE/PREOP VISIT - Date of visit` %>% as.Date() < as.Date('2019-03-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Nonop'] [, .N]
+total
+clinical_data[Study=='Nonop'] [followup_2y==TRUE, .N]
+clinical_data[Study=='Nonop'] [followup_2y==TRUE, .N]/total
+clinical_data[Study=='Nonop'] [, .(.N, sum(followup_2y==TRUE)/.N), Site]
+```
+
+
+## 5Y FU - Op
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-03-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Op'] [, .N]
+total
+clinical_data[Study=='Op'] [followup_5y==TRUE, .N]
+clinical_data[Study=='Op'] [followup_5y==TRUE, .N]/total
+clinical_data[Study=='Op'] [, .(.N, sum(followup_5y==TRUE)/.N), Site]
+```
+
+
+## 5Y FU - NonOp
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`BASELINE/PREOP VISIT - Date of visit` %>% as.Date() < as.Date('2016-03-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Nonop'] [, .N]
+total
+clinical_data[Study=='Nonop'] [followup_5y==TRUE, .N]
+clinical_data[Study=='Nonop'] [followup_5y==TRUE, .N]/total
+clinical_data[Study=='Nonop'] [, .(.N, sum(followup_5y==TRUE)/.N), Site]
+```
+
+
+
+# ESSG extraction July 2021 DEF_v3.xlsx
+
+## 2Y FU - Op
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2018-09-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Op'] [, .N]
+total
+clinical_data[Study=='Op'] [followup_2y==TRUE, .N]
+clinical_data[Study=='Op'] [followup_2y==TRUE, .N]/total
+clinical_data[Study=='Op'] [, .(.N, sum(followup_2y==TRUE)/.N), Site]
+```
+
+
+## 2Y FU - NonOp
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`BASELINE/PREOP VISIT - Date of visit` %>% as.Date() < as.Date('2018-09-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Nonop'] [, .N]
+total
+clinical_data[Study=='Nonop'] [followup_2y==TRUE, .N]
+clinical_data[Study=='Nonop'] [followup_2y==TRUE, .N]/total
+clinical_data[Study=='Nonop'] [, .(.N, sum(followup_2y==TRUE)/.N), Site]
+```
+
+
+## 5Y FU - Op
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Op'] [, .N]
+total
+clinical_data[Study=='Op'] [followup_5y==TRUE, .N]
+clinical_data[Study=='Op'] [followup_5y==TRUE, .N]/total
+clinical_data[Study=='Op'] [, .(.N, sum(followup_5y==TRUE)/.N), Site]
+```
+
+
+## 5Y FU - NonOp
+
+```{r}
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() %>% 
+  .[Site != 'ANK op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`BASELINE/PREOP VISIT - Date of visit` %>% as.Date() < as.Date('2015-09-01')] %>%
+  .[!(`Code of the patient` %in% discarded_patients)]
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+total <- clinical_data[Study=='Nonop'] [, .N]
+total
+clinical_data[Study=='Nonop'] [followup_5y==TRUE, .N]
+clinical_data[Study=='Nonop'] [followup_5y==TRUE, .N]/total
+clinical_data[Study=='Nonop'] [, .(.N, sum(followup_5y==TRUE)/.N), Site]
+```
+

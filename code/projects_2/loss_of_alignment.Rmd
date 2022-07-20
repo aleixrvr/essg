@@ -20,6 +20,7 @@ source('patient_selection.R')
 ```{r, message=FALSE}
 analysis_vars <- read_yaml('descriptive.yml')
 data_ <- get_data()
+data_ %<>% .[!(`Code of the patient` %in% c("BCNISSY0045-SC", "BCNISSY0109-SC"))]
 ```
 Initial Patients: `r data_[, .N]`
 

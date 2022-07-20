@@ -1,0 +1,30 @@
+---
+title: "Prediction 5y - ODI"
+output: html_document
+---
+
+  
+```{r echo=FALSE}
+outcome <- '5Y. ODI - Score (%)'
+```
+
+```{r include=FALSE}
+knitr::opts_knit$set(
+  echo = TRUE, 
+  root.dir=normalizePath('../../')
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+source('code/five_years/five_years-utils.R')
+source('code/five_years/config.R')
+
+c(best_model, predictive_vars, validation_results) %<-% create_model(
+  outcome, first_visit=TRUE, increment=FALSE, k_fold, tuneLength, models
+)
+  
+```
+
+```{r comment="", echo=FALSE}
+show_stats(best_model, predictive_vars, validation_results)
+```

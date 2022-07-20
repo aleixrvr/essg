@@ -11,6 +11,41 @@ demographic_1:
   # - Tobacco use_First Visit
 surgical:
   - Non_instrumented_segments
+non_monotone:
+  - RSA
+  - Sagittal Balance
+  - RPV
+radiologic_confounding:
+  Global Tilt:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
+  RSA:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
+  Sagittal Balance:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
+  Sagittal T2-T12:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
+  Pelvic Tilt:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
+  RPV:
+    - RSA
+    - 6W. RSA
+    - RPV
+    - 6W. RPV
 radiologic:
   - Static Major curve Cobb angle # Major curve Cobb angle
   - Coronal Balance (C7PL to CSVL)

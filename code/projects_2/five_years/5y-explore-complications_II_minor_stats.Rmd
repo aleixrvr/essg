@@ -1,0 +1,256 @@
+---
+title: "5y complications analysis"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r echo=TRUE}
+xls_path <- '../../data/ESSG extraction June 2022_2nd report 5Y - ONLY DPS.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+library(DiagrammeR)
+
+source('five_years/five_years-utils.R')
+
+ncols_plots <- 2
+
+outcomes <- c(
+  '5Y. ODI - Score (%)', '5Y. SRS22 - SRS Subtotal score', '5Y. SF36 - PCS', '5Y. SF36 - MCS'
+)
+
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+complications <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>%
+  .[`Complication Impact` == 'Minor Complication'] 
+
+reinterventions <- read_excel(xls_path, sheet = "Revision Surgeries") %>%
+  data.table 
+
+data_set_0 %>% 
+  .[, .(
+    `Code of the patient`, 
+    stage_date=`st1. Date of Stage`
+  )]  %>% 
+  rbind(
+    reinterventions %>% 
+      .[, .(
+        `Code of the patient`, 
+        stage_date=`st1. Date of Stage`
+      )]    
+  ) %>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, 
+    `Code of the patient`] %>% 
+  .[diff_years > 0] ->
+  reinterventions
+
+
+demographics <- read_yaml('five_years/demographic.yml')
+demographics_all <- demographics %>% unlist
+
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '2')) ->
+  outcomes_2y
+names(outcomes_2y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '3')) ->
+  outcomes_3y
+names(outcomes_3y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '6')) ->
+  outcomes_6y
+names(outcomes_6y) <- outcomes
+
+outcomes %>% 
+  sapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes 
+
+for( outcome in names(outcomes_6y)){
+  outcome_6y <- outcomes_6y[[outcome]]
+  outcome_2y <- outcomes_2y[[outcome]]
+  outcome_3y <- outcomes_3y[[outcome]]
+  data_set %<>%
+    .[is.na(get(outcome)), c(outcome) := get(outcome_6y)] %>% 
+    .[is.na(get(outcome_2y)), c(outcome_2y) := get(outcome_3y)]
+}
+
+# outcome_2y <- outcomes_2y[[1]]
+# outcome <- outcomes[[1]]
+
+if( 'Major curve Cobb angle' %in% colnames(data_set)){
+  setnames(data_set, 
+    "Major curve Cobb angle", "Static Major curve Cobb angle")
+}
+
+study_vars <- c(
+  outcomes, outcomes_2y %>% unlist, 
+  demographics_all, base_outcomes, 
+  'Code of the patient', 
+  'Site', 
+  'Study', 
+  'Vital status', 
+  'st1. Date of Stage', 
+  '2 YEAR VISIT - Date of visit',
+  '3 YEAR VISIT - Date of visit',
+  '5 YEAR VISIT - Date of visit',
+  '6 YEAR VISIT - Date of visit'
+) %>% unique
+data_set %<>% 
+  .[, .SD, .SDcols=study_vars] 
+```
+
+### Filters
+
+We need those with and without 2 FU for the 'Do complications before 2y affect 2y followup?' analysis.
+
+```{r warning=FALSE }
+# discarded_patients <- readLines('five_years/discarded_patients')
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+Total patients: `r data_set[, .N]`
+
+```{r echo=FALSE}
+data_set %<>% 
+  .[, followup_2y := ifelse(followup_2y == TRUE, 'has_followup', 'no_followup')] %>% 
+  .[, followup_5y := ifelse(followup_5y == TRUE, 'has_followup', 'no_followup')] 
+
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+
+#### Only Minor Complications
+
+
+```{r echo=FALSE}
+complication_types <- complications[, `Category of the complication` %>% unique]
+complication_types <- complication_types %!in% "Central neurologic complications"
+
+
+patients_complications_5y <- complications %>%
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+patients_complications_2y <- complications %>%
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[`Category of the complication` %in% complication_types, `Code of the patient`]
+
+data_ <- data_set %>%
+  copy %>%
+  .[, complication_before_2y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
+  .[, complication_2y_5y:='No'] %>%
+  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes']
+
+```
+
+# Stats
+
+
+```{r echo=FALSE,  comment=""}
+data_[, .(has_followup_2y=mean(followup_2y=='has_followup') %>% round(3)),  complication_before_2y]
+```
+
+
+```{r echo=FALSE,  comment=""}
+data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_before_2y]
+```
+
+<!-- ```{r echo=FALSE} -->
+<!-- data_[, .(has_followup_5y=mean(followup_5y=='has_followup') %>% round(3)),  complication_2y_5y] -->
+<!-- ``` -->
+
+```{r echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all]
+```
+
+
+### stats Minor complications
+```{r echo=FALSE}
+
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+### Minor Complications before 2y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+
+### Minor Complications between 2y and 5y
+```{r echo=FALSE, comment=""}
+complications_all %>%
+  .[`Complication Impact` == 'Minor Complication'] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] %>% 
+  .[, table(`Category of the complication`)] %T>% 
+  print %>% 
+  prop.table()
+```
+

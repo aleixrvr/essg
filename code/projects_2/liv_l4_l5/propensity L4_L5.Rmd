@@ -1,0 +1,137 @@
+---
+title: "L5/L4 Propensity"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, comment='', message=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir = '../')
+```
+
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(kableExtra)
+library(pROC)
+source('patient_selection.R')
+source('liv_l4_l5/utils.R')
+source('liv_l4_l5/train.R')
+
+tuneLength <- 15
+
+treatment_name <- 'type'
+treatment_vals <- c('L4', 'L5')
+propensity_threshold <- 0
+
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+vars <- read_yaml('liv_l4_l5/variables.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+ 
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'L4', type := 'L4']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
+```
+
+
+```{r}
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` < 5 * 365] %>% 
+  .[`Complication Type`=='Primary']
+
+reiqs <- complication_data[, 
+  .(reiqs = sum(`Reoperation Due to Complication` =='Yes')), 
+  `Code of the patient`] 
+
+major_complications <- complication_data[, 
+  .(major_complications = sum(`Complication Impact` == 'Major Complication')), 
+  `Code of the patient`]
+
+data_ %<>% 
+  merge(reiqs, by='Code of the patient', all.x=TRUE, all.y=FALSE) %>% 
+  merge(major_complications, by='Code of the patient', all.x=TRUE, all.y=FALSE)
+
+```
+
+<!-- # Comparability constraints -->
+<!-- ```{r echo=TRUE} -->
+<!-- data_ %<>%  -->
+<!--   .[`Surgical Approach`=='Posterior'] %>%  -->
+<!--   .[`Pelvic Tilt` < 35] %>%  -->
+<!--   .[`Ideal GT` < 21] %>%  -->
+<!--   .[`RLL` > -42]  -->
+<!-- ``` -->
+
+```{r}
+data_[, .N, type]
+```
+
+
+### Confounding Variables
+
+```{r}
+confounders <- vars$confounders
+outcomes <- vars$outcomes
+vars_ <- c(confounders, treatment_name)
+confounders %>% as.yaml %>% cat
+```
+
+
+# Propensity Score
+
+
+## Boosting
+
+```{r}
+vars_propensity <- c(vars_, 'Code of the patient')
+data_propensity <- data_ %>% 
+  .[, .SD, .SDcols = vars_propensity] %>% 
+  na.omit
+
+data_propensity_anonym <- data_propensity %>% 
+  .[, -'Code of the patient'] 
+
+propensity_model <- data_propensity_anonym %>% 
+  as.data.table %>% 
+  train_model(treatment_name, models='elastic', tuneLength = tuneLength)
+data_propensity_anonym %<>% cross_fitting(
+  propensity_model, treatment_name, treatment_vals[1]
+)
+data_propensity[, propensity := data_propensity_anonym[, propensity]]
+```
+
+```{r}
+propensities <- data_propensity %>% 
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
+auc_result <- auc(roc(propensities$treatment, propensities$propensity))
+ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
+  geom_density(alpha = 0.1) +
+  xlim(c(0, 1)) +
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
+```
+
+
+```{r include=TRUE}
+data_propensity %<>% .[propensity >= propensity_threshold] 
+```
+
+Propensity threshold `r propensity_threshold`
+```{r include=TRUE}
+data_propensity[, .N, treatment_name]
+```

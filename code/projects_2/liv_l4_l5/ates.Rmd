@@ -74,7 +74,7 @@ data_ %<>%
 data_ %<>% 
   .[`Surgical Approach`=='Posterior'] %>% 
   .[`Pelvic Tilt` < 35] %>% 
-  .[`Ideal GT` < 21] %>% 
+  .[`Global Tilt` < 60] %>% 
   .[`RLL` > -42] 
 ```
 
@@ -145,7 +145,16 @@ for( outcome in outcomes ){
   vars_outcome <- c(vars_outcome_, outcome)
 
   data_outcomes <- data_ %>% 
-    merge(data_propensity[, .(`Code of the patient`, propensity)], all=FALSE) %>% 
+    merge(data_propensity[, .(`Code of the patient`, propensity)], all=FALSE) 
+  
+  change_ <- FALSE
+  if(!is.na(as.numeric(substr(outcome, 1, 1)))){
+    change_ <- TRUE
+    outcome_preop <- substr(outcome, 5, nchar(outcome))
+    data_outcomes[, c(outcome) := get(outcome) - get(outcome_preop)]
+  }
+  
+  data_outcomes %<>% 
     .[, .SD, .SDcols = vars_outcome] %>% 
     na.omit
   
@@ -174,7 +183,7 @@ for( outcome in outcomes ){
     treatment_name=treatment_name, outcome_val=treatment_vals[1]
     )
   
-  print_model_results(outcome, model_1, data_1, model_2, data_2)
+  print_model_results(outcome, model_1, data_1, model_2, data_2, change_)
   print_ates(outcome, ITEs, treatment_vals)
 }
 ```

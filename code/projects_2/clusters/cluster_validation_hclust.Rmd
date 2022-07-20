@@ -21,6 +21,7 @@ library(ggplot2)
 library(emmeans)
 library(nnet)
 library(crayon)
+library(caret)
 
 source('patient_selection.R')
 source('clusters/utils_clusters.R')
@@ -103,36 +104,23 @@ Number of patients
 data_[, .N, cluster]
 ```
 
-Coefficients of multinomial regression (p-values in parenthesis)
-```{r}
-formula <- paste('`', cluster_vars$vars, '`', collapse=' + ', sep='')
-formula <- paste('cluster', formula, sep=' ~ ')
-res <- multinom(formula, data_)
-```
+# TODO: decision tree for cluster classification
 
+<!-- formula_ <- paste('`', cluster_vars$vars, '`', collapse=' + ', sep='') -->
+<!-- formula_ <- paste('cluster', formula_, sep=' ~ ') %>% as.formula -->
+<!-- data_ %>% -->
+<!--   .[, .SD, .SDcols=c(cluster_vars$vars, 'cluster')] %>% -->
+<!--   train(cluster~., data=., method='rpart') -->
 
-```{r include =TRUE, message=FALSE}
-z <- summary(res)$coefficients/summary(res)$standard.errors
-p <- (1 - pnorm(abs(z), 0, 1)) * 2
-
-coefs <- cbind(coefficients(res) %>% t, p %>% t)
-p_vals_cols <- (ncol(coefs)/2 + 1):ncol(coefs)
-colnames(coefs)[p_vals_cols] <- paste('p_value', colnames(coefs)[p_vals_cols])
-multi_vars <- rownames(coefs)
-coefs %<>% as.data.table
-coefs[, variable := multi_vars]
-
-cluster_names_reg <- summary(res)$coefficients %>% rownames()
-
-for( cluster in cluster_names_reg){
-  coefs[, c(cluster) := paste(
-    get(cluster) %>% round(2), ' (', 
-    get(paste('p_value', cluster)) %>% round(4),
-    ')', sep='')]
-}
-
-coefs[, .SD, .SDcols = c('variable', cluster_names_reg)]
-```
+<!-- grid_ <- expand.grid(maxdepth=c(1, 2)) -->
+<!-- data_ %>%  -->
+<!--   .[, .SD, .SDcols=c(cluster_vars$vars, 'cluster')] %>%  -->
+<!--   na.omit %>%  -->
+<!--   .[, cluster := paste('Cl', cluster, sep="")] -> -->
+<!--   data_model -->
+<!-- train(cluster~., data=data_model, method='rpart2',  -->
+<!--   trControl=trainControl(classProbs= TRUE, summaryFunction = multiClassSummary), -->
+<!--   tuneGrid = grid_) -->
 
 
 

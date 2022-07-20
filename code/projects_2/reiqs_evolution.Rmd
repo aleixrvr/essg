@@ -1,0 +1,73 @@
+---
+title: "Evolucio Reintervencions"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, comment="", warning = FALSE)
+library(readxl)
+library(data.table)
+library(magrittr)
+library(anytime)
+```
+
+
+```{r}
+xls_path <- '../../data/ESSG extraction December 2022_2.xlsx'
+
+# readxl::excel_sheets(xls_path)
+
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table() 
+
+complications <- read_excel(xls_path, sheet='Complications') %>% 
+  as.data.table() 
+```
+
+
+```{r}
+
+years <- clinical_data[, `st1. Date of Stage`] %>% 
+  anytime %>% year %>% unique %>% na.omit
+years <- years[ years != 2021]
+
+dt1 <- clinical_data[!is.na(`st1. Date of Stage`), .(`Code of the patient`, `st1. Date of Stage`)]
+dt2 <- complications[`Reoperation Due to Complication`=='Yes',
+  .(`Code of the patient`, 
+    category = `Category of the complication`, 
+    reop = `Date of Reoperation` %>% anytime)]
+
+dt <- merge(dt1, dt2, all.x=TRUE)
+dt[, days_operation := difftime(reop, `st1. Date of Stage`, units="days")]
+
+pats_op_ <- data.table()
+pats_reop_ <- data.table()
+for( y_ in years ){
+  pats_op <- dt[year(`st1. Date of Stage`) == y_, 
+    .(num_patients_operated = uniqueN(`Code of the patient`), 
+      year = y_)]
+  pats_reop <- dt[year(`st1. Date of Stage`) == y_ & 
+      !is.na(days_operation) & days_operation < 365, 
+    .(num_patients_reoperated = uniqueN(`Code of the patient`), year = y_),
+    category]
+  
+  pats_op_ <- rbind(pats_op_, pats_op) 
+  pats_reop_ <- rbind(pats_reop_, pats_reop) 
+}
+```
+
+Number of operated patients by year 
+```{r}
+pats_op_ %>% 
+  setorder('year') %>% 
+  print
+```
+
+Number of reoperated patients by year with less than 1 year since the operation
+
+```{r}
+pats_reop_ %>% 
+  setorder('year', 'category') %>% 
+  print
+```
+

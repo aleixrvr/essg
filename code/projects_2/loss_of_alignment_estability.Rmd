@@ -53,6 +53,91 @@ data_ %<>% .[complications_ever=='No']
 ```
 Without complications (PJK, PJF, DJK, DJF) ever after surgery: `r data_[, .N]`
 
+```{r}
+data_ %<>% 
+  .[`6W. RPV point` != 1, ] %>% 
+  .[`6W. RSA point` == 3, `6W. RSA point` := 1] %>% 
+  .[`6W. RPV point` == 3, `6W. RPV point` := 2]
+```
+
+
+### RPV comparisons
+
+```{r}
+outcomes <- c(
+  "Sagittal T2-T12", "Global Tilt", "RPV", "RSA", "Pelvic Tilt", "Sagittal Balance"
+)
+```
+
+
+```{r include=TRUE}
+res <- list()
+for( outcome in outcomes ){
+  outcome_6w <- "6W. {outcome}" %>% f
+  outcome_5Y <- "5Y. {outcome}" %>% f
+  data_ %>% 
+    .[, .(group = `6W. RPV point`, 
+      inc = get(outcome_5Y) - get(outcome_6w),
+      variable = outcome)] ->
+    sel_data_
+  p_val <- t.test(sel_data_[, inc, group==0], sel_data_[, inc, group==2])$p.val
+  outcome_res <- sel_data_[, .(
+    mean = mean(inc, na.rm=TRUE), sd = sd(inc, na.rm=TRUE)),
+    group] 
+  
+  outcome_res_1 <- outcome_res[group==2][, group:=NULL]
+  names(outcome_res_1) <- paste(names(outcome_res_1), "2")
+  outcome_res_2 <- outcome_res[group==0][, group:=NULL]
+  names(outcome_res_2) <- paste(names(outcome_res_2), "0")
+  outcome_res <- cbind(outcome_res_1, outcome_res_2)
+  outcome_res$p_val <- p_val
+  outcome_res$outcome <- paste("5Y-6W", outcome)
+
+  res[[outcome]] <- outcome_res  
+}
+
+rbindlist(res) 
+```
+
+### RSA comparisons
+```{r include=TRUE}
+res <- list()
+for( outcome in outcomes ){
+  outcome_6w <- "6W. {outcome}" %>% f
+  outcome_5Y <- "5Y. {outcome}" %>% f
+  data_ %>% 
+    .[, .(group = `6W. RSA point`, 
+      inc = get(outcome_5Y) - get(outcome_6w),
+      variable = outcome)] ->
+    sel_data_
+  p_val <- t.test(sel_data_[, inc, group==0], sel_data_[, inc, group==1])$p.val
+  outcome_res <- sel_data_[, .(
+    mean = mean(inc, na.rm=TRUE), sd = sd(inc, na.rm=TRUE)),
+    group] 
+  
+  outcome_res_1 <- outcome_res[group==1][, group:=NULL]
+  names(outcome_res_1) <- paste(names(outcome_res_1), "1")
+  outcome_res_2 <- outcome_res[group==0][, group:=NULL]
+  names(outcome_res_2) <- paste(names(outcome_res_2), "0")
+  outcome_res <- cbind(outcome_res_1, outcome_res_2)
+  outcome_res$p_val <- p_val
+  outcome_res$outcome <- paste("5Y-6W", outcome)
+
+  res[[outcome]] <- outcome_res  
+}
+
+rbindlist(res) 
+```
+
+<!-- ```{r} -->
+<!-- data_ %<>%  -->
+<!--   .[Age > 65, Age_ := '+65'] %>%  -->
+<!--   .[Age > 45 & Age <= 65, Age_ := '45-65'] %>%  -->
+<!--   .[Age <= 45, Age_ := '-45'] %>%  -->
+<!--   .[, Age := NULL] %>%  -->
+<!--   setnames('Age_', 'Age') -->
+<!-- ``` -->
+
 
 *Increment = Future - Baseline*
 
@@ -66,7 +151,15 @@ calc_estability(data_, factors_loss$qualitylife)
 
 
 ```{r include=TRUE}
+data_abs <- data_ %>% copy
+for( var_ in factors_loss$non_monotone){
+  var_6w <- paste("6W.", var_)
+  data_abs[, c(var_) := abs(get(var_))]
+  data_abs[, c(var_6w) := abs(get(var_6w))]
+}
+
 demo <- factors_loss[c('demographic_0', 'demographic_1', 'surgical')]
-calc_estability(data_, factors_loss$radiologic, demo)
+calc_estability(data_abs, factors_loss$radiologic_confounding %>% names, demo)
+# , radio_confounding=factors_loss[['radiologic_confounding']]
 ```
 

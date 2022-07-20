@@ -1,0 +1,867 @@
+---
+title: "Clusters Descriptives"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(stats)
+library(rpart)
+library(rattle)
+
+source('patient_selection.R')
+```
+
+```{r, message=FALSE}
+data_ <- get_data_base()
+cluster_vars <- read_yaml('cluster_vars.yml')
+analysis_vars <- read_yaml('descriptive.yml')
+cluster_num <- 3
+```
+
+```{r echo=TRUE}
+data_ %>% 
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-09-01')] %>%
+  .[Study=='Op'] %>% 
+  .[Site != 'ANK Op'] %>% 
+  .[`Vital status` == 'Alive'] -> 
+  data_
+```
+Initial Patients: `r data_[, .N]`
+
+```{r, message=FALSE}
+# data_ %>% 
+#   .[, .SD, .SDcols = cluster_vars$vars] %>% 
+#   scale %>% 
+#   dist %>% 
+#   hclust(method="ward.D2") ->
+#   clusters
+# 
+# data_[, cluster := as.factor(cutree(clusters,k=cluster_num))]
+```
+
+![cluters Eurospine 2019](clustering.png)
+
+```{r echo=TRUE}
+data_[`Prior Spine Surgery` == 'No' &
+  Age <= 41, cluster := 1]
+data_[`Prior Spine Surgery` == 'No' &
+  Age > 41 &
+  `Coronal Balance (C7PL to CSVL)` <= 22.6, 
+  cluster := 2]
+data_[`Prior Spine Surgery` == 'No' &
+  Age > 41 &
+  `Coronal Balance (C7PL to CSVL)` > 22.6, 
+  cluster := 3]
+data_[`Prior Spine Surgery` == 'Yes' & 
+    Age <= 59, cluster := 4]
+data_[`Prior Spine Surgery` == 'Yes' &
+    Age > 59, cluster := 5]
+```
+
+Number of patients
+```{r include=TRUE}
+data_[, cluster := as.factor(cluster)]
+data_ <- data_[!is.na(cluster)]
+
+data_[, .N, cluster]
+```
+
+
+
+```{r}
+treatment_ <- 'cluster'
+treatment_vals <- data_[, levels(cluster)]
+treatments_n <- len(treatment_vals)
+```
+
+```{r}
+data_treats <- list()
+for(val_ in treatment_vals){
+  data_treats[[val_]] <- data_[get(treatment_) == val_]
+}
+```
+
+## Statistics
+
+### ODI
+
+ODI stats overall
+
+```{r include=TRUE}
+data_[, .(
+  mean=mean(`ODI - Score (%)`, na.rm=TRUE),
+  sd = sd(`ODI - Score (%)`, na.rm=TRUE))]
+```
+
+ODI stats by cluster
+
+```{r include=TRUE}
+data_[, .(
+  mean=mean(`ODI - Score (%)`, na.rm=TRUE),
+  sd = sd(`ODI - Score (%)`, na.rm=TRUE)),
+  cluster]
+```
+
+
+### 3CO: all vs each cluster
+
+```{r include=TRUE}
+prop_3co <- c()
+for(val_ in treatment_vals){
+  cluster_yes <- data_treats[[val_]][, sum(`3CO` == 'Yes')]
+  cluster_n <- data_treats[[val_]][, .N]
+  total_yes <- data_[, sum(`3CO` == 'Yes')]
+  total_n <- data_[, .N]
+  prop_3co %<>% c(prop.test(c(cluster_yes, total_yes), c(cluster_n, total_n))$p.val)
+}
+
+data.table(cluster=treatment_vals, p.val = prop_3co)
+```
+
+### Pelvic fixation: all vs each cluster
+
+```{r include=TRUE}
+prop_pf <- c()
+for(val_ in treatment_vals){
+  cluster_yes <- data_treats[[val_]][, sum(`Pelvic fixation` == 'Yes')]
+  cluster_n <- data_treats[[val_]][, .N]
+  total_yes <- data_[, sum(`Pelvic fixation` == 'Yes')]
+  total_n <- data_[, .N]
+  prop_pf %<>% c(prop.test(c(cluster_yes, total_yes), c(cluster_n, total_n))$p.val)
+}
+
+data.table(cluster=treatment_vals, p.val = prop_pf)
+```
+
+### P-valor ASA 1 cluster vs cluster
+```{r include=TRUE}
+var_ <- "ASA classification"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+data__[, variable := ifelse(as.character(variable) == 1, 1, 2)]
+res <- data__[, .(asa_1 = sum(variable == 1), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+### P-valor ASA 3 cluster vs cluster
+```{r include=TRUE}
+var_ <- "ASA classification"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+data__[, variable := ifelse(as.character(variable) == 3, 1, 2)]
+res <- data__[, .(asa_3 = sum(variable == 1), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_3,
+    res[treatment==treatment_vals[n2]]$asa_3
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_3,
+    res[treatment==treatment_vals[n2]]$asa_3
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_3,
+    res[treatment==treatment_vals[n2]]$asa_3
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+### P-valor Prior Spine Surgery Yes cluster vs cluster
+```{r include=TRUE}
+var_ <- "Prior Spine Surgery"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+  
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+### 3CO cluster vs cluster
+
+```{r include=TRUE}
+var_ <- "3CO"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+  
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+### Pelvic Fixation cluster vs cluster
+
+```{r include=TRUE}
+var_ <- "Pelvic fixation"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+  
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+### Demographics
+```{r echo=FALSE, comment="", include=TRUE}
+res_vars_cats <- list()
+res_vars_num <- list()
+for(var_ in analysis_vars$demographics ){
+  
+  res_treats <- list()
+  res_treats[['All']] <- stats_fun(data_[[var_]])
+  for(val_ in treatment_vals){
+    res_treats[[val_]] <- stats_fun(data_treats[[val_]][[var_]])
+  }
+  
+  if( is.numeric(data_[[var_]]) ){
+    p_vals_list <- list()
+    for(val_1_pos in 1:(treatments_n - 1)){
+      val_1 <- treatment_vals[val_1_pos]
+      p_vals_list[[val_1]] <- list()
+      for(val_2_pos in (val_1_pos+1):treatments_n){
+        val_2 <- treatment_vals[val_2_pos]
+        p.val <- calc_p_vals(
+          data_, var_, treatment_, c(val_1, val_2)
+        ) %>% round(4)
+        if( is.null(p.val) ) p.val <- NA
+        p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
+      }
+      
+      p.val <- calc_p_vals(
+          data_, var_, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+      if( is.null(p.val) ) p.val <- NA
+      p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    }
+    
+    val_1 <- treatment_vals[treatments_n]
+    p.val <- calc_p_vals(
+          data_, var_, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+    if( is.null(p.val) ) p.val <- NA
+    p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    
+    for(treat_ in treatment_vals){
+      p.val <- calc_p_vals(data_, var_, treatment_, treat_and_co = treat_) %>% 
+          round(4)
+        p_vals_list[["p.val_{treat_}" %>% f]][['vs_the_rest']] <- p.val
+    }
+    
+    res_vars_num[[var_]] <- cbind(
+      variable = var_,
+      res_treats %>% unlist %>% t %>% as.data.frame(),
+      p_vals_list %>% unlist %>% t %>% as.data.frame()
+    )
+    
+    formula_ <- "`{var_}`~cluster" %>% f %>% as.formula
+    aov_res <- aov(formula_, data_)
+    res_vars_num[[var_]]$p.val_all <- summary(aov_res)[[1]][["Pr(>F)"]][1] %>% 
+      round(4)
+  }else{
+    res_vars_cats[[var_]] <- res_treats
+  }
+}
+```
+
+```{r include=TRUE}
+do.call(rbind, res_vars_num)
+```
+
+```{r include=TRUE}
+print(res_vars_cats)
+```
+
+
+### Radiology
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6w, var_6m, var_1y, var_2y, var_5y)
+  res_vars_num <- list()
+  res_treats <- list()
+  for(var_y in vars_years){
+    print(var_y)
+    res_treats[['All']] <- stats_fun(data_[[var_y]])
+    for(val_ in treatment_vals){
+      res_treats[[val_]] <- stats_fun(data_treats[[val_]][[var_y]])
+    }
+    
+    res_treats[['maes']] <- calculate_mae(data_, var_y)
+    
+    p_vals_list <- list()
+    for(val_1_pos in 1:(treatments_n - 1)){
+      val_1 <- treatment_vals[val_1_pos]
+      p_vals_list[[val_1]] <- list()
+      for(val_2_pos in (val_1_pos+1):treatments_n){
+        val_2 <- treatment_vals[val_2_pos]
+        p.val <- calc_p_vals(data_, var_y, treatment_, c(val_1, val_2)) %>% 
+          round(4)
+        p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
+      }
+      
+      p.val <- calc_p_vals(
+          data_, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+      if( is.null(p.val) ) p.val <- NA
+      p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    }
+    
+    val_1 <- treatment_vals[treatments_n]
+    p.val <- calc_p_vals(
+          data_, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+    if( is.null(p.val) ) p.val <- NA
+    p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    
+    for(treat_ in treatment_vals){
+      p.val <- calc_p_vals(data_, var_y, treatment_, treat_and_co = treat_) %>% 
+          round(4)
+        p_vals_list[["p.val_{treat_}" %>% f]][['vs_the_rest']] <- p.val
+    }
+    
+    res_vars_num[[var_y]] <- cbind(
+      res_treats %>% unlist %>% t %>% as.data.frame(),
+      p_vals_list %>% unlist %>% t %>% as.data.frame()
+    )
+    
+    formula_ <- "`{var_y}`~cluster" %>% f %>% as.formula
+    aov_res <- aov(formula_, data_)
+    res_vars_num[[var_y]]$p.val_all <- summary(aov_res)[[1]][["Pr(>F)"]][1] %>% 
+      round(4)
+  }
+  
+  cat('\n\n\n')
+  print(var_)
+   cat('\n')
+  print(do.call(rbind, res_vars_num))
+  
+  res_time_p <- list()
+  res_time_p[['All']] <- calc_time_p_values(
+    data_, var_, var_6w, var_2y, var_5y, cluster_name='All'
+  )
+  for(val_ in treatment_vals){
+    res_time_p[[val_]] <- calc_time_p_values(
+      data_treats[[val_]], var_, var_6w, var_2y, var_5y, cluster_name=val_
+    )
+  }
+  
+  do.call(rbind, res_time_p) %>% 
+    as.data.table() %>% 
+    dcast(t0 + t1 ~ group, value.var='p.val') %>% 
+    setorder(-"t0") ->
+    res_time_p
+  
+  cat('\n')
+  print(res_time_p)
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$quality ){
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6m, var_1y, var_2y, var_5y)
+  res_vars_num <- list()
+  res_treats <- list()
+  for(var_y in vars_years){
+    res_treats[['All']] <- stats_fun(data_[[var_y]])
+    for(val_ in treatment_vals){
+      res_treats[[val_]] <- stats_fun(data_treats[[val_]][[var_y]])
+    }
+    
+    res_treats[['maes']] <- calculate_mae(data_, var_y)
+    
+    p_vals_list <- list()
+    for(val_1_pos in 1:(treatments_n - 1)){
+      val_1 <- treatment_vals[val_1_pos]
+      p_vals_list[[val_1]] <- list()
+      for(val_2_pos in (val_1_pos+1):treatments_n){
+        val_2 <- treatment_vals[val_2_pos]
+        p.val <- calc_p_vals(data_, var_y, treatment_, c(val_1, val_2)) %>% 
+          round(4)
+        if( is.null(p.val) ) p.val <- NA
+        p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
+      }
+      
+      p.val <- calc_p_vals(
+          data_, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+      if( is.null(p.val) ) p.val <- NA
+      p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    }
+    
+    val_1 <- treatment_vals[treatments_n]
+    p.val <- calc_p_vals(
+          data_, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+    if( is.null(p.val) ) p.val <- NA
+    p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    
+    for(treat_ in treatment_vals){
+      p.val <- calc_p_vals(data_, var_y, treatment_, treat_and_co = treat_) %>% 
+          round(4)
+        p_vals_list[["p.val_{treat_}" %>% f]][['vs_the_rest']] <- p.val
+    }
+    
+    res_vars_num[[var_y]] <- cbind(
+      res_treats %>% unlist %>% t %>% as.data.frame(),
+      p_vals_list %>% unlist %>% t %>% as.data.frame()
+    )
+    
+    formula_ <- "`{var_y}`~cluster" %>% f %>% as.formula
+    aov_res <- aov(formula_, data_)
+    res_vars_num[[var_y]]$p.val_all <- summary(aov_res)[[1]][["Pr(>F)"]][1] %>% 
+      round(4)
+  }
+  
+  cat('\n\n\n')
+  print(var_)
+  cat('\n')
+  print(do.call(rbind, res_vars_num))
+  
+  res_time_p <- list()
+  res_time_p[['All']] <- calc_time_p_values(
+    data_, var_, var_6m, var_2y, var_5y, cluster_name='All'
+  )
+  for(val_ in treatment_vals){
+    res_time_p[[val_]] <- calc_time_p_values(
+      data_treats[[val_]], var_, var_6m, var_2y, var_5y, cluster_name=val_
+    )
+  }
+  
+  do.call(rbind, res_time_p) %>% 
+    as.data.table() %>% 
+    dcast(t0 + t1 ~ group, value.var='p.val') %>% 
+    setorder(-"t0") ->
+    res_time_p
+  
+  cat('\n')
+  print(res_time_p)
+}
+```
+
+
+### Quality of Life change with respect baseline
+```{r echo=FALSE, comment="", include=TRUE}
+data_change <- data_ %>% copy
+for(var_ in analysis_vars$quality ){
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_6m, var_1y, var_2y, var_5y)
+  res_vars_num <- list()
+  res_treats <- list()
+  for(var_y in vars_years){
+    data_change[, c(var_y) := get(var_y) - get(var_)]
+    res_treats[['All']] <- stats_fun(data_change[[var_y]], effect_size=TRUE)
+    for(val_ in treatment_vals){
+      res_treats[[val_]] <- stats_fun(data_change[get(treatment_) == val_][[var_y]],
+        effect_size=TRUE)
+    }
+    
+    res_treats[['maes']] <- calculate_mae(data_, var_y)
+
+    p_vals_list <- list()
+    for(val_1_pos in 1:(treatments_n - 1)){
+      val_1 <- treatment_vals[val_1_pos]
+      p_vals_list[[val_1]] <- list()
+      for(val_2_pos in (val_1_pos+1):treatments_n){
+        val_2 <- treatment_vals[val_2_pos]
+        p.val <- calc_p_vals(data_change, var_y, treatment_, c(val_1, val_2)) %>%
+          round(4)
+        if( is.null(p.val) ) p.val <- NA
+        p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
+      }
+
+      p.val <- calc_p_vals(
+          data_change, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+      if( is.null(p.val) ) p.val <- NA
+      p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    }
+    
+    val_1 <- treatment_vals[treatments_n]
+    p.val <- calc_p_vals(
+          data_change, var_y, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+    if( is.null(p.val) ) p.val <- NA
+    p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    
+    for(treat_ in treatment_vals){
+      p.val <- calc_p_vals(data_change, var_y, treatment_, treat_and_co = treat_) %>% 
+          round(4)
+        p_vals_list[["p.val_{treat_}" %>% f]][['vs_the_rest']] <- p.val
+    }
+
+    res_vars_num[[var_y]] <- cbind(
+      res_treats %>% unlist %>% t %>% as.data.frame(),
+      p_vals_list %>% unlist %>% t %>% as.data.frame()
+    )
+
+    formula_ <- "`{var_y}`~cluster" %>% f %>% as.formula
+    aov_res <- aov(formula_, data_change)
+    res_vars_num[[var_y]]$p.val_all <- summary(aov_res)[[1]][["Pr(>F)"]][1] %>%
+      round(4)
+  }
+
+  cat('\n\n\n')
+  print(var_)
+  cat('\n')
+  print(do.call(rbind, res_vars_num))
+
+}
+```
+
+
+### Surgery
+
+```{r echo=FALSE, comment="", include=TRUE}
+res_vars_cats <- list()
+res_vars_num <- list()
+for(var_ in analysis_vars$surgery  ){
+  
+  res_treats <- list()
+  res_treats[['All']] <- stats_fun(data_[[var_]])
+  for(val_ in treatment_vals){
+    res_treats[[val_]] <- stats_fun(data_treats[[val_]][[var_]])
+  }
+  
+  res_treats[['maes']] <- calculate_mae(data_, var_)
+  
+  if( is.numeric(data_[[var_]]) ){
+    p_vals_list <- list()
+    for(val_1_pos in 1:(treatments_n - 1)){
+      val_1 <- treatment_vals[val_1_pos]
+      p_vals_list[[val_1]] <- list()
+      for(val_2_pos in (val_1_pos+1):treatments_n){
+        val_2 <- treatment_vals[val_2_pos]
+        p.val <- calc_p_vals(data_, var_, treatment_, c(val_1, val_2)) %>% 
+          round(4)
+        if( is.null(p.val) ) p.val <- NA
+        p_vals_list[["p.val_{val_1}" %>% f]][[val_2]] <- p.val
+      }
+      
+      p.val <- calc_p_vals(
+          data_, var_, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+      if( is.null(p.val) ) p.val <- NA
+      p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    }
+    
+    val_1 <- treatment_vals[treatments_n]
+    p.val <- calc_p_vals(
+          data_, var_, treatment_, c(val_1, 'all')
+        ) %>% round(4)
+    if( is.null(p.val) ) p.val <- NA
+    p_vals_list[["p.val_{val_1}" %>% f]][['all']] <- p.val
+    
+    for(treat_ in treatment_vals){
+      p.val <- calc_p_vals(data_, var_y, treatment_, treat_and_co = treat_) %>% 
+          round(4)
+        p_vals_list[["p.val_{treat_}" %>% f]][['vs_the_rest']] <- p.val
+    }
+    
+    res_vars_num[[var_]] <- cbind(
+      res_treats %>% unlist %>% t %>% as.data.frame(),
+      p_vals_list %>% unlist %>% t %>% as.data.frame()
+    )
+    
+    formula_ <- "`{var_}`~cluster" %>% f %>% as.formula
+    aov_res <- aov(formula_, data_)
+    res_vars_num[[var_]]$p.val_all <- summary(aov_res)[[1]][["Pr(>F)"]][1] %>% 
+      round(4)
+  }else{
+    res_vars_cats[[var_]] <- res_treats
+  }
+}
+```
+
+```{r include=TRUE}
+do.call(rbind, res_vars_num)
+```
+
+```{r include=TRUE}
+print(res_vars_cats)
+```
+
+# Reinterventions
+
+```{r}
+res <- calc_complications_many(data_, treatment_vals, treatment_)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+# Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+# Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+

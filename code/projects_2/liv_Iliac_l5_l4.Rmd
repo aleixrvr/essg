@@ -1,0 +1,814 @@
+---
+title: "LIV Iliac/L5"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, include=FALSE, message=FALSE, warning=FALSE, comment="")
+```
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+
+source('patient_selection.R')
+```
+
+```{r, message=FALSE}
+analysis_vars <- read_yaml('descriptive.yml')
+data_ <- get_data()
+```
+Initial Patients: `r data_[, .N]`
+
+```{r}
+data_ %<>% 
+  .[`Posterior Instrumented Fusion` == 'Yes'] %>% 
+  .[`Number of Posterior Instrumented Levels` > 3]
+```
+With Posterior Instrumented Fusion & Number of Posterior Instrumented Levels > 3: `r data_[, .N]`
+
+
+
+
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_[post_intr_fusion == 'L4', type := 'L4']
+data_ %<>% .[!is.na(type)] 
+
+data_[, .N, type]
+```
+
+<!-- With 5Y FU -->
+<!-- ```{r include=TRUE} -->
+<!-- data_ %<>% .[followup_5y==TRUE] -->
+<!-- data_[, .N, type] -->
+<!-- ``` -->
+
+
+Patients who end up intrumented until pelvis
+```{r include=TRUE, echo=TRUE}
+revision <- read_excel(xls_path, sheet="Revision surgeries") %>% 
+  as.data.table()
+
+revision[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
+
+data_[`Code of the patient` %in% reint_iliac, `Code of the patient` %>% uniqueN, type]
+```
+
+UIV frequencies
+```{r include=TRUE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[1]) -> 
+  post_intr_fusion_upper 
+data.table(uiv = post_intr_fusion_upper) %>% 
+  .[, .N, uiv] %>% 
+  setorder(uiv) %>% 
+  print
+```
+
+```{r}
+treatment_ <- 'type'
+treatment_vals <- c('Iliac', 'L5', 'L4')
+treatment_n <- len(treatment_vals)
+```
+
+```{r}
+data_treats <- list()
+for(treatment_pos in 1:treatment_n){
+  data_treats[[treatment_pos]] <- data_[get(treatment_) == treatment_vals[treatment_pos]]
+}
+```
+
+```{r include)TRUE}
+data_[, .N, c("Non_instrumented_segments", treatment_)] %>% 
+  setorder(type, Non_instrumented_segments) %>% na.omit %>% print
+```
+
+
+### P-valor ASA 1 Iliac vs L5 
+```{r include=TRUE}
+var_ <- "ASA classification"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+data__[, variable := ifelse(as.character(variable) == 1, 1, 2)]
+res <- data__[, .(asa_1 = sum(variable == 1), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$asa_1,
+    res[treatment==treatment_vals[n2]]$asa_1
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+### P-valor Prior Spine Surgery Yes Iliac vs L5
+```{r include=TRUE}
+var_ <- "Prior Spine Surgery"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+  
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+### 3CO
+
+```{r include=TRUE}
+var_ <- "3CO"
+data_[, .(
+  treatment=get(treatment_), variable=get(var_))] ->
+  data__
+
+res <- data__[, .(prior_yes = sum(variable == 'Yes'), .N), treatment] %>% 
+  .[!is.na(treatment)]
+
+print(res)
+```
+
+  
+```{r include=TRUE}
+n1 <- 1
+n2 <- 2
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 1
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+```{r include=TRUE}
+n1 <- 2
+n2 <- 3
+print("P-values Treatment {treatment_vals[n1]} vs Treatment {treatment_vals[n2]}" %>% f)
+prop.test(
+  c(
+    res[treatment==treatment_vals[n1]]$prior_yes,
+    res[treatment==treatment_vals[n2]]$prior_yes
+  ),
+  c(
+    res[treatment==treatment_vals[n1]]$N,
+    res[treatment==treatment_vals[n2]]$N
+  ))$p.val
+```
+
+
+
+### Demographics
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$demographics ){
+  
+  res <- stats_fun(data_[[var_]])
+  res_treats <- list()
+  for(treatment_pos in 1:treatment_n){
+    res_treats[[treatment_pos]] <- stats_fun(
+      data_treats[[treatment_pos]][[var_]])
+  }
+  
+  for( res_name in names(res) ){
+    cat(var_)
+    cat(' - ')
+    cat(res_name)
+    cat('\n')
+    
+    cat('All\n')
+    print(res[[res_name]])
+
+    for(treatment_pos in 1:treatment_n){
+      cat(treatment_vals[treatment_pos])
+      cat('\n')
+      print(res_treats[[treatment_pos]][[res_name]])
+      cat('\n')
+    }
+    
+    if( res_name == 'mean'){
+      for(n1 in 1:(treatment_n-1)){
+        for(n2 in (n1+1):treatment_n){
+          p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals[c(n1, n2)])
+          if(!is.null(p.val)){
+            cat('{treatment_vals[n1]} vs {treatment_vals[n2]} p-value:\n' %>% f)
+            print(p.val)
+            cat('\n\n')
+          }
+        }
+      }
+    }
+  }
+  cat('\n\n')
+}
+```
+
+
+### Radiology
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6w, var_6m, var_1y, var_2y, var_5y)
+  for(var_y in vars_years){
+    res <- stats_fun(data_[[var_y]])
+    res_treats <- list()
+    for(treatment_pos in 1:treatment_n){
+      res_treats[[treatment_pos]] <- stats_fun(
+        data_treats[[treatment_pos]][[var_y]])
+    }
+    for( res_name in names(res) ){
+      cat(var_y)
+      cat(' - ')
+      cat(res_name)
+      cat('\n')
+      
+      cat('All\n')
+      print(res[[res_name]])
+      
+      for(treatment_pos in 1:treatment_n){
+        cat(treatment_vals[treatment_pos])
+        cat('\n')
+        print(res_treats[[treatment_pos]][[res_name]])
+        cat('\n')
+      }
+      
+      if( res_name == 'mean'){
+        for(n1 in 1:(treatment_n-1)){
+          for(n2 in (n1+1):treatment_n){
+            p.val <- calc_p_vals(data_, var_y, treatment_, treatment_vals[c(n1, n2)])
+            if(!is.null(p.val)){
+              cat('{treatment_vals[n1]} vs {treatment_vals[n2]} p-value:\n' %>% f)
+              print(p.val)
+              cat('\n\n')
+            }
+          }
+        }
+      }
+    }
+    cat('\n\n')
+  }
+    
+  cat('{var_} tests all\n' %>% f)
+  val_ <- data_[[var_]]
+  val_6w <- data_[[var_6w]]
+  val_2y <- data_[[var_2y]]
+  val_5y <- data_[[var_5y]]
+  cat('\nPreop vs 6w p-value\n')
+  cat(t.test(val_6w , val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 2y p-value\n')
+  cat(t.test(val_2y, val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 5y p-value\n')
+  cat(t.test(val_5y, val_)$p.val)
+  cat('\n\n')
+  cat('6w vs 2y p-value\n')
+  cat(t.test(val_2y, val_6w)$p.val)
+  cat('\n\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6w)$p.val)
+  cat('\n\n')
+  
+  for(treatment_pos in 1:treatment_n){
+    cat('{var_} tests {treatment_vals[treatment_pos]}\n' %>% f)
+    val_ <- data_treats[[treatment_pos]][[var_]]
+    val_6w <- data_treats[[treatment_pos]][[var_6w]]
+    val_2y <- data_treats[[treatment_pos]][[var_2y]]
+    val_5y <- data_treats[[treatment_pos]][[var_5y]]
+    cat('\nPreop vs 6w p-value\n')
+    cat(t.test(val_6w , val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 2y p-value\n')
+    cat(t.test(val_2y, val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 5y p-value\n')
+    cat(t.test(val_5y, val_)$p.val)
+    cat('\n\n')
+    cat('6w vs 2y p-value\n')
+    cat(t.test(val_2y, val_6w)$p.val)
+    cat('\n\n')
+    cat('2y vs 5y p-value\n')
+    cat(t.test(val_5y, val_2y)$p.val)
+    cat('\n\n')
+    cat('6w vs 5y p-value\n')
+    cat(t.test(val_5y, val_6w)$p.val)
+    cat('\n\n')
+  }
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$quality ){
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6m, var_1y, var_2y, var_5y)
+  for(var_y in vars_years){
+    res <- stats_fun(data_[[var_y]])
+    res_treats <- list()
+    for(treatment_pos in 1:treatment_n){
+      res_treats[[treatment_pos]] <- stats_fun(
+        data_treats[[treatment_pos]][[var_y]])
+    }
+    for( res_name in names(res) ){
+      cat(var_y)
+      cat(' - ')
+      cat(res_name)
+      cat('\n')
+      
+      cat('All\n')
+      print(res[[res_name]])
+      
+      for(treatment_pos in 1:treatment_n){
+        cat(treatment_vals[treatment_pos])
+        cat('\n')
+        print(res_treats[[treatment_pos]][[res_name]])
+        cat('\n')
+      }
+      
+      if( res_name == 'mean'){
+        for(n1 in 1:(treatment_n-1)){
+          for(n2 in (n1+1):treatment_n){
+            p.val <- calc_p_vals(data_, var_y, treatment_, treatment_vals[c(n1, n2)])
+            if(!is.null(p.val)){
+              cat('{treatment_vals[n1]} vs {treatment_vals[n2]} p-value:\n' %>% f)
+              print(p.val)
+              cat('\n\n')
+            }
+          }
+        }
+      }
+    }
+    cat('\n\n')
+  }
+  
+  cat('{var_} tests all\n' %>% f)
+  val_ <- data_[[var_]]
+  val_6m <- data_[[var_6m]]
+  val_2y <- data_[[var_2y]]
+  val_5y <- data_[[var_5y]]
+  cat('\nPreop vs 6m p-value\n')
+  cat(t.test(val_6m , val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 2y p-value\n')
+  cat(t.test(val_2y, val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 5y p-value\n')
+  cat(t.test(val_5y, val_)$p.val)
+  cat('\n\n')
+  cat('6m vs 2y p-value\n')
+  cat(t.test(val_2y, val_6m)$p.val)
+  cat('\n\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6m)$p.val)
+  cat('\n\n')
+
+  
+  for(treatment_pos in 1:treatment_n){
+    cat('{var_} tests {treatment_vals[treatment_pos]}\n' %>% f)
+    val_ <- data_treats[[treatment_pos]][[var_]]
+    val_6m <- data_treats[[treatment_pos]][[var_6m]]
+    val_2y <- data_treats[[treatment_pos]][[var_2y]]
+    val_5y <- data_treats[[treatment_pos]][[var_5y]]
+    cat('\nPreop vs 6m p-value\n')
+    cat(t.test(val_6m , val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 2y p-value\n')
+    cat(t.test(val_2y, val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 5y p-value\n')
+    cat(t.test(val_5y, val_)$p.val)
+    cat('\n\n')
+    cat('6m vs 2y p-value\n')
+    cat(t.test(val_2y, val_6m)$p.val)
+    cat('\n\n')
+    cat('2y vs 5y p-value\n')
+    cat(t.test(val_5y, val_2y)$p.val)
+    cat('\n\n')
+    cat('6m vs 5y p-value\n')
+    cat(t.test(val_5y, val_6m)$p.val)
+    cat('\n\n')
+  }
+}
+```
+
+
+### Change Quality of Life
+```{r echo=FALSE, comment="", include=TRUE}
+data_change <- data_ %>% copy
+for(var_ in analysis_vars$quality ){
+  var_6m <- "6M. {var_}" %>% f
+  var_1y <- "1Y. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_6m, var_1y, var_2y, var_5y)
+  for(var_y in vars_years){
+    data_change[, c(var_y) := get(var_y) - get(var_)]
+  }
+  data_treats_change <- list()
+  for(treatment_pos in 1:treatment_n){
+    data_treats_change[[treatment_pos]] <- data_change[get(treatment_) == treatment_vals[treatment_pos]]
+  }
+  
+  for(var_y in vars_years){
+    res <- stats_fun(data_change[[var_y]])
+    res_treats <- list()
+    for(treatment_pos in 1:treatment_n){
+      res_treats[[treatment_pos]] <- stats_fun(
+        data_treats_change[[treatment_pos]][[var_y]]
+      )    
+    }
+    for( res_name in names(res) ){
+      cat(var_y)
+      cat(' - ')
+      cat(res_name)
+      cat('\n')
+      
+      cat('All\n')
+      print(res[[res_name]])
+      
+    for(treatment_pos in 1:treatment_n){
+      cat(treatment_vals[treatment_pos])
+      cat('\n')
+      print(res_treats[[treatment_pos]][[res_name]])
+      cat('\n')
+    }
+      
+      if( res_name == 'mean'){
+        for(n1 in 1:(treatment_n-1)){
+          for(n2 in (n1+1):treatment_n){
+            p.val <- calc_p_vals(data_change, var_y, treatment_, treatment_vals[c(n1, n2)])
+            if(!is.null(p.val)){
+              cat('{treatment_vals[n1]} vs {treatment_vals[n2]} p-value:\n' %>% f)
+              print(p.val)
+              cat('\n\n')
+            }
+          }
+        }
+      }
+    }
+    cat('\n\n')
+  }
+  
+  cat('{var_} tests all\n' %>% f)
+  val_ <- data_change[[var_]]
+  val_6m <- data_change[[var_6m]]
+  val_2y <- data_change[[var_2y]]
+  val_5y <- data_change[[var_5y]]
+  cat('\nPreop vs 6m p-value\n')
+  cat(t.test(val_6m , val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 2y p-value\n')
+  cat(t.test(val_2y, val_)$p.val)
+  cat('\n\n')
+  cat('Preop vs 5y p-value\n')
+  cat(t.test(val_5y, val_)$p.val)
+  cat('\n\n')
+  cat('6m vs 2y p-value\n')
+  cat(t.test(val_2y, val_6m)$p.val)
+  cat('\n\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(val_5y, val_2y)$p.val)
+  cat('\n\n')
+  cat('6w vs 5y p-value\n')
+  cat(t.test(val_5y, val_6m)$p.val)
+  cat('\n\n')
+
+  for(treatment_pos in 1:treatment_n){
+    cat('{var_} tests {treatment_vals[treatment_pos]}\n' %>% f)
+    val_ <- data_treats_change[[treatment_pos]][[var_]]
+    val_6m <- data_treats_change[[treatment_pos]][[var_6m]]
+    val_2y <- data_treats_change[[treatment_pos]][[var_2y]]
+    val_5y <- data_treats_change[[treatment_pos]][[var_5y]]
+    cat('\nPreop vs 6m p-value\n')
+    cat(t.test(val_6m , val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 2y p-value\n')
+    cat(t.test(val_2y, val_)$p.val)
+    cat('\n\n')
+    cat('Preop vs 5y p-value\n')
+    cat(t.test(val_5y, val_)$p.val)
+    cat('\n\n')
+    cat('6m vs 2y p-value\n')
+    cat(t.test(val_2y, val_6m)$p.val)
+    cat('\n\n')
+    cat('2y vs 5y p-value\n')
+    cat(t.test(val_5y, val_2y)$p.val)
+    cat('\n\n')
+    cat('6m vs 5y p-value\n')
+    cat(t.test(val_5y, val_6m)$p.val)
+    cat('\n\n')
+  }
+}
+```
+
+### Surgery
+```{r echo=FALSE, comment="", include=TRUE}
+for(var_ in analysis_vars$surgery ){
+  res <- stats_fun(data_[[var_]])
+  res_treats <- list()
+  for(treatment_pos in 1:treatment_n){
+    res_treats[[treatment_pos]] <- stats_fun(
+      data_treats[[treatment_pos]][[var_]])
+  }
+  for( res_name in names(res) ){
+    cat(var_)
+    cat(' - ')
+    cat(res_name)
+    cat('\n')
+    
+    cat('All\n')
+    print(res[[res_name]])
+
+    for(treatment_pos in 1:treatment_n){
+      cat(treatment_vals[treatment_pos])
+      cat('\n')
+      print(res_treats[[treatment_pos]][[res_name]])
+      cat('\n')
+    }
+    
+    if( res_name == 'mean'){
+      for(n1 in 1:(treatment_n-1)){
+        for(n2 in (n1+1):treatment_n){
+          p.val <- calc_p_vals(data_, var_, treatment_, treatment_vals[c(n1, n2)])
+          if(!is.null(p.val)){
+            cat('{treatment_vals[n1]} vs {treatment_vals[n2]} p-value:\n' %>% f)
+            print(p.val)
+            cat('\n\n')
+          }
+        }
+      }
+    }
+  }
+  cat('\n\n')
+}
+```
+
+
+
+# Before 2Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications_many(data_, treatment_vals, treatment_, lower_years=0, upper_years=2)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```
+
+## Time to surgery
+
+```{r include=TRUE}
+res$time_to_surgery$stats
+```
+
+```{r include=TRUE}
+res$time_to_surgery$p_vals
+```
+
+
+# From 2Y - 5Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications_many(data_, treatment_vals, treatment_, lower_years=2, upper_years=5)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```
+
+## Time to surgery
+
+```{r include=TRUE}
+res$time_to_surgery$stats
+```
+
+```{r include=TRUE}
+res$time_to_surgery$p_vals
+```
+
+
+# Before 5Y
+
+## Reinterventions
+
+```{r}
+res <- calc_complications_many(data_, treatment_vals, treatment_, lower_years=0, upper_years=5)
+```
+
+```{r include=TRUE}
+res$number_reiqs
+```
+
+```{r include=TRUE}
+res$p_vals_reiqs
+```
+
+## Impacts
+
+```{r include=TRUE}
+res$impacts
+```
+
+## Categories
+
+```{r include=TRUE}
+res$categories
+```
+
+## Categories Major Complications
+
+```{r include=TRUE}
+res$categories_major
+```
+
+## Time to surgery
+
+```{r include=TRUE}
+res$time_to_surgery$stats
+```
+
+```{r include=TRUE}
+res$time_to_surgery$p_vals
+```

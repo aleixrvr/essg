@@ -1,0 +1,242 @@
+---
+title: "Descriptive Stats"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(root.dir = '../')
+```
+
+```{r echo=TRUE}
+xls_path <- '../../data/ESSG extraction June 2022_2nd report 5Y - ONLY DPS.xlsx'
+```
+
+
+```{r echo=FALSE, warning=FALSE, include=FALSE}
+library(readxl)
+library(data.table)
+library(magrittr)
+library(yaml)
+library(glue)
+f <- glue
+
+clinical_data <- read_excel(xls_path) %>% 
+  as.data.table()
+
+
+if( 'Major curve Cobb angle' %in% colnames(clinical_data)){
+  setnames(clinical_data, 
+    "Major curve Cobb angle", "Static Major curve Cobb angle")
+}
+
+clinical_data[, `3CO` := (PSOs == 'Yes') | (PVCR == 'Yes')]
+
+setnames(
+  clinical_data, 
+  'SRS22 -SI_First Visit', 
+  'SRS22 - Self image / Appearance_First Visit'
+)
+
+setnames(
+  clinical_data, 
+  'SRS22 - Satisfaction_First Visit', 
+  'SRS22 - Satisfaction with management_First Visit'
+)
+
+setnames(
+  clinical_data, 
+  'SRS22 - MH_First Visit', 
+  'SRS22 - Mental health_First Visit'
+)
+setnames(
+  clinical_data, 
+  'SRS22 - Function_First Visit', 
+  'SRS22 - Function / Activity_First Visit'
+)
+
+clinical_data[, 
+  `Pelvic Fixation` := grepl(
+    'Iliac', 
+    `Posterior Instrumented Fusion: Upper / Lower Levels`, 
+    fixed=TRUE
+  )] %>% 
+  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')] 
+
+clinical_data[, `ASA classification` := as.factor(`ASA classification`)]
+
+uiv_ <- c('T10', 'T11', 'T12', 'L1')
+clinical_data %>% 
+  .[, upper:= substr(`Posterior Instrumented Fusion: Upper / Lower Levels`, 1, 2)] %>% 
+  .[, uiv_t10_12_l1 := ifelse(upper %in% uiv_, 'Yes', 'No')]
+
+vars <- read_yaml('five_years/descriptive.yml')
+vars$surgery <- c(vars$surgery, 'uiv_t10_12_l1')
+
+stats_fun <- function(variable){
+  if( class(variable) == 'numeric' ){
+    return( list(
+      mean = mean(variable, na.rm=TRUE),
+      sd = sd(variable, na.rm = TRUE)
+    ))
+  }else{
+    res_table <- table(variable)
+    return(list(
+      table = res_table, 
+      proportion = prop.table(res_table)
+    ))
+  }
+}
+
+```
+
+### Filters
+```{r warning=FALSE }
+discarded_patients <- readLines('five_years/discarded_patients')
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+# clinical_data %<>% 
+#   .[Site != 'ANK Op'] %>% 
+#   .[`Vital status` == 'Alive'] %>% 
+#   .[!(`Code of the patient` %in% discarded_patients)] %>% 
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2015-3-15')]
+
+total <- clinical_data[, `Code of the patient` %>% uniqueN]
+patients_2y <- clinical_data[followup_2y==TRUE, `Code of the patient` %>% uniqueN]
+patients_5y <- clinical_data[followup_5y==TRUE, `Code of the patient` %>% uniqueN]
+```
+
+
+- Number of Patients: `r total`
+- Number of patients with visit in 2 years: `r patients_2y`
+- Number of patients with visit in 5 years: `r patients_5y`
+
+<!-- We finally stick to those with 2y FU -->
+<!-- ```{r} -->
+<!-- clinical_data %<>%  -->
+<!--   .[followup_2y==TRUE] -->
+<!-- ``` -->
+
+
+```{r echo=TRUE}
+# clinical_data %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+Total Patients for the analysis: `r clinical_data[, .N]`
+
+### Demographics
+```{r echo=FALSE, comment=""}
+for(var_ in vars$demographics ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(clinical_data[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+
+
+### Radiology
+```{r echo=FALSE, comment=""}
+for(var_ in vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6w, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(clinical_data[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+
+    
+  cat('{var_} tests\n' %>% f)
+  rad_ <- clinical_data[[var_]]
+  rad_6w <- clinical_data[[var_6w]]
+  rad_2y <- clinical_data[[var_2y]]
+  rad_5y <- clinical_data[[var_5y]]
+  cat('\npreop vs 6w p-value\n')
+  cat(t.test(rad_, rad_6w)$p.val)
+  cat('\n6w vs 2y p-value\n')
+  cat(t.test(rad_6w, rad_2y)$p.val)
+  cat('\n')
+  cat('\n6w vs 5y p-value\n')
+  cat(t.test(rad_6w, rad_5y)$p.val)
+  cat('\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(rad_2y, rad_5y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment=""}
+for(var_0 in vars$quality ){
+  var_ <- "{var_0}_First Visit" %>% f
+  var_6m <- "6M. {var_0}" %>% f
+  var_2y <- "2Y. {var_0}" %>% f
+  var_5y <- "5Y. {var_0}" %>% f
+  vars_years <- c(var_, var_6m, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(clinical_data[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+  
+  cat('{var_} tests\n' %>% f)
+  hrqol_ <- clinical_data[[var_]]
+  hrqol_6m <- clinical_data[[var_6m]]
+  hrqol_2y <- clinical_data[[var_2y]]
+  hrqol_5y <- clinical_data[[var_5y]]
+  cat('\npreop vs 6m p-value\n')
+  cat(t.test(hrqol_, hrqol_6m)$p.val)
+  cat('\n6m vs 2y p-value\n')
+  cat(t.test(hrqol_6m, hrqol_2y)$p.val)
+  cat('\n')
+  cat('\n6m vs 5y p-value\n')
+  cat(t.test(hrqol_6m, hrqol_5y)$p.val)
+  cat('\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(hrqol_2y, hrqol_5y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Surgery
+```{r echo=FALSE, comment=""}
+for(var_ in vars$surgery ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(clinical_data[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```

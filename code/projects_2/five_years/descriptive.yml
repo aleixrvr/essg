@@ -1,0 +1,54 @@
+demographics:
+  - Age 
+  - Gender 
+  - Prior Spine Surgery 
+  - "Height (cm)_First Visit"
+  - "Weight (kgs)_First Visit"
+  - "BMI_First Visit"
+  - ASA classification 
+  - Tobacco use_First Visit 
+  - ESSG Diagnosis 
+  - Surgical Approach
+radiology:
+  - Static Major curve Cobb angle # Major curve Cobb angle
+  - Coronal Balance (C7PL to CSVL)
+  - Sagittal Balance
+  - Sagittal T2-T5
+  - Sagittal T5-T12
+  - Sagittal T2-T12
+  - Lordosis (top of L1-S1)
+  - Pelvic Incidence 
+  - Pelvic Tilt 
+  - Sacral Slope 
+  - RLL
+  - Global Tilt 
+  - T1 Sagittal Tilt 
+  - "Thoracolumbar L2-T10"
+  # - LDI
+  - RSA
+  - RPV
+quality:
+  - ODI - Score (%) 
+  - SRS22 - Function / Activity
+  - SRS22 - Pain
+  - SRS22 - Self image / Appearance
+  - SRS22 - Mental health
+  - SRS22 - SRS Subtotal score
+  - SRS22 - Satisfaction with management
+  - SF36 - PCS
+  - SF36 - MCS
+surgery:
+  - Total Operative Blood Loss st1+st2+st3 #Mean intraoperative blood loss 
+  - Total surgical time #Mean surgical time 
+  - Number of Posterior Instrumented Levels #Mean posterior instrumented levels 
+  - Pelvic fixation 
+  - Surgical Approach
+  - Number of Interbody Fusions
+  - Decompression
+  - Interbody Fusion
+  - Osteotomy 
+  - 3CO
+  
+  
+#   Major curve Cobb angle
+# 6W. Static Major curve Cobb angle
