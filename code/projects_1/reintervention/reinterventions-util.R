@@ -8,10 +8,10 @@ library(Hmisc)
 
 
 get_data <- function(){
-  xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+  xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
   
-  vars_ <- read_yaml('code/reintervention/treatment_vars.yml')
+  vars_ <- read_yaml('reintervention/treatment_vars.yml')
   
   rev_patient_data <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
     data.table 
@@ -24,7 +24,7 @@ get_data <- function(){
   setnames(clinical_data, 'RLL\r\n\r\n', 'RLL')
   
   
-  discarded_patients <- readLines('code/five_years/discarded_patients')
+  discarded_patients <- readLines('reintervention/discarded_patients')
   
   clinical_data %<>% 
     .[, followup_2y := 
@@ -43,7 +43,7 @@ get_data <- function(){
   .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')]
 
   valid_patients <- clinical_data %>% 
-    # .[followup_2y==TRUE] %>% 
+    #.[followup_2y==TRUE] %>% 
     .[Site != 'ANK Op'] %>% 
     .[`Vital status` == 'Alive'] %>% 
     .[!(`Code of the patient` %in% discarded_patients)] %>% 
@@ -79,7 +79,7 @@ get_data <- function(){
 }
 
 get_prior_groups <- function(){
-  prev_surgeries <- read_excel('data/Previous surgeries.xlsx') %>% 
+  prev_surgeries <- read_excel('../../data/Previous surgeries.xlsx') %>% 
     as.data.table
   
   groups <- list()

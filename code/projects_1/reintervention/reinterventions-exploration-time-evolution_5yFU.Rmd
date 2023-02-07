@@ -1,8 +1,8 @@
 ---
 title: "Reinterventions exploration"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 always_allow_html: yes
 ---
 
@@ -10,7 +10,7 @@ always_allow_html: yes
 knitr::opts_knit$set(
   echo = FALSE, 
   warning = FALSE,
-  root.dir=normalizePath('../../')
+  root.dir=normalizePath('../')
 )
 ```
 
@@ -22,9 +22,9 @@ library(stringr)
 library(yaml)
 library(zeallot)
 
-source('code/basic.R')
-source('code/utils.R')
-source('code/reintervention/reinterventions-util.R')
+source('basic.R')
+source('utils.R')
+source('reintervention/reinterventions-util.R')
 
 c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 
@@ -82,6 +82,25 @@ complications %<>% .[patient_id %in% patients_5yfu]
 
 
 The analysis follows with 5Y FU. Number of patients `r clinical_data[, .N]`
+
+
+```{r warning=FALSE, echo=FALSE, fig.height=3.5}
+
+total_patients <- time_evolution[, uniqueN(patient_id)]
+
+table_info <- time_evolution[, .(.N, proportion=round(.N/total_patients, 3)), reintervention] 
+
+print(table_info)
+
+table_info %>% 
+  ggplot(aes(reintervention, proportion, group=1)) +
+  geom_line() +
+  geom_text(aes(label=round(proportion*100, 1))) +
+  ggtitle('Proportion of patients, total {total_patients}' %>% f) +
+  ylab('%') +
+  xlab('Reintervention')
+```
+
 
 # Proportion of SICU transfers
 

@@ -1,8 +1,8 @@
 ---
 title: "Descriptive Stats"
 output:
-  html_document: default
   pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -111,6 +111,12 @@ patients_5y <- clinical_data[followup_5y==TRUE, `Code of the patient` %>% unique
 <!-- clinical_data %<>%  -->
 <!--   .[followup_2y==TRUE] -->
 <!-- ``` -->
+
+```{r}
+clinical_data %<>% .[followup_2y==TRUE]
+```
+
+Total patients for the stats `r clinical_data[, .N]`
 
 
 ### Demographics

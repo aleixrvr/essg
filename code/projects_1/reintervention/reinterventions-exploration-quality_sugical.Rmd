@@ -1,0 +1,527 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../'),
+  comment=NA
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+library(kableExtra)
+
+
+source('basic.R')
+source('utils.R')
+source('reintervention/reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+controlling_vars <- read_yaml('reintervention/controling_vars.yml')
+
+patients_2yfu <- clinical_data %>%
+  .[followup_2y==TRUE] %>%
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_2yfu]
+category_los %<>% .[patient_id %in% patients_2yfu]
+time_evolution %<>% .[patient_id %in% patients_2yfu]
+complications %<>% .[patient_id %in% patients_2yfu]
+
+```
+
+# Controling Variables
+
+```{r comment=''}
+cat(controlling_vars %>% as.yaml())
+```
+
+# Proportion of reinterventions by year
+
+```{r comment='', echo=FALSE}
+time_evolution %>% 
+  .[reintervention != '0'] %>% 
+  .[, .N, .(year=floor(diff_years) + 1)] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  setorder(year) %>% 
+  print
+```
+
+
+# Reinterventions Impact 
+
+
+```{r echo=FALSE, include=FALSE}
+lapply(1:6, function(y_){
+  odi <- "{y_}Y. ODI - Score (%)" %>% f
+  odi_base <- odi %>% get_base_outcome(first_visit=TRUE)
+  srss <- "{y_}Y. SRS22 - SRS Subtotal score" %>% f
+  srss_base <- srss %>% get_base_outcome(first_visit=TRUE)
+  mcs <- "{y_}Y. SF36 - MCS" %>% f
+  mcs_base <- mcs %>% get_base_outcome(first_visit=TRUE)
+  pcs <- "{y_}Y. SF36 - PCS" %>% f
+  pcs_base <- pcs %>% get_base_outcome(first_visit=TRUE)
+
+  clinical_data %>%
+    .[, .SD, .SDcols=c(controlling_vars, 'Code of the patient')] ->
+    patient_quality
+
+  clinical_data[, .(
+    odi=get(odi) - get(odi_base),
+    srss=get(srss) - get(srss_base),
+    mcs=get(mcs) - get(mcs_base),
+    pcs=get(pcs) - get(pcs_base),
+    `Code of the patient`)] %>%
+    merge(patient_quality, by='Code of the patient') %>%
+    setnames('Code of the patient', 'patient_id')->
+    patient_quality
+
+  time_evolution %>%
+    .[diff_years < y_, ] %>%
+    .[, reintervention:=as.numeric(as.character(reintervention))] %>%
+    .[, .(
+      had_reintervention = max(reintervention) > 0,
+      years_last_op = y_ - max(diff_years),
+      reint_n = max(reintervention),
+      # reint_n = uniqueN(diff_years),
+      blood_loss = max(blood_loss),
+      surgical_time = max(surgical_time),
+      hospitalization_time = max(hospitalization_time)
+      ), .(patient_id, prior_group)] %>%
+    merge(patient_quality, by='patient_id') %>%
+    .[, outcome_year:=y_] ->
+    res
+
+
+  return(res)
+}) %>%
+  do.call(rbind, .) ->
+  res
+
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'reint_n'
+outcome <- 'odi'
+controlling_vars_ <- controlling_vars
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'reint_n'
+outcome <- 'srss'
+controlling_vars_ <- controlling_vars
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'reint_n'
+outcome <- 'pcs'
+controlling_vars_ <- controlling_vars
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'reint_n'
+outcome <- 'mcs'
+controlling_vars_ <- controlling_vars
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+
+# Time Last Operation Impact
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'years_last_op'
+outcome <- 'odi'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'years_last_op'
+outcome <- 'srss'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'years_last_op'
+outcome <- 'pcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'years_last_op'
+outcome <- 'mcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+# Hospitalization Time Impact
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'hospitalization_time'
+outcome <- 'odi'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'hospitalization_time'
+outcome <- 'srss'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'hospitalization_time'
+outcome <- 'pcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'hospitalization_time'
+outcome <- 'mcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+# Blood Loss Impact
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'blood_loss'
+outcome <- 'odi'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'blood_loss'
+outcome <- 'srss'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'blood_loss'
+outcome <- 'pcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'blood_loss'
+outcome <- 'mcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+# Surgical Time Impact
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'surgical_time'
+outcome <- 'odi'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'surgical_time'
+outcome <- 'srss'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'surgical_time'
+outcome <- 'pcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='asis'}
+impact_var <- 'surgical_time'
+outcome <- 'mcs'
+controlling_vars_ <- c(controlling_vars, 'reint_n')
+
+print(f("## {outcome}"))
+```
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome_year)]
+
+estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
+  data.table %>% 
+  merge(mean_outcome, by='outcome_year') %>% 
+  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
+  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
+  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
+```
+
+

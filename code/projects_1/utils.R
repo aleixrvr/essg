@@ -1,7 +1,7 @@
 library(data.table)
 library(magrittr)
 library(stringr)
-source('code/projects_1/basic.R')
+source('basic.R')
 
 
 clean_na <- function(sel_data, matching_vars){

@@ -1,0 +1,24 @@
+  - Age
+  - Gender
+  - Site
+  - Prior Spine Surgery
+  - ASA classification
+  - 3CO
+  - Pelvic Fixation
+  - Number of Posterior Instrumented Levels
+  - SPOs
+  - BMI_First Visit
+  # - Tobacco use_First Visit
+  - Osteoporosis / osteopenia
+  # - "Previous surgery - LEV"
+#  - "Levels Previously operated - Lower"
+  - LGap
+  - Global Tilt
+  - ideal LL
+  - Lordosis (top of L1-S1)
+  - RLL
+  - "ODI - Score (%)_First Visit"
+  - "SRS22 - SRS Total score_First Visit"
+  - "SF36 - PCS_First Visit"
+  - "SF36 - MCS_First Visit"
+  - "Major curve Cobb angle"

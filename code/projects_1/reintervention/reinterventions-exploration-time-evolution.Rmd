@@ -9,8 +9,9 @@ always_allow_html: yes
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(
   echo = FALSE, 
-  warning = FALSE,
-  root.dir=normalizePath('../../')
+  warning = FALSE, 
+  root.dir=normalizePath('../')
+  # root.dir=normalizePath('../../')
 )
 ```
 
@@ -22,16 +23,36 @@ library(stringr)
 library(yaml)
 library(zeallot)
 
-source('code/basic.R')
-source('code/utils.R')
-source('code/reintervention/reinterventions-util.R')
+source('basic.R')
+source('utils.R')
+source('reintervention/reinterventions-util.R')
 
 c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
 
 ```
 
 
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_2yfu]
+category_los %<>% .[patient_id %in% patients_2yfu]
+time_evolution %<>% .[patient_id %in% patients_2yfu]
+complications %<>% .[patient_id %in% patients_2yfu]
+```
+
+
+The analysis follows with 2Y FU. Number of patients `r clinical_data[, .N]`
+
 # Proportion of reinterventions
+
+```{r}
+first_reintervention = time_evolution[as.character(reintervention) == '1'][, .N, .(year_first_reintervention=floor(diff_years))]
+first_reintervention
+```
+
+
 
 ```{r warning=FALSE, echo=FALSE, fig.height=3.5}
 
@@ -381,5 +402,102 @@ Note: linear model only up to 3 reinterventions (included)
 
 
 
+# Anterior Instrumented Fusion
+
+```{r echo=FALSE, comment=""}
+var_name <- "Anterior Instrumented Fusion"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Posterior Instrumented Fusion
+
+```{r echo=FALSE, comment=""}
+var_name <- "Posterior Instrumented Fusion"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Interbody Fusion
+
+```{r echo=FALSE, comment=""}
+var_name <- "Interbody Fusion"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Decompression
+
+```{r echo=FALSE, comment=""}
+var_name <- "Decompression"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Osteotomy
+
+```{r echo=FALSE, comment=""}
+var_name <- "Osteotomy"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Implant removal
+
+```{r echo=FALSE, comment=""}
+var_name <- "Implant removal"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
+
+# Infection debridement
+
+```{r echo=FALSE, comment=""}
+var_name <- "Infection debridement"
+val_index <- time_evolution[reintervention=='0', get(var_name) == 'Yes']
+val_ur <- time_evolution[reintervention!='0', get(var_name) == 'Yes']
+
+data.table(type=c('Mean'), 
+  index=c(mean(val_index, na.rm=TRUE)),
+  ur=c(mean(val_ur, na.rm=TRUE)),
+  pval = prop.test(c(sum(val_index), sum(val_ur)), c(len(val_index), len(val_ur)))$p.value
+)
+```
 
 

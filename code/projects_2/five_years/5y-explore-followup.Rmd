@@ -19,7 +19,7 @@ knitr::opts_knit$set(
 
 
 ```{r echo=TRUE}
-xls_path <- '../../data/ESSG extraction June 2022_1st report 5Y - ONLY DPS.xlsx'
+xls_path <- '../../data/ESSG extraction DEC 2022_3rd report 5Y - ONLY DPS Mod.xlsx'
 ```
 
 ```{r warning=FALSE, echo=FALSE, include=FALSE}
@@ -107,8 +107,8 @@ data_set %<>%
 ```{r warning=FALSE }
 # discarded_patients <- readLines('five_years/discarded_patients')
 # 
-data_set %<>%
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+# data_set %<>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
 ```
 
 ### FU Stats
