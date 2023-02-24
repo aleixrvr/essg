@@ -127,9 +127,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -148,9 +146,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -168,9 +164,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -189,9 +183,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -212,9 +204,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -232,9 +222,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -252,9 +240,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -272,9 +258,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -294,9 +278,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -314,9 +296,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -334,9 +314,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -354,9 +332,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -376,9 +352,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -396,9 +370,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -416,9 +388,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -436,9 +406,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -458,9 +426,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -478,9 +444,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -498,9 +462,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 
@@ -518,9 +480,7 @@ mean_outcome <- res[, .(mean_outcome=mean(get(outcome), na.rm = TRUE)),.(outcome
 estimate_impacts(res, outcome, impact_var, controlling_vars_) %>% 
   data.table %>% 
   merge(mean_outcome, by='outcome_year') %>% 
-  .[, relative_impact := round(Estimate/mean_outcome, 3)] %>% 
-  .[, c("Low CI 95%") := Estimate - 1.96*StdError] %>% 
-  .[, c("Up CI 95%") := Estimate + 1.96*StdError] %>% 
+  .[, c("relative impact %") := abs(Estimate/mean_outcome)*100] %>% 
   .[, mean_outcome := round(mean_outcome, 3)] %>% kable()
 ```
 

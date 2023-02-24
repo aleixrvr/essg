@@ -327,10 +327,17 @@ estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_y
       lm(reg_formula, data=.) %>% summary %>% coefficients() ->
       lm_res
     
+    res_cols %>% 
+      .[, .SD, .SDcols = cols[inds]] %>% 
+      lm(reg_formula, data=.) %>% confint ->
+      lm_ci
+    
     ind <- which(row.names(lm_res) == impact_var)
-    stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] %>% round(3)
+    stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] 
+    ind <- which(row.names(lm_ci) == impact_var)
+    stat_res <- cbind(stat_res, lm_ci[ind, , drop=FALSE])
     if(nrow(stat_res) > 0 ){
-      colnames(stat_res) <- c('Estimate', 'StdError', 'p_value')
+      colnames(stat_res) <- c('Estimate', 'StdError', 'p_value', '2.5 %', '97.5 %')
       row.names(stat_res) <- NULL
     }else{
       stat_res <- data.frame(

@@ -10,7 +10,7 @@ always_allow_html: yes
 knitr::opts_knit$set(
   echo = FALSE, 
   warning = FALSE,
-  root.dir=normalizePath('../../'),
+  root.dir=normalizePath('../'),
   comment=""
 )
 ```
@@ -24,25 +24,25 @@ library(yaml)
 library(zeallot)
 library(DT)
 
-source('code/basic.R')
-source('code/utils.R')
-source('code/reintervention/reinterventions-util.R')
+source('basic.R')
+source('utils.R')
+source('reintervention/reinterventions-util.R')
 
 c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
-controlling_vars <- read_yaml('code/reintervention/controling_vars.yml')
+controlling_vars <- read_yaml('reintervention/controling_vars_new.yml')
 
-patients_5yfu <- clinical_data %>% 
+patients_ <- clinical_data %>% 
   .[followup_5y==TRUE] %>% 
   .[, `Code of the patient`]
-clinical_data %<>% .[`Code of the patient` %in% patients_5yfu]
-category_los %<>% .[patient_id %in% patients_5yfu]
-time_evolution %<>% .[patient_id %in% patients_5yfu]
-complications %<>% .[patient_id %in% patients_5yfu]
+clinical_data %<>% .[`Code of the patient` %in% patients_]
+category_los %<>% .[patient_id %in% patients_]
+time_evolution %<>% .[patient_id %in% patients_]
+complications %<>% .[patient_id %in% patients_]
 ```
 
 
 ```{r echo=FALSE}
-xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
 revision_0 <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
   data.table 
 complications_0 <- read_excel(xls_path, sheet = "Complications") %>% 
@@ -168,6 +168,11 @@ lm_vars_ <- c(
 )
 
 formula <- 'outcome_gain ~ . '
+
+resolved_vars <- c(
+  "`Not resolved or with sequelae`",
+  "`Resolved without sequelae`"
+)
 ```
 
 
@@ -176,54 +181,147 @@ formula <- 'outcome_gain ~ . '
 outcome <- outcomes[1]
 base_outcome <- base_outcomes[[outcome]]
 
-htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
 
 index_data_ %>% 
   copy %>% 
   .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
-  .[, .SD, .SDcols = lm_vars_] %>% 
-  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
 ```
 
-Impacte d'una reintervencio que acaba sense secueles te 4.9 d'odi
-Impacte d'una reintervencio que acaba sense resolucio o amb secueles te 9 d'odi (no significatius)
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res
+```
 
 
 ```{r comment="", echo=FALSE}
 outcome <- outcomes[2]
 base_outcome <- base_outcomes[[outcome]]
 
-htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
 
 index_data_ %>% 
   copy %>% 
   .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
-  .[, .SD, .SDcols = lm_vars_] %>% 
-  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res
 ```
 
 ```{r comment="", echo=FALSE}
 outcome <- outcomes[3]
 base_outcome <- base_outcomes[[outcome]]
 
-htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
 
 index_data_ %>% 
   copy %>% 
   .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
-  .[, .SD, .SDcols = lm_vars_] %>% 
-  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res
 ```
 
 ```{r comment="", echo=FALSE}
 outcome <- outcomes[4]
 base_outcome <- base_outcomes[[outcome]]
 
-htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
 
 index_data_ %>% 
   copy %>% 
   .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
-  .[, .SD, .SDcols = lm_vars_] %>% 
-  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5)
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res
 ```
