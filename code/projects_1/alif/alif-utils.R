@@ -1,21 +1,28 @@
 library(readxl)
+library(openxlsx)
 library(data.table)
 library(magrittr)
 library(yaml)
 library(stringr)
 library(zeallot)
 
-source('code/basic.R')
-source('code/utils.R')
+source('basic.R')
+source('utils.R')
 
 
 get_data <- function(evaluation=FALSE, correction_approach=FALSE){
   # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
-  xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+  xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
   # excel_sheets(xls_path)
   
-  clinical_data <- read_excel(xls_path) %>% 
+  # clinical_data <- read_xlsx(xls_path) %>% 
+  #   as.data.table()
+  
+  clinical_data <- read.xlsx(
+    xls_path, sep.names = " ", detectDates = TRUE
+  ) %>% 
     as.data.table()
+  
   
   for(colname in colnames(clinical_data)){
     clean_name <- gsub('\r\n\r\n', '', colname, fixed=TRUE)
@@ -23,9 +30,9 @@ get_data <- function(evaluation=FALSE, correction_approach=FALSE){
   }
   
   if(evaluation==TRUE){
-    matching_vars <- read_yaml('code/alif/matching_vars_evaluation.yml')
+    matching_vars <- read_yaml('alif/matching_vars_evaluation.yml')
   }else{
-    matching_vars <- read_yaml('code/alif/matching_vars.yml')  
+    matching_vars <- read_yaml('alif/matching_vars.yml')  
   }
   
   matching_vars$covariates %<>% c('Alif')

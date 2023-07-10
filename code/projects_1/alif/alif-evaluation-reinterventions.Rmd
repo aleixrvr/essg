@@ -9,7 +9,7 @@ always_allow_html: yes
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(
   echo = TRUE, 
-  root.dir=normalizePath('../../')
+  root.dir=normalizePath('../')
 )
 ```
 
@@ -21,8 +21,8 @@ library(zeallot)
 library(yaml)
 
 
-source('code/alif/alif-utils.R')
-source('code/propensity-utils.R')
+source('alif/alif-utils.R')
+source('propensity-utils.R')
 
 tuneLenghtPropensity <- 40
 modelsPropensity <- c('elastic')

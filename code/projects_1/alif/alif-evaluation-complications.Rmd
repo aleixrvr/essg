@@ -9,7 +9,7 @@ always_allow_html: yes
 ```{r setup, include=FALSE}
 knitr::opts_knit$set(
   echo = TRUE, 
-  root.dir=normalizePath('../../')
+  root.dir=normalizePath('../')
 )
 ```
 
@@ -21,8 +21,8 @@ library(zeallot)
 library(yaml)
 
 
-source('code/alif/alif-utils.R')
-source('code/propensity-utils.R')
+source('alif/alif-utils.R')
+source('propensity-utils.R')
 
 tuneLenghtPropensity <- 40
 modelsPropensity <- c('elastic')
@@ -113,7 +113,7 @@ predictive_variates <- c(treatment_name, 'Propensity', demographics) %>% unique
 
 ```{r ate_complication, warning=FALSE, echo=FALSE, comment="", include=FALSE}
 # xls_path <- 'data/ESSG extraction July 2020_3.xlsx'
-xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
 # excel_sheets(xls_path)
 
 complications <- read_excel(xls_path, sheet='Complications') %>%

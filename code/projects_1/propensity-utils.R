@@ -5,9 +5,9 @@ library(magrittr)
 library(gridExtra)
 library(selectiveInference)
 
-source('code/projects_1/basic.R')
-source('code/projects_1/train.R')
-source('code/projects_1/utils.R')
+source('basic.R')
+source('train.R')
+source('utils.R')
 
 explore_vars <- function(sel_data, treatment_name) {
   
