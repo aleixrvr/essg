@@ -17,9 +17,11 @@ knitr::opts_knit$set(
 )
 ```
 
+<!-- xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx' -->
+
 
 ```{r echo=TRUE}
-xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx'
+xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
 ```
 
 ```{r warning=FALSE, echo=FALSE, include=FALSE}
@@ -103,13 +105,6 @@ data_set %<>%
 ```
 
 
-### Filters
-```{r warning=FALSE }
-# discarded_patients <- readLines('five_years/discarded_patients')
-# 
-# data_set %<>%
-#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
-```
 
 ### FU Stats
 ```{r}
@@ -144,213 +139,16 @@ perc_followup_5y_with_2y <- round(followup_5y/total_with_followup_2y, 3)
 - Patients (among 2y FU) with 5y % (perc_followup_5y_with_2y variable): `r perc_followup_5y_with_2y*100`
 
 
+### Filters
+```{r warning=FALSE }
+# discarded_patients <- readLines('five_years/discarded_patients')
 
-### 2Y FU follow per Site
-```{r comment='', echo=FALSE}
-data_set[, .(eligible=.N, fu_2y=sum(followup_2y==TRUE)/.N), Site]
+data_set %<>%
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
 ```
 
-### 5Y FU follow per Site
-```{r  comment='', echo=FALSE}
-data_set[, .(eligible=.N, fu_5y=sum(followup_5y==TRUE)/.N), Site]
-```
-
-<!-- We finally stick to those with 2y FU -->
-<!-- ```{r} -->
-<!-- data_set %<>%  -->
-<!--   .[followup_2y==TRUE] -->
-<!-- ``` -->
-
-
-```{r echo=FALSE}
-data_set %<>% 
-  .[, followup_2y := ifelse(followup_2y == TRUE, 'has_followup', 'no_followup')] %>% 
-  .[, followup_5y := ifelse(followup_5y == TRUE, 'has_followup', 'no_followup')] 
-```
-
-
-```{r echo=FALSE}
-patients_complications_5y <- complications %>%
-  .[`Days since surgery` >= 365*2 ] %>% 
-  .[`Days since surgery` < 365*5 ] %>% 
-  .[, `Code of the patient`]
-patients_complications_2y <- complications %>%
-  .[`Days since surgery` < 365*2 ] %>% 
-  .[, `Code of the patient`]
-
-data_ <- data_set %>%
-  copy %>%
-  .[, complication_before_2y:='No'] %>%
-  .[`Code of the patient` %in% patients_complications_2y, complication_before_2y:='Yes'] %>% 
-  .[ followup_2y == FALSE, complication_before_2y:=NA] %>%
-  .[, complication_2y_5y:='No'] %>%
-  .[`Code of the patient` %in% patients_complications_5y, complication_2y_5y:='Yes'] %>% 
-  .[ followup_5y == FALSE, complication_2y_5y:=NA]
-```
-
-### Complications during 2y depending on followup 5y
-```{r echo=FALSE, comment=""}
-data_ %>% 
-  .[followup_2y=='has_followup'] %>% 
-  .[, .(
-    complication_before_2y=mean(complication_before_2y=='Yes'),
-    low_ci=binconf(sum(complication_before_2y=='Yes'), .N)[2],
-    up_ci=binconf(sum(complication_before_2y=='Yes'), .N)[3]
-    ), followup_5y]
-```
-
-
-### HRQOL during 2y depending on followup 5y
-```{r echo=FALSE, comment=""}
-for( outcome in outcomes ){
-  outcome_2y <- outcomes_2y[[outcome]]
-  cat(outcome_2y)
-  cat('\n')
-  
-  data_ %>% 
-    .[followup_2y=='has_followup'] %>% 
-    .[, .(
-      mean_outcome = mean(get(outcome_2y), na.rm=TRUE),
-      sd_outcome = sd(get(outcome_2y), na.rm=TRUE)/sqrt(.N)
-    ), followup_5y] %>% print
-  
-  
-  p_val <- t.test(
-    data_[followup_2y=='has_followup' & followup_5y == 'has_followup',
-      get(outcome_2y)],
-    data_[followup_2y=='has_followup' & followup_5y == 'no_followup',
-      get(outcome_2y)]
-  )
-  
-  print("t-test p-value: {p_val$p.value}" %>% f)
-  
-}
-```
-
-
-# Follow up
-
-```{r echo=FALSE, include=FALSE}
-demo_plots <- list()
-for(demo_var in demographics_all){
-  if( class(data_set[, get(demo_var)]) == 'numeric' ){
-    data_set %>% 
-      copy() %>% 
-      setnames(demo_var, 'demo_var') %>% 
-      .[, .(demo_var, followup_2y, followup_5y)] %>% 
-      melt(id.vars='demo_var') %>% 
-      ggplot(aes(variable, demo_var, fill=value)) +
-      geom_boxplot() + 
-      coord_flip() +
-      xlab('Info') +
-      ylab(demo_var) + 
-      scale_color_discrete(labels = c(outcome, outcomes_2y[[outcome]]))  ->
-      demo_plots[[demo_var]]
-  }else{
-    data_set %>% 
-      copy() %>% 
-      setnames(demo_var, 'demo_var') %>% 
-      .[, .(followup=sum(followup_5y=='has_followup')/sum(followup_2y=='has_followup')), 
-      demo_var
-      ] %>% 
-      ggplot(aes(demo_var, followup, fill=demo_var)) +
-      geom_col() + 
-      xlab(demo_var) +
-      ylab('Ratio 5y / 2y followup') +
-      theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1)) ->
-      demo_plots[[demo_var]]
-  }
-}
-```
-
-
-```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE}
-do.call("grid.arrange", c(demo_plots, ncol=ncols_plots))
-```
-
-```{r echo=FALSE, comment=""}
-data_set %>% 
-  copy %>% 
-  .[, followup_5y:=ifelse(followup_5y=='has_followup', 'Yes', 'No')] %>% 
-  .[, followup_2y:=ifelse(followup_2y=='has_followup', 'Yes', 'No')] ->
-  data_set_
-
-htmltools::h3('Followup ')
-models <- variable_effect(data_set_, 'followup_5y', 'followup_2y', demographics)
-htmltools::h5('Demographics')
-models$demographic %>% print
-htmltools::h5('Radiology')
-models$radiology %>% print
-```
-
-
-# 5y selection bias
-
-## Demographics
-
-```{r echo=FALSE, comment=""}
-sel_cols <- c(
-  demographics$demographic,
-  "followup_5y"
-)
-
-data_set %>% 
-  .[followup_2y=='has_followup'] %>% 
-  .[, followup_5y:=ifelse(followup_5y=='has_followup', 1, 0)] %>% 
-  .[, .SD, .SDcols = sel_cols] ->
-  data_set_
-
-glm(followup_5y~., data = data_set_) %>% get_model_info() %>% print
-```
-
-
-## Radiology
-```{r echo=FALSE, comment=""}
-sel_cols <- c(
-  demographics$demographic,
-  demographics$radiologic,
-  "followup_5y"
-)
-
-data_set %>% 
-  .[followup_2y=='has_followup'] %>% 
-  .[, followup_5y:=ifelse(followup_5y=='has_followup', 1, 0)] %>% 
-  .[, .SD, .SDcols = sel_cols] ->
-  data_set_
-
-glm(followup_5y~., data = data_set_) %>% get_model_info() %>% print
-```
-
-
-## Increment of quality of life
-```{r echo=FALSE, comment=""}
-qualitylife <- demographics$qualitylife %>% 
-  sapply(. %>% get_base_outcome(first_visit = TRUE), USE.NAMES = TRUE) %>% 
-  as.list
-
-sel_cols <- c(
-  demographics$demographic,
-  demographics$radiologic,
-  demographics$qualitylife,
-  qualitylife %>% unlist,
-  "followup_5y"
-)
-
-data_set %>% 
-  .[followup_2y=='has_followup'] %>% 
-  .[, followup_5y:=ifelse(followup_5y=='has_followup', 1, 0)] %>% 
-  .[, .SD, .SDcols = sel_cols] ->
-  data_set_
-
-for( qual_var in demographics$qualitylife){
-  inc_qual_var <- "{qual_var}_inc" %>% f
-  data_set_[, c(inc_qual_var) := get(qual_var) - get(qualitylife[[qual_var]])]
-  data_set_[, c(qual_var) := NULL]
-  data_set_[, c(qualitylife[[qual_var]]) := NULL]
-}
-
-glm(followup_5y~., data = data_set_) %>% get_model_info()
-```
+Total patients: `r data_set[, .N]`
 
 # MCIDS
 
@@ -384,6 +182,9 @@ for( qual_var_5y in mcids %>% names ){
   data_set_[, c(inc_qual_var_5y) := get(qual_var_5y) - get(base_qual_var)]
   data_set_[, c(inc_qual_var_5y_2y) := get(qual_var_5y) - get(qual_var_2y)]
 
+  inc_qual_var_2y_n <- data_set_[, get(inc_qual_var_2y) %>% na.omit %>% length]
+  inc_qual_var_5y_n <- data_set_[, get(inc_qual_var_5y) %>% na.omit %>% length]
+  inc_qual_var_5y_2y_n <- data_set_[, get(inc_qual_var_5y_2y) %>% na.omit %>% length]
   
   if( grepl('ODI', qual_var_5y, fixed=TRUE) ){
     inc_2y_prop <- data_set_ %>%
@@ -415,9 +216,12 @@ for( qual_var_5y in mcids %>% names ){
   res %<>% rbind(data.frame(
     variable = qual_var_root,
     inc_2y_percent = inc_2y_percent * 100,
+    inc_2y_n = inc_qual_var_2y_n,
     inc_5y_percent = inc_5y_percent * 100,
+    inc_5y_n = inc_qual_var_5y_n,
     p_val_two_previous = p_val$p.value %>% round(3),
-    inc_5y_2y_percent = inc_5y_2y_percent * 100
+    inc_5y_2y_percent = inc_5y_2y_percent * 100,
+    inc_5y_2y_n = inc_qual_var_5y_2y_n
   ))  
 }
 
@@ -448,9 +252,11 @@ for( qual_var_5y in pass %>% names ){
   qual_var_2y <- outcomes_2y[[qual_var_5y]]
   
   prop_2y <- data_set_ %>%
-    .[, get(qual_var_2y) < pass[[qual_var_5y]]] %>% na.omit() 
+    .[, get(qual_var_2y) < pass[[qual_var_5y]]] %>% na.omit()
+  n_2y <- data_set_[, get(qual_var_2y) %>% na.omit %>% length]
   prop_5y <- data_set_ %>%
-    .[, get(qual_var_5y) < pass[[qual_var_5y]]] %>% na.omit() 
+    .[, get(qual_var_5y) < pass[[qual_var_5y]]] %>% na.omit()
+  n_5y <- data_set_[, get(qual_var_2y) %>% na.omit %>% length]
   
   p_val <- prop.test(
     c(sum(prop_2y), sum(prop_5y)),
@@ -464,7 +270,9 @@ for( qual_var_5y in pass %>% names ){
   res %<>% rbind(data.frame(
     variable = qual_var_root,
     prop_2y = prop_2y * 100,
+    n_2y = n_2y,
     prop_5y = prop_5y * 100,
+    n_5y = n_5y,
     p_val = p_val$p.value %>% round(3)
   ))  
 }

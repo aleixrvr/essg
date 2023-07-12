@@ -5,12 +5,12 @@ library(yaml)
 library(stringr)
 library(zeallot)
 
-source('five_years/basic.R')
-source('five_years/utils.R')
-source('five_years/train.R')
+source('code/basic.R')
+source('code/utils.R')
+source('code/train.R')
 
-
-
+# XLS_PATH <- 'data/ESSG extraction July 2020_3.xlsx'
+XLS_PATH <- 'data/ESSG extraction December 2020 - DEF.xlsx'
 
 # outcome <- 'had_complication'
 # k_fold <- 10
@@ -72,23 +72,16 @@ show_stats <- function(best_model, predictive_vars, validation_results, show_var
   return(invisible())
 }
 
-get_data <- function(xls_path, outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE){
+get_data <- function(outcome='', first_visit=TRUE, increment=FALSE, clean=TRUE){
   
-  clinical_data <- read_excel(xls_path) %>% 
+  clinical_data <- read_excel(XLS_PATH) %>% 
     data.table
   
-  if( "Revision surgery" %in% excel_sheets(xls_path)){
-    reint_sheet <- "Revision surgery"
-  }
-  if( "Revision Surgeries" %in% excel_sheets(xls_path)){
-    reint_sheet <- "Revision Surgeries"
-  }
-  
-  reinterventions <- read_excel(xls_path, sheet = reint_sheet) %>%
+  reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
     data.table %>%
     .[, .(reinterventions=.N*1.0), `Code of the patient`]
   
-  complication_patients <- read_excel(xls_path, sheet='Complications') %>%
+  complication_patients <- read_excel(XLS_PATH, sheet='Complications') %>%
     as.data.table %>%
     .[`Complication Type`=='Primary'] %>%
     .[`Reoperation Due to Complication`=='Yes'] %>% 
@@ -99,7 +92,8 @@ get_data <- function(xls_path, outcome='', first_visit=TRUE, increment=FALSE, cl
     .[`Code of the patient` %in% complication_patients, had_complication := 'Yes'] %>%
     merge(reinterventions, by="Code of the patient", all.x=TRUE, all.y=FALSE)
   
-  predictive_vars <- read_yaml('five_years/predictive_vars.yaml')  
+  # predictive_vars <- read_yaml('code/five_years/predictive_vars_{outcome}.yml')
+  predictive_vars <- read_yaml('code/five_years/predictive_vars.yaml')  
   
   if( increment ){
     outcome_base <- get_base_outcome(outcome, first_visit)
@@ -122,28 +116,6 @@ get_data <- function(xls_path, outcome='', first_visit=TRUE, increment=FALSE, cl
   if( 'SRS22 - Satisfaction_First Visit' %in% colnames(data_set) ){
     setnames(data_set, 'SRS22 - Satisfaction_First Visit', 'SRS22 - Satisfaction with management_First Visit')
   }
-  
-  
-  # Chapuzas varias
-  
-  cols <- colnames(data_set)
-  comas <- cols[grepl(',', cols, fixed = TRUE)]
-  for( name in comas ){
-    new_name <- gsub(",", ".", name, fixed = TRUE)
-    setnames(data_set, name, new_name)
-  }
-  
-  data_set[, `Coronal Balance (C7PL to CSVL)` := as.numeric(`Coronal Balance (C7PL to CSVL)`)]
-  data_set[, `6W. Coronal Balance (C7PL to CSVL)` := as.numeric(`6W. Coronal Balance (C7PL to CSVL)`)]
-  data_set[, `2Y. Coronal Balance (C7PL to CSVL)` := as.numeric(`2Y. Coronal Balance (C7PL to CSVL)`)]
-  data_set[, `5Y. Coronal Balance (C7PL to CSVL)` := as.numeric(`5Y. Coronal Balance (C7PL to CSVL)`)]
-  
-  data_set[, `Sagittal Balance` := as.numeric(`Sagittal Balance`)]
-  data_set[, `6W. Sagittal Balance` := as.numeric(`6W. Sagittal Balance`)]
-  data_set[, `2Y. Sagittal Balance` := as.numeric(`2Y. Sagittal Balance`)]
-  data_set[, `5Y. Sagittal Balance` := as.numeric(`5Y. Sagittal Balance`)]
-  
-  data_set[, `Global Tilt` := as.numeric(`Global Tilt`)]
   
   return(list(
     data_set,
@@ -286,7 +258,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
   # model_age_gender <- lm(outcome~Age + Gender, data = data_)  %>% get_model_info
   
   sel_vars <- c(demographics$demographic, 'outcome')
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -295,7 +266,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
   
 
   sel_vars <- c(demographics$demographic, demographics$radiologic, 'outcome')
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -308,7 +278,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     base_qualities,
     'outcome'
   )
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -321,7 +290,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     base_qualities,
     radio_6w_inc, 
     'outcome')
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -336,7 +304,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     'had_major_complications', 
     'outcome'
   )
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -351,7 +318,6 @@ basic_factors_5y_gain <- function(data_set, outcome, base_outcome, demographics)
     'had_reinterventions', 
     'outcome'
   )
-  sel_vars = check_categories(data_, sel_vars)
   data_ %>% 
     .[, .SD, .SDcols = sel_vars] %>% 
     lm(outcome ~ ., data = .) %>%
@@ -456,16 +422,4 @@ variable_effect <- function(data_set, outcome, outcome_2y, demographics){
   }
   return(list(demographic=model_1, radiology=model_2))
   
-}
-
-
-check_categories <- function(dt, vars){
-  sel_vars <- c()
-  for(var_ in vars){
-    cats_num <- dt[, uniqueN(get(var_))]
-    if(cats_num > 1){
-      sel_vars <- c(sel_vars, var_)
-    }
-  }
-  return(sel_vars)
 }

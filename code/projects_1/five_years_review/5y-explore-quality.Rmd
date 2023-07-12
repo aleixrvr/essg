@@ -1,0 +1,672 @@
+---
+title: "5y quality life analysis"
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: true
+---
+
+  
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+library(DiagrammeR)
+
+source('code/five_years/five_years-utils.R')
+
+ncols_plots <- 2
+
+outcomes <- c(
+  '5Y. ODI - Score (%)', '5Y. SRS22 - SRS Subtotal score', '5Y. SF36 - PCS', '5Y. SF36 - MCS',
+  '5Y. SRS22 - Satisfaction with management'
+)
+
+c(data_set_0, predictive_vars, .) %<-% get_data(clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+xls_path <- 'data/ESSG extraction December 2020 - DEF.xlsx'
+
+complications <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>%
+  .[`Complication Impact` == 'Major Complication'] 
+
+reinterventions <- read_excel(XLS_PATH, sheet = "Revision surgeries") %>%
+  data.table 
+
+data_set_0 %>% 
+  .[, .(
+    `Code of the patient`, 
+    stage_date=`st1. Date of Stage 1`
+  )]  %>% 
+  rbind(
+    reinterventions %>% 
+      .[, .(
+        `Code of the patient`, 
+        stage_date=`st1. Date of Stage`
+      )]    
+  ) %>% 
+  .[!is.na(stage_date)] %>% 
+  .[, diff_years:=difftime(stage_date, min(stage_date), units = "days")/365, 
+    `Code of the patient`] %>% 
+  .[diff_years > 0] ->
+  reinterventions
+
+
+demographics <- read_yaml('code/five_years/demographic.yml')
+demographics_all <- demographics %>% unlist
+
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '2')) ->
+  outcomes_2y
+names(outcomes_2y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '3')) ->
+  outcomes_3y
+names(outcomes_3y) <- outcomes
+
+outcomes %>% 
+  lapply(. %>% str_replace_all('5', '6')) ->
+  outcomes_6y
+names(outcomes_6y) <- outcomes
+
+outcomes %>% 
+  sapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes 
+
+for( outcome in names(outcomes_6y)){
+  outcome_6y <- outcomes_6y[[outcome]]
+  outcome_2y <- outcomes_2y[[outcome]]
+  outcome_3y <- outcomes_3y[[outcome]]
+  data_set %<>%
+    .[is.na(get(outcome)), c(outcome) := get(outcome_6y)] %>% 
+    .[is.na(get(outcome_2y)), c(outcome_2y) := get(outcome_3y)]
+}
+
+
+radio_6w <- demographics$radiologic %>% 
+  sapply(function(x) '6W. {x}' %>% f)
+
+# outcome_2y <- outcomes_2y[[1]]
+# outcome <- outcomes[[1]]
+
+study_vars <- c(
+  outcomes, outcomes_2y %>% unlist, 
+  demographics_all, base_outcomes, 
+  radio_6w, 
+  'Code of the patient', 
+  'Site', 
+  'Study', 
+  'Vital status', 
+  'st1. Date of Stage 1', 
+  '2 YEAR VISIT - Date of visit',
+  '3 YEAR VISIT - Date of visit',
+  '5 YEAR VISIT - Date of visit',
+  '6 YEAR VISIT - Date of visit'
+) %>% unique
+data_set %<>% 
+  .[, .SD, .SDcols=study_vars] 
+```
+
+### Filters
+```{r warning=FALSE }
+discarded_patients <- readLines('code/five_years/discarded_patients')
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`) ] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`) ]
+
+data_set %<>% 
+  .[followup_2y==TRUE] %>% 
+  .[Site != 'ANK Op'] %>% 
+  .[Study=='Op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[!(`Code of the patient` %in% discarded_patients)] %>% 
+  .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-3-15')]
+
+```
+
+```{r echo=FALSE}
+data_set %<>% 
+  .[, followup_2y := ifelse(followup_2y == TRUE, 'has_followup', 'no_followup')] %>% 
+  .[, followup_5y := ifelse(followup_5y == TRUE, 'has_followup', 'no_followup')] 
+
+patients_all <- data_set[, `Code of the patient` %>% unique]
+complications %<>% .[`Code of the patient` %in% patients_all]
+patiens_complications <- complications[, `Code of the patient`] %>% unique
+
+data_set %>% 
+  .[, had_major_complications := 'No'] %>% 
+  .[`Code of the patient` %in% patiens_complications, 
+    had_major_complications := 'Yes'] 
+```
+
+
+```{r echo=FALSE}
+reinterventions %>%  
+  .[diff_years < 5] %>% 
+  .[, `Code of the patient`] ->
+  patients_reinterventions 
+
+data_set %>% 
+  .[, had_reinterventions := 'No'] %>% 
+  .[`Code of the patient` %in% patients_reinterventions, 
+    had_reinterventions := 'Yes']
+
+```
+
+
+```{r echo=FALSE}
+grViz('
+digraph rmarkdown {
+
+  graph [
+    rankdir = UD
+  ]
+  
+  node [
+    shape=circle,
+    fixedsize=true,
+    width=1.2,
+    style=filled,
+    fillcolor=aquamarine2,
+    fontsize=15
+    ]
+
+ 
+  D[label="Demographic"]
+  R[label="Radiologic\n(Deformity)"]
+  O[label="Outcome"]
+  
+  D -> R 
+  D -> O
+  R -> O
+  
+}                  
+')
+```
+
+```{r echo=FALSE, comment=""}
+demographics %>% as.yaml %>% cat
+get_model_info <- . %>% summary %>% coefficients %>% round(3)
+```
+
+# Scores
+
+```{r echo=FALSE}
+outcome <- outcomes[1]
+htmltools::h1(outcome)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
+
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
+
+
+```{r echo=FALSE, comment=""}
+outcome_2y <- outcomes_2y[[outcome]]
+base_outcome <- base_outcomes[[outcome]]
+htmltools::h3(base_outcome)
+```
+
+### Basic stats
+```{r echo=FALSE, comment=""}
+data_set[, 
+  lapply(.SD, . %>% mean(na.rm=TRUE)), 
+  .SDcols = c(base_outcome, outcome_2y, outcome)
+] %>% 
+  rbind(
+    data_set[, 
+      lapply(.SD, . %>% sd(na.rm=TRUE)), 
+      .SDcols = c(base_outcome, outcome_2y, outcome)
+    ]
+  ) %>% 
+  data.table(type=c('Mean', 'Sd'),.)  
+```
+
+
+### t-test mean comparison p-values
+```{r echo=FALSE, comment=""}
+outcome_vals <- data_set[, get(outcome)]
+outcome_2y_vals <- data_set[, get(outcome_2y)]
+outcome_base_vals <- data_set[, get(base_outcome)]
+comp_base_5 <- t.test(outcome_vals, outcome_base_vals)$p.val %>% round(5)
+comp_2_5 <- t.test(outcome_vals, outcome_2y_vals)$p.val %>% round(5)
+comp_base_2 <- t.test(outcome_base_vals, outcome_2y_vals)$p.val %>% round(5)
+
+data.table(
+  type=c('base vs 5', '2 vs 5', 'base vs 2'), 
+  c(comp_base_5, comp_2_5, comp_base_2))
+```
+
+
+### 5 Years Gain Gain (odi neg / others pos) Factors 
+```{r echo=FALSE, comment=""}
+base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
+htmltools::h5('Demographics')
+base_factors$model_demo %>% print
+htmltools::h5('Radiology')
+base_factors$model_radio %>% print
+htmltools::h5('HRQL')
+base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
+htmltools::h5('Complications')
+base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
+```
+
+
+### 5Y vs 2Y Effects
+```{r echo=FALSE, comment=""}
+models <- variable_effect(data_set, outcome, outcome_2y, demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+```{r echo=FALSE, comment=""}
+outcome <- outcomes[2]
+htmltools::h1(outcome)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
+
+
+```{r echo=FALSE, comment=""}
+outcome_2y <- outcomes_2y[[outcome]]
+base_outcome <- base_outcomes[[outcome]]
+htmltools::h3(base_outcome)
+```
+
+### Basic stats
+```{r echo=FALSE, comment=""}
+data_set[, 
+  lapply(.SD, . %>% mean(na.rm=TRUE)), 
+  .SDcols = c(base_outcome, outcome_2y, outcome)
+] %>% 
+  rbind(
+    data_set[, 
+      lapply(.SD, . %>% sd(na.rm=TRUE)), 
+      .SDcols = c(base_outcome, outcome_2y, outcome)
+    ]
+  ) %>% 
+  data.table(type=c('Mean', 'Sd'),.)  
+```
+
+
+### t-test mean comparison p-values
+```{r echo=FALSE, comment=""}
+outcome_vals <- data_set[, get(outcome)]
+outcome_2y_vals <- data_set[, get(outcome_2y)]
+outcome_base_vals <- data_set[, get(base_outcome)]
+comp_base_5 <- t.test(outcome_vals, outcome_base_vals)$p.val %>% round(5)
+comp_2_5 <- t.test(outcome_vals, outcome_2y_vals)$p.val %>% round(5)
+comp_base_2 <- t.test(outcome_base_vals, outcome_2y_vals)$p.val %>% round(5)
+
+data.table(
+  type=c('base vs 5', '2 vs 5', 'base vs 2'), 
+  c(comp_base_5, comp_2_5, comp_base_2))
+```
+
+
+### 5 Years Gain Gain (odi neg / others pos) Factors 
+```{r echo=FALSE, comment=""}
+base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
+htmltools::h5('Demographics')
+base_factors$model_demo %>% print
+htmltools::h5('Radiology')
+base_factors$model_radio %>% print
+htmltools::h5('HRQL')
+base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
+htmltools::h5('Complications')
+base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
+```
+
+
+### 5Y vs 2Y Effects
+```{r echo=FALSE, comment=""}
+models <- variable_effect(data_set, outcome, outcome_2y, demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+```{r echo=FALSE}
+outcome <- outcomes[3]
+htmltools::h1(outcome)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
+
+```{r echo=FALSE, comment=""}
+outcome_2y <- outcomes_2y[[outcome]]
+base_outcome <- base_outcomes[[outcome]]
+htmltools::h3(base_outcome)
+```
+
+### Basic stats
+```{r echo=FALSE, comment=""}
+data_set[, 
+  lapply(.SD, . %>% mean(na.rm=TRUE)), 
+  .SDcols = c(base_outcome, outcome_2y, outcome)
+] %>% 
+  rbind(
+    data_set[, 
+      lapply(.SD, . %>% sd(na.rm=TRUE)), 
+      .SDcols = c(base_outcome, outcome_2y, outcome)
+    ]
+  ) %>% 
+  data.table(type=c('Mean', 'Sd'),.)  
+```
+
+
+### t-test mean comparison p-values
+```{r echo=FALSE, comment=""}
+outcome_vals <- data_set[, get(outcome)]
+outcome_2y_vals <- data_set[, get(outcome_2y)]
+outcome_base_vals <- data_set[, get(base_outcome)]
+comp_base_5 <- t.test(outcome_vals, outcome_base_vals)$p.val %>% round(5)
+comp_2_5 <- t.test(outcome_vals, outcome_2y_vals)$p.val %>% round(5)
+comp_base_2 <- t.test(outcome_base_vals, outcome_2y_vals)$p.val %>% round(5)
+
+data.table(
+  type=c('base vs 5', '2 vs 5', 'base vs 2'), 
+  c(comp_base_5, comp_2_5, comp_base_2))
+```
+
+
+
+### 5 Years Gain Gain (odi neg / others pos) Factors 
+```{r echo=FALSE, comment=""}
+base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
+htmltools::h5('Demographics')
+base_factors$model_demo %>% print
+htmltools::h5('Radiology')
+base_factors$model_radio %>% print
+htmltools::h5('HRQL')
+base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
+htmltools::h5('Complications')
+base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
+```
+
+
+### 5Y vs 2Y Effects
+```{r echo=FALSE, comment=""}
+models <- variable_effect(data_set, outcome, outcome_2y, demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+
+```{r echo=FALSE}
+outcome <- outcomes[4]
+htmltools::h1(outcome)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
+
+```{r echo=FALSE, comment=""}
+outcome_2y <- outcomes_2y[[outcome]]
+base_outcome <- base_outcomes[[outcome]]
+htmltools::h3(base_outcome)
+```
+
+### Basic stats
+```{r echo=FALSE, comment=""}
+data_set[, 
+  lapply(.SD, . %>% mean(na.rm=TRUE)), 
+  .SDcols = c(base_outcome, outcome_2y, outcome)
+] %>% 
+  rbind(
+    data_set[, 
+      lapply(.SD, . %>% sd(na.rm=TRUE)), 
+      .SDcols = c(base_outcome, outcome_2y, outcome)
+    ]
+  ) %>% 
+  data.table(type=c('Mean', 'Sd'),.)  
+```
+
+
+### t-test mean comparison p-values
+```{r echo=FALSE, comment=""}
+outcome_vals <- data_set[, get(outcome)]
+outcome_2y_vals <- data_set[, get(outcome_2y)]
+outcome_base_vals <- data_set[, get(base_outcome)]
+comp_base_5 <- t.test(outcome_vals, outcome_base_vals)$p.val %>% round(5)
+comp_2_5 <- t.test(outcome_vals, outcome_2y_vals)$p.val %>% round(5)
+comp_base_2 <- t.test(outcome_base_vals, outcome_2y_vals)$p.val %>% round(5)
+
+data.table(
+  type=c('base vs 5', '2 vs 5', 'base vs 2'), 
+  c(comp_base_5, comp_2_5, comp_base_2))
+```
+
+
+### 5 Years Gain Gain (odi neg / others pos) Factors 
+```{r echo=FALSE, comment=""}
+base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
+htmltools::h5('Demographics')
+base_factors$model_demo %>% print
+htmltools::h5('Radiology')
+base_factors$model_radio %>% print
+htmltools::h5('HRQL')
+base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
+htmltools::h5('Complications')
+base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
+```
+
+
+### 5Y vs 2Y Effects
+```{r echo=FALSE, comment=""}
+models <- variable_effect(data_set, outcome, outcome_2y, demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```
+
+
+```{r echo=FALSE}
+outcome <- outcomes[5]
+htmltools::h1(outcome)
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+data_set[, 
+  .SD, 
+  .SDcols=c(get_base_outcome(outcome, first_visit=TRUE), outcomes_2y[[outcome]], outcome)
+] %>% 
+  melt() %>% 
+  ggplot(aes(variable, value)) +
+  geom_boxplot() +
+  theme(axis.text.x = element_text(angle = 10, vjust = 0.5, hjust=1))
+```
+
+<!-- ```{r echo=FALSE, include=FALSE} -->
+<!-- demo_plots <- plot_scores(data_set, outcome, demographics_all) -->
+<!-- ``` -->
+
+
+<!-- ```{r echo=FALSE, message=FALSE, fig.height=30, fig.width=10, warning=FALSE} -->
+<!-- do.call("grid.arrange", c(demo_plots, ncol=ncols_plots)) -->
+<!-- ``` -->
+
+```{r echo=FALSE, comment=""}
+outcome_2y <- outcomes_2y[[outcome]]
+base_outcome <- base_outcomes[[outcome]]
+htmltools::h3(base_outcome)
+```
+
+### Basic stats
+```{r echo=FALSE, comment=""}
+data_set[, 
+  lapply(.SD, . %>% mean(na.rm=TRUE)), 
+  .SDcols = c(base_outcome, outcome_2y, outcome)
+] %>% 
+  rbind(
+    data_set[, 
+      lapply(.SD, . %>% sd(na.rm=TRUE)), 
+      .SDcols = c(base_outcome, outcome_2y, outcome)
+    ]
+  ) %>% 
+  data.table(type=c('Mean', 'Sd'),.)  
+```
+
+
+### t-test mean comparison p-values
+```{r echo=FALSE, comment=""}
+outcome_vals <- data_set[, get(outcome)]
+outcome_2y_vals <- data_set[, get(outcome_2y)]
+outcome_base_vals <- data_set[, get(base_outcome)]
+comp_base_5 <- t.test(outcome_vals, outcome_base_vals)$p.val %>% round(5)
+comp_2_5 <- t.test(outcome_vals, outcome_2y_vals)$p.val %>% round(5)
+comp_base_2 <- t.test(outcome_base_vals, outcome_2y_vals)$p.val %>% round(5)
+
+data.table(
+  type=c('base vs 5', '2 vs 5', 'base vs 2'), 
+  c(comp_base_5, comp_2_5, comp_base_2))
+```
+
+
+### 5 Years Gain Gain (odi neg / others pos) Factors 
+```{r echo=FALSE, comment=""}
+base_factors <- basic_factors_5y_gain(data_set, outcome, base_outcome, demographics)
+htmltools::h5('Demographics')
+base_factors$model_demo %>% print
+htmltools::h5('Radiology')
+base_factors$model_radio %>% print
+htmltools::h5('HRQL')
+base_factors$model_quality %>% print
+htmltools::h5('Correction Radiology')
+base_factors$model_radio_correction %>% print
+htmltools::h5('Complications')
+base_factors$model_complications %>% print
+htmltools::h5('Reinterventions')
+base_factors$model_reinterventions %>% print
+```
+
+
+### 5Y vs 2Y Effects
+```{r echo=FALSE, comment=""}
+models <- variable_effect(data_set, outcome, outcome_2y, demographics)
+htmltools::h5('Demographics')
+models$demographic %>% print
+htmltools::h5('Radiology')
+models$radiology %>% print
+```

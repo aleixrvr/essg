@@ -1,0 +1,578 @@
+---
+title: "5y complications analysis"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+library(DiagrammeR)
+
+source('five_years/five_years-utils.R')
+```
+
+# All
+
+```{r echo=TRUE}
+xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+```
+
+### Filters
+
+```{r echo=FALSE}
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+```{r, echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+```{r, echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all] 
+
+complications_all[, Category := strsplit(
+    `Category of the complication`, ":")[[1]][1],
+    1:nrow(complications_all)]
+```
+
+### Major Complications
+
+```{r, echo=FALSE}
+comp_type <- "Major Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+major_all <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(major_all)
+```
+
+### Minor Complications
+
+```{r, echo=FALSE}
+comp_type <- "Minor Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+minor_all <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(minor_all)
+```
+
+# Non depuy
+
+```{r echo=TRUE}
+xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+```
+
+### Filters
+
+```{r echo=FALSE}
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+```{r, echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+```{r, echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all] 
+
+complications_all[, Category := strsplit(
+    `Category of the complication`, ":")[[1]][1],
+    1:nrow(complications_all)]
+```
+
+### Major Complications
+
+```{r, echo=FALSE}
+comp_type <- "Major Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+major_nondepuy <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(major_nondepuy)
+```
+
+### Minor Complications
+
+```{r, echo=FALSE}
+comp_type <- "Minor Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+minor_nondepuy <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(minor_nondepuy)
+```
+
+
+# 2YFU
+
+```{r echo=TRUE}
+xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+```
+
+### Filters
+
+```{r echo=FALSE}
+data_set %<>%
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+```{r, echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+```{r, echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all] 
+
+complications_all[, Category := strsplit(
+    `Category of the complication`, ":")[[1]][1],
+    1:nrow(complications_all)]
+```
+
+### Major Complications
+
+```{r, echo=FALSE}
+comp_type <- "Major Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+major_260 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(major_260)
+```
+
+### Minor Complications
+
+```{r, echo=FALSE}
+comp_type <- "Minor Complication"
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+
+```{r comment="", echo=FALSE}
+minor_260 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, table(`Category`)] %T>% 
+  print 
+```
+
+```{r, comment="", echo=FALSE}
+prop.table(minor_260)
+```
+
+# Comparations
+
+## All vs nondepuy
+
+### Major
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- major_all
+t2 <- major_nondepuy
+
+t1_n <- sum(t1)
+t2_n <- sum(t2)
+
+results <- list()
+for( name in union(names(t1), names(t2))){
+  t1_val_n <- 0
+  if(name %in% names(t1)){
+    t1_val_n <- as.numeric(t1[name])
+  }
+  t2_val_n <- 0
+  if(name %in% names(t2)){
+    t2_val_n <- as.numeric(t2[name])
+  }
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+### Minor
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- minor_all
+t2 <- minor_nondepuy
+
+t1_n <- sum(t1)
+t2_n <- sum(t2)
+
+results <- list()
+for( name in union(names(t1), names(t2))){
+  t1_val_n <- 0
+  if(name %in% names(t1)){
+    t1_val_n <- as.numeric(t1[name])
+  }
+  t2_val_n <- 0
+  if(name %in% names(t2)){
+    t2_val_n <- as.numeric(t2[name])
+  }
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+## Before 2YFU vs nondepuy
+
+### Major
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- major_260
+t2 <- major_nondepuy
+
+t1_n <- sum(t1)
+t2_n <- sum(t2)
+
+results <- list()
+for( name in union(names(t1), names(t2))){
+  t1_val_n <- 0
+  if(name %in% names(t1)){
+    t1_val_n <- as.numeric(t1[name])
+  }
+  t2_val_n <- 0
+  if(name %in% names(t2)){
+    t2_val_n <- as.numeric(t2[name])
+  }
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+### Minor
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- minor_260
+t2 <- minor_nondepuy
+
+t1_n <- sum(t1)
+t2_n <- sum(t2)
+
+results <- list()
+for( name in union(names(t1), names(t2))){
+  t1_val_n <- 0
+  if(name %in% names(t1)){
+    t1_val_n <- as.numeric(t1[name])
+  }
+  t2_val_n <- 0
+  if(name %in% names(t2)){
+    t2_val_n <- as.numeric(t2[name])
+  }
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
