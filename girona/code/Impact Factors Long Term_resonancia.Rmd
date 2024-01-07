@@ -1,0 +1,172 @@
+---
+title: "Impact Factors Resonance"
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, include=FALSE}
+library(data.table)
+library(magrittr)
+library(haven)
+library(DiagrammeR)
+library(glue)
+library(kableExtra)
+library(htmltools)
+library(tidyverse)
+
+source("utils.R")
+
+dades <- read_sav('../data/BASEDATOSSRS.FINAL_152pacientes.sav') %>% as.data.frame()
+setDT(dades)
+
+noves_columnes <- c( "@_Global_Tilt", "@_LIVS1")
+for(var_name in noves_columnes){
+  setnames(dades, var_name, gsub("@_", "", var_name, fixed=TRUE))
+}
+
+```
+
+```{r echo=FALSE}
+prev <- model.matrix(Gender~`Previous_surgery__LEV`, dades)[, -1]
+dades[, `Previous_surgery__LEV`:= NULL]
+dades<- cbind(dades, prev)
+```
+
+```{r echo=FALSE}
+grViz('
+digraph rmarkdown {
+
+  graph [
+    rankdir = UD
+  ]
+  
+  node [
+    shape=circle,
+    fixedsize=true,
+    width=1.2,
+    style=filled,
+    fontsize=15
+    ]
+
+ 
+  P[label="Age\nSex\nPrior-S\nCurveType\nSeguimiento"]
+  U[label="Unobserved", style="dashed"]
+  M[label="SF36_MCS"]
+  S[label="Surgery"]
+  R[label="Radiology (Post-T)"]
+  O[label="Outcome"]
+  RQ[label="Reintervention"]
+  RS[label="Resonance"]
+  
+  
+  P -> S
+  P -> M
+  M -> O
+  P -> R
+  U -> R
+  S -> R
+  R -> O[minlen=3]
+  S -> M
+  P -> O
+  U -> S
+  U -> M
+  U -> O
+  S -> RQ
+  RQ -> R
+  U -> RQ
+  P -> RQ
+  RQ -> M
+  RQ -> RS
+  S -> RS
+  P -> RS
+  U -> RS
+  RS -> O
+  
+  {
+    rank=same
+    M
+    R
+    RS
+  }
+  
+}                  
+')
+```
+
+```{r}
+outcomes <- c(
+  "NRS_back__Back_pain__Average",
+  "SF36_PCS",
+  "EQ_5D_5L_SP",
+  "ODI_2_FU_FORMULA",
+  "SRS22__Self_image__Appearance"
+)
+
+surgery <- c(
+  "NIVELES_LIBRES_LUMBARES"
+)
+
+reinterventions <- "RECIRUGÍAS"
+
+resonance <- c(
+  "PFIRMANN_L3_L4_RECODE",
+  "PFIRMANN_L4_L5_RECODE",
+  "PFIRMANN_L5_SI_RECODE",
+  "MODIC_L3_L4_RECODE",
+  "MODIC_L4_L5_RECODE",
+  "MODIC_L5_SI_RECODE"
+)
+
+confounders <- c(
+  "EDAD_FU",
+  "Gender",
+  "Previous_surgery__LEVL2",
+  "Previous_surgery__LEVL3",
+  "Previous_surgery__LEVL4",
+  "Previous_surgery__LEVL5",
+  "Previous_surgery__LEVT12"
+)
+```
+
+
+
+```{r, echo=FALSE, results='asis'}
+
+for(outcome in outcomes){
+  print(h1(outcome))
+  print(h2('Base variables'))
+  dt <- dades[, .SD, .SDcols = c(outcome, confounders)]
+  print(glue("Number of observations after removing missings: {na.omit(dt)[, .N]}"))
+  create_model(dt, outcome) %>% 
+    format_table(confounders) %>% 
+    print
+  
+  print(h2('Surgery'))
+  dt <- dades[, .SD, .SDcols = c(outcome, confounders, surgery)]
+  print(glue("Number of observations after removing missings: {na.omit(dt)[, .N]}"))
+  create_model(dt, outcome) %>% 
+    format_table(surgery) %>% 
+    print
+
+  print(h2('Reinterventions'))
+  dt <- dades[, .SD, .SDcols = c(outcome, confounders, surgery, reinterventions)]
+  print(glue("Number of observations after removing missings: {na.omit(dt)[, .N]}"))
+  create_model(dt, outcome) %>% 
+    format_table(reinterventions) %>% 
+    print
+  
+  print(h2('Resonance'))
+  dt <- dades[, .SD, .SDcols = c(outcome, confounders, surgery, resonance)]
+  print(glue("Number of observations after removing missings: {na.omit(dt)[, .N]}"))
+  create_model(dt, outcome) %>% 
+    format_table(resonance) %>% 
+    print
+}
+```
+

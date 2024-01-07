@@ -1,0 +1,266 @@
+---
+title: "Resonance - Radiology multicolinearity"
+output:
+  html_document: default
+  pdf_document: default
+always_allow_html: true
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r echo=FALSE, include=FALSE}
+library(data.table)
+library(magrittr)
+library(haven)
+library(DiagrammeR)
+library(glue)
+library(kableExtra)
+library(htmltools)
+library(tidyverse)
+library(ppcor)
+
+source("utils.R")
+
+dades <- read_sav('../data/BASEDATOSSRS.FINAL_152pacientes.sav') %>% as.data.frame()
+setDT(dades)
+
+noves_columnes <- c( "@_Global_Tilt", "@_LIVS1", "@_RLL", "@_RPV", "@_RSA")
+for(var_name in noves_columnes){
+  setnames(dades, var_name, gsub("@_", "", var_name, fixed=TRUE))
+}
+ 
+```
+
+```{r echo=FALSE}
+grViz('
+digraph rmarkdown {
+
+  graph [
+    rankdir = UD
+  ]
+  
+  node [
+    shape=circle,
+    fixedsize=true,
+    width=1.2,
+    style=filled,
+    fontsize=15
+    ]
+
+ 
+  P[label="Age\nSex\nPrior-S\nCurveType\nSeguimiento"]
+  U[label="Unobserved", style="dashed"]
+  M[label="SF36_MCS"]
+  S[label="Surgery"]
+  R[label="Radiology (Post-T)"]
+  O[label="Outcome"]
+  RQ[label="Reintervention"]
+  RS[label="Resonance"]
+  
+  
+  P -> S
+  P -> M
+  M -> O
+  P -> R
+  U -> R
+  S -> R
+  R -> O[minlen=3]
+  S -> M
+  P -> O
+  U -> S
+  U -> M
+  U -> O
+  S -> RQ
+  RQ -> R
+  U -> RQ
+  P -> RQ
+  RQ -> M
+  RQ -> RS
+  S -> RS
+  P -> RS
+  U -> RS
+  RS -> O
+  
+  {
+    rank=same
+    M
+    R
+    RS
+  }
+  
+}                  
+')
+```
+
+```{r}
+outcomes <- c(
+  "NRS_back__Back_pain__Average",
+  "SF36_PCS",
+  "EQ_5D_5L_SP",
+  "ODI_2_FU_FORMULA",
+  "SRS22__Self_image__Appearance",
+  "SF36_MCS"
+)
+
+surgery <- c(
+  "NIVELES_LIBRES_LUMBARES",
+  "RECIRUGÍAS"
+)
+
+radiology <- c(
+  "LIVS1",
+  "Coronal_Balance_C7PL_to_CSVL",
+  "RLL_ABS",
+  "RPV_ABS",
+  "RSA_ABS",
+  "LDI_ABS"
+)
+
+resonance <- c(
+  # "PFIRMANN_L3_L4_RECODE",
+  "PFIRMANN_L4_L5_RECODE",
+  "PFIRMANN_L5_SI_RECODE",
+  "MODIC_L3_L4_RECODE",
+  "MODIC_L4_L5_RECODE",
+  "MODIC_L5_SI_RECODE"
+)
+
+confounders <- c(
+  "EDAD_FU",
+  "Gender",
+  "Previous_surgery__LEV"
+)
+```
+
+<!-- ```{r echo=FALSE} -->
+<!-- get_type <- function(col_data){ -->
+<!--   if( na.omit(col_data) %>% uniqueN == 2){ -->
+<!--     return('classification') -->
+<!--   }else{ -->
+<!--     return('regression') -->
+<!--   } -->
+<!-- } -->
+<!-- ``` -->
+
+<!-- # Multicolinearity of radiology variables with respect  -->
+
+<!-- ```{r} -->
+<!-- vifs_list <- list() -->
+<!-- for(var_ in radiology){ -->
+<!--   dt <- dades[, .SD, .SDcols = c(resonance,confounders, surgery, var_)] -->
+
+<!--   formula <- glue("{var_} ~ .") -->
+<!--   type <- get_type(dt[, ..var_]) -->
+<!--   if( type == "regression"){ -->
+<!--     model <- lm(formula, data=dt %>% na.omit) -->
+<!--   }else{ -->
+<!--     model <- glm(formula, data=dt %>% na.omit,  -->
+<!--                  family = 'binomial') -->
+<!--   } -->
+
+<!--   vifs <- car::vif(model) %>% as.data.frame -->
+<!--   vifs['variable'] <- vifs %>% row.names -->
+<!--   vifs <- data.table(vifs) -->
+<!--   vifs_list[[var_]] <- vifs %>% .[, .SD, .SDcols = c('variable', 'GVIF')] %>%  -->
+<!--     .[variable %chin% resonance] %>%  -->
+<!--     .[, radiology := var_] -->
+<!-- } -->
+<!-- rbindlist(vifs_list) %>% dcast(variable~radiology, value.var = "GVIF") -->
+<!-- ``` -->
+
+
+<!-- ```{r} -->
+<!-- vifs_list <- list() -->
+<!-- for(var_ in resonance){ -->
+<!--   dt <- dades[, .SD, .SDcols = c(radiology,confounders, surgery, var_)] -->
+
+<!--   formula <- glue("{var_} ~ .") -->
+<!--   type <- get_type(dt[, ..var_]) -->
+<!--   if( type == "regression"){ -->
+<!--     model <- lm(formula, data=dt %>% na.omit) -->
+<!--   }else{ -->
+<!--     model <- glm(formula, data=dt %>% na.omit,  -->
+<!--                  family = 'binomial') -->
+<!--   } -->
+
+<!--   vifs <- car::vif(model) %>% as.data.frame -->
+<!--   vifs['variable'] <- vifs %>% row.names -->
+<!--   vifs <- data.table(vifs) -->
+<!--   vifs_list[[var_]] <- vifs %>% .[, .SD, .SDcols = c('variable', 'GVIF')] %>%  -->
+<!--     .[variable %chin% radiology] %>%  -->
+<!--     .[, expl_var := var_] -->
+<!-- } -->
+<!-- rbindlist(vifs_list) %>% dcast(variable~expl_var, value.var = "GVIF") -->
+<!-- ``` -->
+
+
+## Partial correlations
+
+Partial correlations: correlations between two variables, once the effect of confounders have been removed. 
+
+For the case of resonance and radiology, confounders can be considered the list of confounders, but also surgical variables. 
+
+We have used the function `pcor.test` from the `ppcor` R package. The following table shows partial correlations (with p.values testing whether these are zero or not in parenthesis)
+
+```{r echo=FALSE, comment=""}
+dt <- dades[, .SD, .SDcols = c(surgery, confounders, resonance, radiology)] %>% na.omit
+
+prev <- model.matrix(Gender~`Previous_surgery__LEV`, dt)[, -1]
+dt[, `Previous_surgery__LEV`:= NULL]
+dt <- cbind(dt, prev)
+
+results_res <- c()
+results_rad <- c()
+results <- c()
+for(res_ in resonance){
+  for(rad_ in radiology){
+    part_cor <- pcor.test(
+      dt[, get(res_)],
+      dt[, get(rad_)],
+      dt[, .SD, .SDcols=setdiff(dt %>% colnames, c(resonance, radiology))]
+    )
+    results_res <- c(results_res, res_)
+    results_rad <- c(results_rad, rad_)
+    results <- c(results, glue("{part_cor[1] %>% round(3)} ({part_cor[2] %>% round(3)})") )
+  }
+}
+results <- data.table(resonance=results_res, radiology=results_rad, partial_corr = results)
+results %>% dcast(resonance~radiology, value.var = 'partial_corr') %>% 
+  kable %>% kable_styling()
+```
+## Correlations
+
+<!-- ```{r, comment=""} -->
+<!-- cors <- cor(dt[, .SD, .SDcols = c(resonance, radiology)]) %>% round(4) -->
+<!-- ind_rows <- rownames(cors) %>% sapply(function(x) x %in% c(radiology)) -->
+<!-- ind_cols <- colnames(cors) %>% sapply(function(x) x %in% c(resonance)) -->
+<!-- cors[ind_rows, ind_cols] -->
+<!-- ``` -->
+
+```{r comment="", echo=FALSE}
+results_res <- c()
+results_rad <- c()
+results <- c()
+for(res_ in resonance){
+  for(rad_ in radiology){
+    cor_val <- cor(
+      dt[, get(res_)],
+      dt[, get(rad_)]
+    )
+    cor_p_val <- cor.test(
+      dt[, get(res_)],
+      dt[, get(rad_)]
+    )$p.value
+    results_res <- c(results_res, res_)
+    results_rad <- c(results_rad, rad_)
+    results <- c(results, glue("{cor_val %>% round(3)} ({cor_p_val %>% round(3)})") )
+  }
+}
+results <- data.table(resonance=results_res, radiology=results_rad, correlation = results)
+results %>% dcast(resonance~radiology, value.var = 'correlation') %>%
+  kable %>% kable_styling()
+```
+
+
