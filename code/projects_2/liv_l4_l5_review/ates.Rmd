@@ -1,0 +1,242 @@
+---
+title: "L5/Iliac ATEs"
+output:
+  word_document: default
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, comment='', message=FALSE, warning=FALSE)
+knitr::opts_knit$set(root.dir=normalizePath('../'))
+```
+
+
+```{r}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(kableExtra)
+library(pROC)
+source('liv_l4_l5_review/patient_selection_review.R')
+source('liv_l4_l5/utils.R')
+source('liv_l4_l5/train.R')
+set.seed(1234)
+
+tuneLength <- 7
+
+treatment_name <- 'type'
+treatment_vals <- c('Iliac', 'L5')
+propensity_threshold <- 0.5
+
+```
+
+```{r, message=FALSE}
+xls_path <- '../../data/June 2023 All (2).xlsx'
+analysis_vars <- read_yaml('descriptive.yml')
+vars <- read_yaml('liv_l4_l5_review/variables.yml')
+data_ <- get_data(xls_path)
+```
+
+
+```{r echo=TRUE}
+data_ %>% 
+  .[followup_2y ==TRUE] %>% 
+  .[Study=='Op'] %>% 
+  .[Site != 'ANK Op'] %>% 
+  .[Age < 100] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[`Posterior Instrumented Fusion` == 'Yes'] %>% 
+  .[`Number of Posterior Instrumented Levels` > 3] ->
+  data_
+```
+
+Initial Patients: `r data_[, .N]`
+
+```{r echo=TRUE}
+data_ %<>% .[`Posterior Instrumented Fusion` == 'Yes']
+ 
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_ %<>% .[!is.na(type)]
+```
+
+### Confounding Variables
+
+```{r}
+confounders <- vars$confounders
+outcomes <- vars$outcomes
+vars_ <- c(confounders, treatment_name)
+confounders %>% as.yaml %>% cat
+```
+
+```{r}
+write.csv(data_[, .SD, .SDcols = c(vars_, 'Code of the patient')], "liv_l4_l5_review/datos_utilizados_con_missings.csv", quote = FALSE, row.names = FALSE)
+```
+
+```{r}
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Days since surgery` < 5 * 365] %>% 
+  .[`Complication Type`=='Primary']
+
+reiqs <- complication_data[, 
+  .(reiqs = sum(`Reoperation Due to Complication` =='Yes')), 
+  `Code of the patient`] 
+
+major_complications <- complication_data[, 
+  .(major_complications = sum(`Complication Impact` == 'Major Complication')), 
+  `Code of the patient`]
+
+data_ %<>% 
+  merge(reiqs, by='Code of the patient', all.x=TRUE, all.y=FALSE) %>% 
+  merge(major_complications, by='Code of the patient', all.x=TRUE, all.y=FALSE)
+
+```
+
+
+# Comparability constraints
+```{r echo=TRUE}
+data_ %<>% 
+  .[`Surgical Approach`=='Posterior'] %>% 
+  .[`Pelvic Tilt` < 45] %>% 
+  .[`Number of Posterior Instrumented Levels` < 17] %>% 
+  .[`Global Tilt` < 60] %>% 
+  .[`ASA classification` != '4'] %>% 
+  .[`Thoracolumbar L2-T10` > -30 ] %>% 
+  .[`Thoracolumbar L2-T10` < 70 ] %>% 
+  .[`RLL` > -60] 
+```
+
+```{r}
+data_[, .N, type]
+```
+
+
+# Propensity Score
+
+
+## Boosting
+
+```{r include=FALSE, warnings=FALSE}
+vars_propensity <- c(vars_, 'Code of the patient')
+data_propensity <- data_ %>% 
+  .[, .SD, .SDcols = vars_propensity] %>% 
+  na.omit
+
+data_propensity_anonym <- data_propensity %>% 
+  .[, -'Code of the patient'] 
+
+propensity_model <- data_propensity_anonym %>% 
+  as.data.table %>% 
+  train_model(treatment_name, models='boosting', tuneLength = tuneLength)
+data_propensity_anonym %<>% cross_fitting(
+  propensity_model, treatment_name, treatment_vals[1]
+)
+data_propensity[, propensity := data_propensity_anonym[, propensity]]
+```
+
+```{r}
+write.csv(data_propensity, "liv_l4_l5_review/datos_utilizados.csv", quote = FALSE, row.names = FALSE)
+```
+
+
+```{r}
+propensities <- data_propensity %>% 
+  .[, .(propensity=propensity, treatment = get(treatment_name))]
+auc_result <- auc(roc(propensities$treatment, propensities$propensity))
+ggplot(propensities, aes(propensity, fill=treatment, color=treatment)) +
+  geom_density(alpha = 0.1) +
+  xlim(c(0, 1)) +
+  ggtitle('Propensity of being {treatment_vals[1]}\nAUC: {auc_result}' %>% f)
+```
+
+
+```{r include=TRUE}
+data_propensity %<>% .[propensity >= propensity_threshold] 
+```
+
+Propensity threshold `r propensity_threshold`
+```{r include=TRUE}
+data_propensity[, .N, treatment_name]
+```
+
+
+# Average Treatment Effects
+
+```{r include=FALSE, warnings=FALSE}
+vars_outcome_ <- c(treatment_name, 'propensity')
+results <- list()
+for( outcome in outcomes ){
+  vars_outcome <- c(vars_outcome_, outcome)
+
+  data_outcomes <- data_ %>% 
+    merge(data_propensity[, .(`Code of the patient`, propensity)], all=FALSE) 
+  
+  change_ <- FALSE
+  if(!is.na(as.numeric(substr(outcome, 1, 1)))){
+    change_ <- TRUE
+    outcome_preop <- substr(outcome, 5, nchar(outcome))
+    data_outcomes[, c(outcome) := get(outcome) - get(outcome_preop)]
+  }
+  
+  data_outcomes %<>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    na.omit
+  
+  data_1 <- data_outcomes %>% 
+    .[get(treatment_name)==treatment_vals[1]] %>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    .[, c(treatment_name) := NULL] %>% 
+    na.omit
+  
+  data_2 <- data_outcomes %>% 
+    .[get(treatment_name)==treatment_vals[2]] %>% 
+    .[, .SD, .SDcols = vars_outcome] %>% 
+    .[, c(treatment_name) := NULL] %>% 
+    na.omit
+  
+  model_1 <- data_1 %>% 
+    as.data.table %>% 
+    train_model(outcome, models='boosting', tuneLength = tuneLength)
+  model_2 <- data_2 %>% 
+    as.data.table %>% 
+    train_model(outcome, models='boosting', tuneLength = tuneLength)
+  
+  ITEs <- cross_fitting_t_learner(
+    data_outcomes, model_1, model_2,
+    outcome_name = outcome, prediction_name='outcome_pred',
+    treatment_name=treatment_name, outcome_val=treatment_vals[1]
+    )
+  
+  results[[outcome]] <- list(
+    ITEs = ITEs, model_1=model_1, data_1=data_1, model_2=model_2, data_2=data_2, change_=change_
+  )
+  
+}
+```
+
+
+```{r, echo=FALSE}
+for( outcome in outcomes ){
+  print_model_results(
+    outcome, 
+    results[[outcome]]$model_1, 
+    results[[outcome]]$data_1, 
+    results[[outcome]]$model_2, 
+    results[[outcome]]$data_2, 
+    results[[outcome]]$change_
+  )
+  print_ates(
+    outcome, 
+    results[[outcome]]$ITEs, 
+    treatment_vals
+  )
+  
+}
+```
+

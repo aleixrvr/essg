@@ -1,0 +1,177 @@
+---
+title: "Reinterventions exploration"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../')
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+
+source('basic.R')
+source('utils.R')
+source('reintervention/reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+
+```
+
+
+# Proportion of reinterventions
+
+## Patients with 2y FU, reinterventions
+Notes: 
+- reintervention means that at least has that number of reinterventions
+
+
+
+#### all reinterventions
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+reiqs_n <- time_evolution %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[reintervention != '0', .N]
+  
+patients_n <- time_evolution %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[reintervention != '0', uniqueN(patient_id)]
+```
+
+Reiqs: `r reiqs_n`
+Patients: `r patients_n`
+
+#### reinterventions before 2y
+```{r echo=FALSE}
+patients_2yfu <- clinical_data %>% 
+  .[followup_2y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+reiqs_n <- time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[reintervention != '0', .N]
+  
+patients_n <- time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_2yfu] %>% 
+  .[reintervention != '0', uniqueN(patient_id)]
+```
+
+Reiqs: `r reiqs_n`
+Patients: `r patients_n`
+
+
+
+## Patients with 5y FU, reinterventions
+Notes: 
+- reintervention means that at least has that number of reinterventions
+
+
+
+#### all reinterventions
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+reiqs_n <- time_evolution %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', .N]
+  
+patients_n <- time_evolution %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', uniqueN(patient_id)]
+```
+
+Reiqs: `r reiqs_n`
+Patients: `r patients_n`
+
+#### reinterventions before 2y
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+reiqs_n <- time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', .N]
+  
+patients_n <- time_evolution %>% 
+  .[diff_years < 2] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', uniqueN(patient_id)]
+```
+
+Reiqs: `r reiqs_n`
+Patients: `r patients_n`
+
+#### reinterventions before 5y
+```{r echo=FALSE}
+patients_5yfu <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+
+time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[, .(N=.N), reintervention] %>% 
+  .[, prop := round(N/sum(N), 3)*100] %>% 
+  print
+
+reiqs_n <- time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', .N]
+  
+patients_n <- time_evolution %>% 
+  .[diff_years < 5] %>% 
+  .[patient_id %in% patients_5yfu] %>% 
+  .[reintervention != '0', uniqueN(patient_id)]
+```
+
+Reiqs: `r reiqs_n`
+Patients: `r patients_n`

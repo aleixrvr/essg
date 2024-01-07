@@ -33,11 +33,19 @@ vars$surgery <- c(vars$surgery, 'uiv_t10_12_l1')
 
 
 ```{r echo=FALSE, warning=FALSE, include=FALSE}
-xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx'
+xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v8.xlsx'
 
 clinical_data_0 <- read_excel(xls_path) %>% 
   as.data.table()
 clinical_data_0 <- clean_data(clinical_data_0)
+```
+
+
+```{r, warning=FALSE}
+for(name in colnames(clinical_data_0)){
+  setnames(clinical_data_0, name, gsub("  ", " ", name, fixed=TRUE))
+}
+setnames(clinical_data_0, "6Y. Static Major Curve Cobb Angle", "6Y. Static Major curve Cobb angle")
 ```
 
 
@@ -49,9 +57,9 @@ clinical_data_1 <- read_excel(xls_path) %>%
 clinical_data_1 <- clean_data(clinical_data_1)
 ```
 
-```{r}
-years_rad <- sapply(c("6W.", "2Y.", "5Y."), function(x) paste(x, vars$radiology), simplify = TRUE)
-years_quality <- sapply(c("6M.", "2Y.", "5Y."), function(x) paste(x, vars$quality), simplify = TRUE)
+```{r, warning=TRUE}
+years_rad <- sapply(c("6W.", "2Y.", "3Y.", "5Y.", "6Y."), function(x) paste(x, vars$radiology), simplify = TRUE)
+years_quality <- sapply(c("6M.", "2Y.", "3Y.", "5Y.", "6Y."), function(x) paste(x, vars$quality), simplify = TRUE)
 quality_first <- paste(vars$quality, "_First Visit", sep="")
 
 all_vars <- c(
@@ -71,6 +79,8 @@ clinical_data <- rbind(
   clinical_data_0[, .SD, .SDcols=all_vars][, type:='non-depuy'],
   clinical_data_1[, .SD, .SDcols=all_vars][, type:='depuy']
 )
+
+clinical_data[, `ASA classification` := as.character(`ASA classification`)]
 ```
 
 ### Filters
@@ -105,9 +115,9 @@ clinical_data[followup_5y==TRUE, .(total=`Code of the patient` %>% uniqueN), typ
 
 
 ```{r echo=TRUE}
-# clinical_data %<>%
-#   .[followup_2y==TRUE] %>%
-#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+clinical_data %<>%
+  .[followup_2y==TRUE] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
 ```
 
 Total Patients for the analysis
@@ -137,7 +147,13 @@ dt <- clinical_data %>% copy
 for(var_ in vars$radiology ){
   var_6w <- "6W. {var_}" %>% f
   var_2y <- "2Y. {var_}" %>% f
+  var_3y <- "3Y. {var_}" %>% f
   var_5y <- "5Y. {var_}" %>% f
+  var_6y <- "6Y. {var_}" %>% f
+  
+  dt[is.na(get(var_2y)), c(var_2y) := get(var_3y)]
+  dt[is.na(get(var_5y)), c(var_5y) := get(var_6y)]
+  
   vars_years <- c(var_, var_6w, var_2y, var_5y)
   for(var_y in vars_years){
     cat(var_y)
@@ -181,6 +197,8 @@ for(var_ in vars$radiology ){
   cat('2y vs 5y p-value\n')
   cat(t.test(rad_2y, rad_5y)$p.val)
   cat('\n\n')
+  
+  print(plot_time(dt, vars_years))
 }
 ```
 
@@ -193,7 +211,13 @@ for(var_0 in vars$quality ){
   var_ <- "{var_0}_First Visit" %>% f
   var_6m <- "6M. {var_0}" %>% f
   var_2y <- "2Y. {var_0}" %>% f
+  var_3y <- "3Y. {var_0}" %>% f
   var_5y <- "5Y. {var_0}" %>% f
+  var_6y <- "6Y. {var_0}" %>% f
+  
+  dt[is.na(get(var_2y)), c(var_2y) := get(var_3y)]
+  dt[is.na(get(var_5y)), c(var_5y) := get(var_6y)]
+  
   vars_years <- c(var_, var_6m, var_2y, var_5y)
   for(var_y in vars_years){
     cat(var_y)
@@ -236,6 +260,8 @@ for(var_0 in vars$quality ){
   cat('2y vs 5y p-value\n')
   cat(t.test(hrqol_2y, hrqol_5y)$p.val)
   cat('\n\n')
+  
+  print(plot_time(dt, vars_years, middle_point = 0.5))
 }
 ```
 

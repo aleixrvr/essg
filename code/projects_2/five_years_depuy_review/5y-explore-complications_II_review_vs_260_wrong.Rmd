@@ -1,0 +1,872 @@
+---
+title: "5y complications analysis"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+library(stringr)
+library(ggplot2)
+library(zeallot)
+library(gridExtra)
+library(DiagrammeR)
+
+source('five_years/five_years-utils.R')
+```
+
+# All
+
+```{r echo=TRUE}
+xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+```
+
+### Filters
+
+```{r echo=FALSE}
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+```{r, echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+```{r, echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all] 
+
+complications_all[, Category := strsplit(
+    `Category of the complication`, ":")[[1]][1],
+    1:nrow(complications_all)]
+```
+
+
+```{r include=FALSE}
+patient_2yFU <- data_set[followup_2y==TRUE, `Code of the patient` %>% unique]
+patient_2y_5yFU <- data_set[followup_2y==TRUE & followup_5y==TRUE, `Code of the patient` %>% unique]
+```
+
+
+
+### Major Complications
+
+```{r, echo=FALSE}
+comp_type <- "Major Complication"
+complications_all %>%
+  .[`Code of the patient` %in% patient_2yFU] %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+# complications_all %>%
+#   .[`Code of the patient` %in% patient_2yFU] %>%
+#   .[`Days since surgery` < 365*2 ] %>%
+#   .[, `Code of the patient` %>% uniqueN]->
+#   elegible_2y
+elegible_2y <- len(patient_2yFU)
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, `Code of the patient` %>% uniqueN] ->
+  elegible_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Elegible patients with 2Y: `r elegible_2y`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Elegible patients with 2Y and 5Y: `r elegible_2y_5y`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+```{r include=FALSE}
+patients_2y_n_dp_major <- patients_2y_n
+elegible_2y_dp_major <- elegible_2y
+patients_2y_5y_n_dp_major <- patients_2y_5y_n
+elegible_2y_5y_dp_major <- elegible_2y_5y
+```
+
+Complications 2Y
+
+```{r comment="", echo=FALSE}
+major_all <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+major_all[, prop := pats_n/sum(major_all[, pats_n])]
+major_all
+```
+
+Complications between 2Y and 5Y
+
+```{r comment="", echo=FALSE}
+major_all_25 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+major_all_25[, prop := pats_n/sum(major_all_25[, pats_n])]
+major_all_25
+```
+
+
+### Minor Complications
+
+```{r, echo=FALSE}
+comp_type <- "Minor Complication"
+complications_all %>%
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+# complications_all %>%
+#   .[`Code of the patient` %in% patient_2yFU] %>%
+#   .[`Days since surgery` < 365*2 ] %>%
+#   .[, `Code of the patient` %>% uniqueN]->
+#   elegible_2y
+elegible_2y <- len(patient_2yFU)
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, `Code of the patient` %>% uniqueN] ->
+  elegible_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Elegible patients with 2Y: `r elegible_2y`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Elegible patients with 2Y and 5Y: `r elegible_2y_5y`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+```{r include=FALSE}
+patients_2y_n_dp_minor <- patients_2y_n
+elegible_2y_dp_minor <- elegible_2y
+patients_2y_5y_n_dp_minor <- patients_2y_5y_n
+elegible_2y_5y_dp_minor <- elegible_2y_5y
+```
+
+
+
+Complications 2Y
+
+```{r comment="", echo=FALSE}
+minor_all <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+minor_all[, prop := pats_n/sum(minor_all[, pats_n])]
+minor_all
+```
+
+Complications between 2Y and 5Y
+
+```{r comment="", echo=FALSE}
+minor_all_25 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+minor_all_25[, prop := pats_n/sum(minor_all_25[, pats_n])]
+minor_all_25
+```
+
+# Non depuy
+
+```{r echo=TRUE}
+xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx'
+```
+
+```{r warning=FALSE, echo=FALSE, include=FALSE}
+c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE)
+data_set <- data_set_0 %>% copy
+
+data_set %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+```
+
+### Filters
+
+```{r echo=FALSE}
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+```
+
+```{r, echo=FALSE}
+patients_all <- data_set[, `Code of the patient` %>% unique]
+```
+
+```{r, echo=FALSE}
+complications_all <- read_excel(xls_path, sheet='Complications') %>%
+  as.data.table %>% 
+  .[`Code of the patient` %in% patients_all] 
+
+complications_all[, Category := strsplit(
+    `Category of the complication`, ":")[[1]][1],
+    1:nrow(complications_all)]
+```
+
+
+```{r include=FALSE}
+patient_2yFU <- data_set[followup_2y==TRUE, `Code of the patient` %>% unique]
+patient_2y_5yFU <- data_set[followup_2y==TRUE & followup_5y==TRUE, `Code of the patient` %>% unique]
+```
+
+### Major Complications
+
+```{r, echo=FALSE}
+comp_type <- "Major Complication"
+complications_all %>%
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+# complications_all %>%
+#   .[`Code of the patient` %in% patient_2yFU] %>%
+#   .[`Days since surgery` < 365*2 ] %>%
+#   .[, `Code of the patient` %>% uniqueN]->
+#   elegible_2y
+elegible_2y <- len(patient_2yFU)
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, `Code of the patient` %>% uniqueN] ->
+  elegible_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Elegible patients with 2Y: `r elegible_2y`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Elegible patients with 2Y and 5Y: `r elegible_2y_5y`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+```{r include=FALSE}
+patients_2y_n_nondp_major <- patients_2y_n
+elegible_2y_nondp_major <- elegible_2y
+patients_2y_5y_n_nondp_major <- patients_2y_5y_n
+elegible_2y_5y_nondp_major <- elegible_2y_5y
+```
+
+
+
+Complications 2Y
+
+```{r comment="", echo=FALSE}
+major_nondp <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+major_nondp[, prop := pats_n/sum(major_nondp[, pats_n])]
+major_nondp
+```
+
+Complications between 2Y and 5Y
+
+```{r comment="", echo=FALSE}
+major_nondp_25 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+major_nondp_25[, prop := pats_n/sum(major_nondp_25[, pats_n])]
+major_nondp_25
+```
+
+### Minor Complications
+
+```{r, echo=FALSE}
+comp_type <- "Minor Complication"
+complications_all %>%
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` < 365*2 ] ->
+  comps_2y
+
+# complications_all %>%
+#   .[`Code of the patient` %in% patient_2yFU] %>%
+#   .[`Days since surgery` < 365*2 ] %>%
+#   .[, `Code of the patient` %>% uniqueN]->
+#   elegible_2y
+elegible_2y <- len(patient_2yFU)
+
+patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ] ->
+  comps_2y_5y
+
+complications_all %>%
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, `Code of the patient` %>% uniqueN] ->
+  elegible_2y_5y
+
+patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+
+patients_n <- len(patients_all)
+patients_2y_n <- len(patients_2y)
+patients_2y_5y_n <- len(patients_2y_5y)
+p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value
+```
+
+- Total patients: `r patients_n`
+
+- Complications before 2 years: `r comps_2y[, .N]`
+- Elegible patients with 2Y: `r elegible_2y`
+- Patients with complications before 2 years: `r patients_2y_n`
+- Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y`
+
+- Complications between 2y and 5y: `r comps_2y_5y[, .N]`
+- Elegible patients with 2Y and 5Y: `r elegible_2y_5y`
+- Patients with complications before 5 years: `r patients_2y_5y_n`
+- Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y`
+
+- p-value testing equality between proportions of complications: `r p_val`
+
+```{r include=FALSE}
+patients_2y_n_nondp_minor <- patients_2y_n
+elegible_2y_nondp_minor <- elegible_2y
+patients_2y_5y_n_nondp_minor <- patients_2y_5y_n
+elegible_2y_5y_nondp_minor <- elegible_2y_5y
+```
+
+
+
+Complications 2Y
+
+```{r comment="", echo=FALSE}
+minor_nondp <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2yFU] %>% 
+  .[`Days since surgery` < 365*2 ] %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+minor_nondp[, prop := pats_n/sum(minor_nondp[, pats_n])]
+minor_nondp
+```
+
+Complications between 2Y and 5Y
+
+```{r comment="", echo=FALSE}
+minor_nondp_25 <- complications_all %>%
+  .[`Complication Impact` == comp_type] %>% 
+  .[`Code of the patient` %in% patient_2y_5yFU] %>% 
+  .[`Days since surgery` >= 365*2 ] %>% 
+  .[`Days since surgery` < 365*5 ]  %>% 
+  .[, .(pats_n = uniqueN(`Code of the patient`)), Category]
+
+minor_nondp_25[, prop := pats_n/sum(minor_nondp_25[, pats_n])]
+minor_nondp_25
+```
+
+
+
+<!-- # 2YFU -->
+
+<!-- ```{r echo=TRUE} -->
+<!-- xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx' -->
+<!-- ``` -->
+
+<!-- ```{r warning=FALSE, echo=FALSE, include=FALSE} -->
+<!-- c(data_set_0, predictive_vars, .) %<-% get_data(xls_path, clean=FALSE) -->
+<!-- data_set <- data_set_0 %>% copy -->
+
+<!-- data_set %<>%  -->
+<!--   .[, followup_2y :=  -->
+<!--       !is.na(`2 YEAR VISIT - Date of visit`) |  -->
+<!--       !is.na(`3 YEAR VISIT - Date of visit`)] %>%  -->
+<!--   .[, followup_5y :=  -->
+<!--       !is.na(`5 YEAR VISIT - Date of visit`) |  -->
+<!--       !is.na(`6 YEAR VISIT - Date of visit`)] -->
+<!-- ``` -->
+
+<!-- ### Filters -->
+
+<!-- ```{r echo=FALSE} -->
+<!-- data_set %<>% -->
+<!--   .[followup_2y==TRUE] %>% -->
+<!--   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')] -->
+<!-- ``` -->
+
+<!-- ```{r, echo=FALSE} -->
+<!-- patients_all <- data_set[, `Code of the patient` %>% unique] -->
+<!-- ``` -->
+
+<!-- ```{r, echo=FALSE} -->
+<!-- complications_all <- read_excel(xls_path, sheet='Complications') %>% -->
+<!--   as.data.table %>%  -->
+<!--   .[`Code of the patient` %in% patients_all]  -->
+
+<!-- complications_all[, Category := strsplit( -->
+<!--     `Category of the complication`, ":")[[1]][1], -->
+<!--     1:nrow(complications_all)] -->
+<!-- ``` -->
+
+
+<!-- ```{r include=FALSE} -->
+<!-- patient_2yFU <- data_set[followup_2y==TRUE, `Code of the patient` %>% unique] -->
+<!-- patient_2y_5yFU <- data_set[followup_2y==TRUE & followup_5y==TRUE, `Code of the patient` %>% unique] -->
+<!-- ``` -->
+
+<!-- ### Major Complications -->
+
+<!-- ```{r, echo=FALSE} -->
+<!-- comp_type <- "Major Complication" -->
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2yFU] %>%  -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] -> -->
+<!--   comps_2y -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2yFU] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] %>%  -->
+<!--   .[, `Code of the patient` %>% uniqueN]-> -->
+<!--   elegible_2y -->
+
+<!-- patients_2y <- comps_2y[, `Code of the patient` %>% unique] -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2y_5yFU] %>%  -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` >= 365*2 ] %>%  -->
+<!--   .[`Days since surgery` < 365*5 ] -> -->
+<!--   comps_2y_5y -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2y_5yFU] %>%  -->
+<!--   .[`Days since surgery` >= 365*2 ] %>%  -->
+<!--   .[`Days since surgery` < 365*5 ]  %>%  -->
+<!--   .[, `Code of the patient` %>% uniqueN] -> -->
+<!--   elegible_2y_5y -->
+
+<!-- patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique] -->
+
+<!-- patients_n <- len(patients_all) -->
+<!-- patients_2y_n <- len(patients_2y) -->
+<!-- patients_2y_5y_n <- len(patients_2y_5y) -->
+<!-- p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value -->
+<!-- ``` -->
+
+<!-- - Total patients: `r patients_n` -->
+
+<!-- - Complications before 2 years: `r comps_2y[, .N]` -->
+<!-- - Elegible patients with 2Y: `r elegible_2y` -->
+<!-- - Patients with complications before 2 years: `r patients_2y_n` -->
+<!-- - Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y` -->
+
+<!-- - Complications between 2y and 5y: `r comps_2y_5y[, .N]` -->
+<!-- - Elegible patients with 2Y and 5Y: `r elegible_2y_5y` -->
+<!-- - Patients with complications before 5 years: `r patients_2y_5y_n` -->
+<!-- - Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y` -->
+
+<!-- - p-value testing equality between proportions of complications: `r p_val` -->
+
+<!-- ```{r include=FALSE} -->
+<!-- patients_2y_n_260_major <- patients_2y_n -->
+<!-- elegible_2y_260_major <- elegible_2y -->
+<!-- patients_2y_5y_n_260_major <- patients_2y_5y_n -->
+<!-- elegible_2y_5y_260_major <- elegible_2y_5y -->
+<!-- ``` -->
+
+
+
+<!-- ```{r comment="", echo=FALSE} -->
+<!-- major_260 <- complications_all %>% -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] %>%  -->
+<!--   .[, .(pats_n = uniqueN(`Code of the patient`)), Category] -->
+
+<!-- major_260[, prop := pats_n/sum(major_260[, pats_n])] -->
+<!-- major_260  -->
+<!-- ``` -->
+
+
+<!-- ### Minor Complications -->
+
+<!-- ```{r, echo=FALSE} -->
+<!-- comp_type <- "Minor Complication" -->
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2yFU] %>%  -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] -> -->
+<!--   comps_2y -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2yFU] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] %>%  -->
+<!--   .[, `Code of the patient` %>% uniqueN]-> -->
+<!--   elegible_2y -->
+
+<!-- patients_2y <- comps_2y[, `Code of the patient` %>% unique] -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2y_5yFU] %>%  -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` >= 365*2 ] %>%  -->
+<!--   .[`Days since surgery` < 365*5 ] -> -->
+<!--   comps_2y_5y -->
+
+<!-- complications_all %>% -->
+<!--   .[`Code of the patient` %in% patient_2y_5yFU] %>%  -->
+<!--   .[`Days since surgery` >= 365*2 ] %>%  -->
+<!--   .[`Days since surgery` < 365*5 ]  %>%  -->
+<!--   .[, `Code of the patient` %>% uniqueN] -> -->
+<!--   elegible_2y_5y -->
+
+<!-- patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique] -->
+
+<!-- patients_n <- len(patients_all) -->
+<!-- patients_2y_n <- len(patients_2y) -->
+<!-- patients_2y_5y_n <- len(patients_2y_5y) -->
+<!-- p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(elegible_2y, elegible_2y_5y))$p.value -->
+<!-- ``` -->
+
+<!-- - Total patients: `r patients_n` -->
+
+<!-- - Complications before 2 years: `r comps_2y[, .N]` -->
+<!-- - Elegible patients with 2Y: `r elegible_2y` -->
+<!-- - Patients with complications before 2 years: `r patients_2y_n` -->
+<!-- - Proportion of patients with complications before 2 years: `r patients_2y_n / elegible_2y` -->
+
+<!-- - Complications between 2y and 5y: `r comps_2y_5y[, .N]` -->
+<!-- - Elegible patients with 2Y and 5Y: `r elegible_2y_5y` -->
+<!-- - Patients with complications before 5 years: `r patients_2y_5y_n` -->
+<!-- - Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / elegible_2y_5y` -->
+
+<!-- - p-value testing equality between proportions of complications: `r p_val` -->
+
+<!-- ```{r include=FALSE} -->
+<!-- patients_2y_n_260_minor <- patients_2y_n -->
+<!-- elegible_2y_260_minor <- elegible_2y -->
+<!-- patients_2y_5y_n_260_minor <- patients_2y_5y_n -->
+<!-- elegible_2y_5y_260_minor <- elegible_2y_5y -->
+<!-- ``` -->
+
+
+
+<!-- ```{r comment="", echo=FALSE} -->
+<!-- minor_260 <- complications_all %>% -->
+<!--   .[`Complication Impact` == comp_type] %>%  -->
+<!--   .[`Days since surgery` < 365*2 ] %>%  -->
+<!--   .[, .(pats_n = uniqueN(`Code of the patient`)), Category] -->
+
+<!-- minor_260[, prop := pats_n/sum(minor_260[, pats_n])] -->
+<!-- minor_260  -->
+<!-- ``` -->
+
+
+
+# Comparations
+
+## All vs nondepuy 2Y
+
+
+### Major
+
+P-value: Proportion 2y depuy vs non depuy
+
+```{r include=FALSE}
+prop.test(c(patients_2y_n_dp_major, patients_2y_n_nondp_major), c(elegible_2y_dp_major, elegible_2y_nondp_major))$p.value
+```
+
+
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- major_all
+t2 <- major_nondp
+
+t1_n <- sum(t1[, pats_n])
+t2_n <- sum(t2[, pats_n])
+
+results <- list()
+for( name in intersect(t1[, Category], t2[, Category])){
+  t1_val_n <- as.numeric(t1[Category==name, pats_n])
+  t2_val_n <- as.numeric(t2[Category==name, pats_n])
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+### Minor
+
+P-value: Proportion before 2y vs non depuy
+
+```{r include=FALSE}
+prop.test(c(patients_2y_n_dp_minor, patients_2y_n_nondp_minor), c(elegible_2y_dp_minor, elegible_2y_nondp_minor))$p.value
+```
+
+
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- minor_all
+t2 <- minor_nondp
+
+t1_n <- sum(t1[, pats_n])
+t2_n <- sum(t2[, pats_n])
+
+results <- list()
+for( name in intersect(t1[, Category], t2[, Category])){
+  t1_val_n <- as.numeric(t1[Category==name, pats_n])
+  t2_val_n <- as.numeric(t2[Category==name, pats_n])
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+## All vs nondepuy between 2Y and 5Y
+
+
+### Major
+
+P-value: Proportion 2y and 5Y depuy vs non depuy
+
+```{r include=FALSE}
+prop.test(c(patients_2y_5y_n_dp_major, patients_2y_5y_n_nondp_major), c(elegible_2y_5y_dp_major, elegible_2y_5y_nondp_major))$p.value
+```
+
+
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- major_all_25
+t2 <- major_nondp_25
+
+t1_n <- sum(t1[, pats_n])
+t2_n <- sum(t2[, pats_n])
+
+results <- list()
+for( name in intersect(t1[, Category], t2[, Category])){
+  t1_val_n <- as.numeric(t1[Category==name, pats_n])
+  t2_val_n <- as.numeric(t2[Category==name, pats_n])
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+### Minor
+
+P-value: Proportion between 2y and 5y depuy vs non depuy
+
+```{r include=FALSE}
+prop.test(c(patients_2y_5y_n_dp_minor, patients_2y_5y_n_nondp_minor), c(elegible_2y_5y_dp_minor, elegible_2y_5y_nondp_minor))$p.value
+```
+
+
+```{r comment="", echo=FALSE, warning=FALSE}
+t1 <- minor_all_25
+t2 <- minor_nondp_25
+
+t1_n <- sum(t1[, pats_n])
+t2_n <- sum(t2[, pats_n])
+
+results <- list()
+for( name in intersect(t1[, Category], t2[, Category])){
+  t1_val_n <- as.numeric(t1[Category==name, pats_n])
+  t2_val_n <- as.numeric(t2[Category==name, pats_n])
+  results[[name]] <- prop.test(
+    c(t1_val_n, t2_val_n),
+    c(t1_n, t2_n),
+  )$p.val
+}
+
+data.frame(
+  complication = names(results),
+  p_val = unlist(results) %>% as.numeric
+)
+```
+
+
+<!-- ## Before 2YFU vs nondepuy -->
+
+<!-- ### Major -->
+<!-- ```{r comment="", echo=FALSE, warning=FALSE} -->
+<!-- t1 <- major_260 -->
+<!-- t2 <- major_nondepuy -->
+
+<!-- t1_n <- sum(t1[, pats_n]) -->
+<!-- t2_n <- sum(t2[, pats_n]) -->
+
+<!-- results <- list() -->
+<!-- for( name in intersect(t1[, Category], t2[, Category])){ -->
+<!--   t1_val_n <- as.numeric(t1[Category==name, pats_n]) -->
+<!--   t2_val_n <- as.numeric(t1[Category==name, pats_n]) -->
+<!--   results[[name]] <- prop.test( -->
+<!--     c(t1_val_n, t2_val_n), -->
+<!--     c(t1_n, t2_n), -->
+<!--   )$p.val -->
+<!-- } -->
+
+<!-- data.frame( -->
+<!--   complication = names(results), -->
+<!--   p_val = unlist(results) %>% as.numeric -->
+<!-- ) -->
+<!-- ``` -->
+
+<!-- ### Minor -->
+<!-- ```{r comment="", echo=FALSE, warning=FALSE} -->
+<!-- t1 <- minor_260 -->
+<!-- t2 <- minor_nondepuy -->
+
+<!-- t1_n <- sum(t1[, pats_n]) -->
+<!-- t2_n <- sum(t2[, pats_n]) -->
+
+<!-- results <- list() -->
+<!-- for( name in intersect(t1[, Category], t2[, Category])){ -->
+<!--   t1_val_n <- as.numeric(t1[Category==name, pats_n]) -->
+<!--   t2_val_n <- as.numeric(t1[Category==name, pats_n]) -->
+<!--   results[[name]] <- prop.test( -->
+<!--     c(t1_val_n, t2_val_n), -->
+<!--     c(t1_n, t2_n), -->
+<!--   )$p.val -->
+<!-- } -->
+
+<!-- data.frame( -->
+<!--   complication = names(results), -->
+<!--   p_val = unlist(results) %>% as.numeric -->
+<!-- ) -->
+<!-- ``` -->
+

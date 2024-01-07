@@ -1,5 +1,5 @@
 demographics:
-  - Age 
+  - Age
   - Gender 
   - Prior Spine Surgery 
   - "Height (cm)_First Visit"
@@ -8,11 +8,11 @@ demographics:
   - ASA classification 
   - Tobacco use_First Visit 
   - ESSG Diagnosis 
-  - Surgical Approach
+  # - Surgical Approach
 radiology:
   - Static Major curve Cobb angle # Major curve Cobb angle
-  - Coronal Balance (C7PL to CSVL)
-  - Sagittal Balance
+  # - Coronal Balance (C7PL to CSVL)
+  # - Sagittal Balance
   - Sagittal T2-T5
   - Sagittal T5-T12
   - Sagittal T2-T12
@@ -24,7 +24,6 @@ radiology:
   - Global Tilt 
   - T1 Sagittal Tilt 
   - "Thoracolumbar L2-T10"
-  # - LDI
   - RSA
   - RPV
 quality:
@@ -41,7 +40,7 @@ surgery:
   - Total Operative Blood Loss st1+st2+st3 #Mean intraoperative blood loss 
   - Total surgical time st1+st2+st3 #Mean surgical time 
   - Number of Posterior Instrumented Levels #Mean posterior instrumented levels 
-  - Pelvic fixation 
+  - Pelvic fixation
   - Surgical Approach
   - Number of Interbody Fusions
   - Decompression
@@ -50,5 +49,3 @@ surgery:
   - 3CO
   
   
-#   Major curve Cobb angle
-# 6W. Static Major curve Cobb angle

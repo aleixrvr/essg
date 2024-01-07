@@ -1,0 +1,197 @@
+---
+title: "FU Report"
+output:
+  pdf_document: default
+  html_document:
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  root.dir=normalizePath('../')
+)
+
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+
+```{r warning=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+
+source('liv_l4_l5_review/patient_selection_review.R')
+xls_path <- '../../data/June 2023 All (2).xlsx'
+```
+
+## 2Y FU
+
+```{r warning=FALSE, include=FALSE}
+clinical_data <- get_data(xls_path)
+# clinical_data <- read_excel(xls_path) %>%
+  # as.data.table()
+```
+
+
+```{r warning=FALSE, echo=TRUE}
+clinical_data %<>%
+  .[`Posterior Instrumented Fusion` == 'Yes'] %>% 
+  .[`Number of Posterior Instrumented Levels` > 3] %>%
+  .[Site != 'ANK Op'] %>%
+  .[`Vital status` == 'Alive'] %>%
+  .[Age < 100] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2020-06-01')]
+```
+
+
+```{r}
+clinical_data %<>%
+  .[, followup_2y :=
+      !is.na(`2 YEAR VISIT - Date of visit`) |
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>%
+  .[, followup_5y :=
+      !is.na(`5 YEAR VISIT - Date of visit`) |
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+clinical_data %<>%
+  .[, radio_2y :=
+      !is.na(`2Y. Date`) |
+      !is.na(`3Y. Date`)] %>%
+  .[, radio_5y :=
+      !is.na(`5Y. Date`) |
+      !is.na(`6Y. Date`)]
+total <- clinical_data[, .N]
+```
+
+
+Total Number of eligible patients
+```{r echo=TRUE}
+total
+```
+
+
+Number of patients with 2Y FU
+
+```{r}
+clinical_data[followup_2y==TRUE, .N]
+```
+
+Proportion of patients with 2Y FU
+
+```{r}
+clinical_data[followup_2y==TRUE, .N]/total 
+```
+
+Proportion of patients with 2Y FU per Site
+
+```{r}
+clinical_data[, .(.N, have_FU=sum(followup_2y==TRUE), sum(followup_2y==TRUE)/.N), `Site`]
+```
+
+
+Number of patients with 2Y radio
+
+```{r}
+clinical_data[radio_2y==TRUE, .N]
+```
+
+Proportion of patients with 2Y radio
+
+```{r}
+clinical_data[radio_2y==TRUE, .N]/total 
+```
+
+Proportion of patients with 2Y radiography per Site
+
+```{r}
+clinical_data[, .(.N, have_radio=sum(radio_2y==TRUE), sum(radio_2y==TRUE)/.N), `Site`]
+```
+
+## 5Y FU
+
+```{r warning=FALSE, include=FALSE}
+clinical_data <- get_data(xls_path)
+# clinical_data <- read_excel(xls_path) %>%
+#   as.data.table()
+```
+
+
+```{r warning=FALSE, echo=TRUE}
+clinical_data %<>%
+  .[`Posterior Instrumented Fusion` == 'Yes'] %>% 
+  .[`Number of Posterior Instrumented Levels` > 3] %>%
+  .[Site != 'ANK Op'] %>%
+  .[`Vital status` == 'Alive'] %>%
+  .[Age < 100] %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2017-06-01')]
+```
+
+
+```{r}
+clinical_data %<>%
+  .[, followup_2y :=
+      !is.na(`2 YEAR VISIT - Date of visit`) |
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>%
+  .[, followup_5y :=
+      !is.na(`5 YEAR VISIT - Date of visit`) |
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+clinical_data %<>%
+  .[, radio_2y :=
+      !is.na(`2Y. Date`) |
+      !is.na(`3Y. Date`)] %>%
+  .[, radio_5y :=
+      !is.na(`5Y. Date`) |
+      !is.na(`6Y. Date`)]
+
+total <- clinical_data[, .N]
+```
+
+Total Number of eligible patients
+```{r}
+total
+```
+
+
+Number of patients with 5Y FU
+
+```{r}
+clinical_data[followup_5y==TRUE, .N] 
+```
+
+Proportion of patients with 5Y FU
+
+```{r}
+clinical_data[followup_5y==TRUE, .N]/total
+```
+
+Proportion of patients with 5Y FU per Site
+
+```{r}
+clinical_data[, .(.N, have_FU=sum(followup_5y==TRUE), sum(followup_5y==TRUE)/.N), `Site`]
+```
+
+Number of patients with 5Y radio
+
+```{r}
+clinical_data[radio_5y==TRUE, .N]
+```
+
+Proportion of patients with 5Y radio
+
+```{r}
+clinical_data[radio_5y==TRUE, .N]/total 
+```
+
+Proportion of patients with 5Y radiography per Site
+
+```{r}
+clinical_data[, .(.N, have_radio=sum(radio_5y==TRUE), sum(radio_5y==TRUE)/.N), `Site`]
+```
+
+

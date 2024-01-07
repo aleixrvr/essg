@@ -1,0 +1,159 @@
+---
+title: "Complementary statistics"
+output: word_document
+---
+
+```{r setup, include=FALSE, eval=TRUE}
+knitr::opts_knit$set(
+  root.dir=normalizePath('../')
+)
+
+knitr::opts_chunk$set(
+  echo = FALSE, 
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r include=FALSE}
+library(data.table)
+library(magrittr)
+library(yaml)
+library(survival)
+library(ggfortify)
+library(flextable)
+
+source('liv_l4_l5_review/patient_selection_review.R')
+source('liv_l4_l5_review/utils.R')
+```
+
+```{r, message=FALSE, warning=FALSE}
+xls_path <- '../../data/June 2023 All (2).xlsx'
+analysis_vars <- read_yaml('descriptive.yml')
+analysis_vars$radiology <- c(analysis_vars$radiology, "Sagittal Balance")
+data_ <- get_data(xls_path)
+```
+
+
+```{r echo=TRUE}
+data_ %>% 
+  .[followup_2y ==TRUE] %>% 
+  .[Study=='Op'] %>% 
+  .[Site != 'ANK Op'] %>% 
+  .[Age < 100] %>% 
+  .[`Vital status` == 'Alive'] ->
+  data_
+```
+
+Initial Patients: `r data_[, .N]`
+
+```{r echo=TRUE}
+data_ %<>% 
+  .[`Posterior Instrumented Fusion` == 'Yes'] %>% 
+  .[`Number of Posterior Instrumented Levels` > 3]
+```
+With Posterior Instrumented Fusion & Number of Posterior Instrumented Levels > 3: `r data_[, .N]`
+
+
+```{r comment="", include=FALSE}
+data_[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+data_[post_intr_fusion == 'Iliac', type := 'Iliac']
+data_[post_intr_fusion == 'L5', type := 'L5']
+data_[post_intr_fusion == 'L4', type := 'L4']
+data_ %<>% .[!is.na(type)] 
+```
+
+# Survival Curve
+
+
+
+```{r}
+complication_data <- read_excel(xls_path, sheet = 'Complications') %>% 
+  as.data.table() %>% 
+  .[`Complication Type`=='Primary']
+
+days_first_reiq <- complication_data[, .(days_reiqs = min(`Days since surgery`)), `Code of the patient`]
+
+data_[, .(`Code of the patient`, type, stage_date = `st1. Date of Stage` %>% as.Date())] %>% 
+  merge(
+    days_first_reiq, all.x = TRUE, all.y=FALSE
+  ) ->
+  data_reiqs
+
+max_date <- data_reiqs[, max(stage_date)]+1
+
+data_reiqs[, status:=2]
+data_reiqs[, years_index := as.numeric(difftime(max_date, stage_date, units = 'days'))/360]
+data_reiqs[is.na(days_reiqs), status := 1]
+data_reiqs[is.na(days_reiqs), days_reiqs := years_index]
+data_reiqs[, years_first_reiq := days_reiqs/360]
+
+fit <- survfit(Surv(years_first_reiq, status) ~ type, data = data_reiqs)
+autoplot(fit)
+```
+
+## Risk factors 
+
+Among those who are instrumented until L5, which are the risk factors that make them end up instrumented until Iliac.
+
+
+```{r, comment="", include=TRUE, echo=TRUE, warning=FALSE, message=FALSE}
+revision <- read_excel(xls_path, sheet="Revision surgery") %>% 
+  as.data.table() 
+
+revision[, `Posterior Instrumented Fusion: Upper / Lower Levels`] %>% 
+  sapply(. %>% strsplit('-') %>% .[[1]] %>% .[2]) ->
+  post_intr_fusion
+
+reint_iliac <- revision[post_intr_fusion=='Iliac', `Code of the patient`]
+
+data_l5 <- data_[type == 'L5']
+data_l5[, until_iliac := 0]
+data_l5[`Code of the patient` %in% reint_iliac, until_iliac := 1]
+
+data_l5[, .N, until_iliac]
+```
+
+
+```{r}
+controls <- c('Age', 'BMI_First Visit', 'ASA classification', 'Prior Spine Surgery')
+surgery <- c(
+  'Pelvic Incidence',
+  'Global Tilt',
+  'Pelvic Tilt'
+)
+
+dt <- data_l5[, .SD, .SDcols=c('until_iliac', controls, surgery)]
+for(var_ in surgery){
+  var_6w <- glue("6W. {var_}")
+  var_change <- glue("{var_} Change")
+  dt[, c(var_change) := data_l5[, get(var_6w) - get(var_)]]
+  surgery <- c(surgery, var_change)
+}
+```
+
+
+### Risk Controls
+
+```{r}
+glm(until_iliac ~., data=dt[, .SD, .SDcols = c('until_iliac', controls)], family = 'binomial') %>% 
+  summary %>% coefficients() %>% data.table(keep.rownames=TRUE) -> res
+setnames(res, 'rn', 'Variable')
+res[, Variable := gsub('`', '', Variable)]
+res[, -4]  %>% flextable %>% autofit()
+```
+
+### Risk Radiology
+
+```{r}
+glm(until_iliac ~., data=dt, family = 'binomial') %>% 
+  summary %>% coefficients() %>% data.table(keep.rownames=TRUE) -> res
+setnames(res, 'rn', 'Variable')
+res[, Variable := gsub('`', '', Variable)]
+
+res[Variable %chin% surgery, -4] %>% flextable %>% autofit()
+```

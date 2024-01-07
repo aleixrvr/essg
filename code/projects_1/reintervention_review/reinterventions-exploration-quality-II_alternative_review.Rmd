@@ -1,0 +1,432 @@
+---
+title: "Impact of Reinterventions solution"
+output:
+  pdf_document: default
+  html_document: default
+always_allow_html: yes
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  warning = FALSE,
+  root.dir=normalizePath('../'),
+  comment=""
+)
+```
+
+```{r warning=FALSE, include=FALSE}
+library(readxl)
+library(magrittr)
+library(data.table)
+library(stringr)
+library(yaml)
+library(zeallot)
+library(DT)
+
+source('basic.R')
+source('utils.R')
+source('reintervention_review//reinterventions-util.R')
+
+c(time_evolution, complications, category_los, clinical_data) %<-% get_data()
+controlling_vars <- read_yaml('reintervention/controling_vars_new.yml')
+
+patients_ <- clinical_data %>% 
+  .[followup_5y==TRUE] %>% 
+  .[, `Code of the patient`]
+clinical_data %<>% .[`Code of the patient` %in% patients_]
+category_los %<>% .[patient_id %in% patients_]
+time_evolution %<>% .[patient_id %in% patients_]
+complications %<>% .[patient_id %in% patients_]
+```
+
+
+```{r echo=FALSE}
+xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
+revision_0 <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
+  data.table 
+complications_0 <- read_excel(xls_path, sheet = "Complications") %>% 
+  data.table 
+```
+
+# Controling Variables
+
+```{r comment=''}
+cat(controlling_vars %>% as.yaml())
+```
+
+
+```{r echo=FALSE}
+y_ <- 5
+outcomes <- c(
+  "{y_}Y. ODI - Score (%)" %>% f, 
+  "{y_}Y. SRS22 - SRS Subtotal score" %>% f,
+  "{y_}Y. SF36 - MCS" %>% f,
+  "{y_}Y. SF36 - PCS" %>% f
+)
+
+outcomes %>% 
+  lapply(. %>% get_base_outcome(first_visit=TRUE)) ->
+  base_outcomes
+names(base_outcomes) <- outcomes
+
+index_surgeries <- clinical_data[, `Surgery number`] %>% unique
+valid_patients <-  clinical_data[, `Code of the patient`] %>% unique
+```
+
+Definition of final_status
+```{r}
+get_surgery_status <- function(status){
+  final_status <- 'Resolved without sequelae'
+  if( 'Not resolved' %in% status){
+    final_status <- 'Not resolved or with sequelae'
+  }else if('Resolved with sequelae' %in% status){
+    final_status <- 'Not resolved or with sequelae'
+  }
+  final_status
+}
+```
+
+# Impact of final status and number of reinterventions associated to a surgery in `r y_`Y HRQL Gain (odi neg / others pos)
+```{r}
+index_dates <- clinical_data[, .(`Code of the patient`, `st1. Date of Stage 1`)]
+
+complications_0 %>% 
+  merge(index_dates,  by='Code of the patient') %>% 
+  .[, diff_years:=difftime(`Date of Reoperation`, `st1. Date of Stage 1`, units = "days")/365] %>% 
+  .[diff_years < y_] %>%
+  .[`Code of the patient` %in% valid_patients] %>%
+  .[`Reoperation Due to Complication` == 'Yes'] %>% 
+  .[!is.na(`Date of Reoperation`)] %>% 
+  .[, .(
+    final_status = get_surgery_status(`Status of the complication`), 
+    reinterventions = `Date of Reoperation` %>% uniqueN), 
+    .(`Complication associated to surgery`, `Code of the patient` )] ->
+  complicated_surgeries
+
+complicated_surgeries_n <- complicated_surgeries[, `Complication associated to surgery`] %>% uniqueN
+index_surgeries <- complicated_surgeries[, `Code of the patient` %>% uniqueN]
+```
+
+
+- Surgeries that followed with complications before `r y_`y with valid patients: `r complicated_surgeries_n`
+- Index surgeries that followed with complications before `r y_`y with valid patients: `r index_surgeries`
+- Valid patients: `r valid_patients %>% len`
+
+```{r echo=FALSE, comment=""}
+complicated_surgeries[, .N, final_status]
+```
+
+
+```{r echo=FALSE, comment=""}
+vars_ <- c(
+  controlling_vars,
+  outcomes,
+  base_outcomes %>% unlist,
+  'Code of the patient'
+) %>% unique
+
+complicated_surgeries %<>% 
+  dcast(
+    '`Code of the patient` ~ final_status', 
+    value.var='reinterventions',
+    fun.aggregate = sum
+  )
+final_types <- complicated_surgeries[, -1] %>% colnames
+
+patients_unsolved <- complicated_surgeries[ `Not resolved or with sequelae`
+ > 0,.N]
+```
+Patients with final status 'unsolved' or 'with sequelae' in any re-intervention `r patients_unsolved`
+
+
+```{r echo=FALSE, comment=""}
+# DT::datatable(complicated_surgeries)
+```
+
+
+```{r echo=FALSE}
+clinical_data %>% 
+  .[, .SD, .SDcols=vars_] %>% 
+  merge(
+    complicated_surgeries, 
+    by='Code of the patient', 
+    all.x=TRUE) %>% 
+  .[, `Code of the patient` := NULL] ->
+  index_data_
+
+for( final_type in final_types){
+  index_data_[ is.na(get(final_type)), c(final_type) := 0]
+}
+```
+
+```{r echo=FALSE}
+lm_vars_ <- c(
+  controlling_vars, 
+  final_types,
+  'outcome_gain'
+)
+
+formula <- 'outcome_gain ~ . '
+
+resolved_vars <- c(
+  "`Not resolved or with sequelae`",
+  "`Resolved without sequelae`"
+)
+```
+
+
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[1]
+base_outcome <- base_outcomes[[outcome]]
+
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Not resolved or with sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Not resolved or with sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_non <- np.reg.test(x_var, y_var, z_var)
+```
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Resolved without sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Resolved without sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_res <- np.reg.test(x_var, y_var, z_var)
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+
+res['np_p-value'] <- c(nonparam_non$p.value, nonparam_res$p.value)
+res
+```
+
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[2]
+base_outcome <- base_outcomes[[outcome]]
+
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Not resolved or with sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Not resolved or with sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_non <- np.reg.test(x_var, y_var, z_var)
+```
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Resolved without sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Resolved without sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_res <- np.reg.test(x_var, y_var, z_var)
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res['np_p-value'] <- c(nonparam_non$p.value, nonparam_res$p.value)
+res
+```
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[3]
+base_outcome <- base_outcomes[[outcome]]
+
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Not resolved or with sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Not resolved or with sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_non <- np.reg.test(x_var, y_var, z_var)
+```
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Resolved without sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Resolved without sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_res <- np.reg.test(x_var, y_var, z_var)
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res['np_p-value'] <- c(nonparam_non$p.value, nonparam_res$p.value)
+res
+```
+
+```{r comment="", echo=FALSE}
+outcome <- outcomes[4]
+base_outcome <- base_outcomes[[outcome]]
+
+#htmltools::h3('{outcome} Gain (odi neg / others pos)' %>% f)
+print('{outcome} Gain (odi neg / others pos)' %>% f)
+
+index_data_ %>% 
+  copy %>% 
+  .[, outcome_gain := get(outcome) - get(base_outcome)] %>% 
+  .[, .SD, .SDcols = lm_vars_] -> 
+  data_reg
+
+data_reg %>% 
+  lm(formula, data=.) %>% summary %>% coefficients %>% .[, c(1, 4)] %>% round(5) ->
+  coef_res
+coef_res
+```
+
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Not resolved or with sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Not resolved or with sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_non <- np.reg.test(x_var, y_var, z_var)
+```
+
+```{r echo = FALSE}
+data_reg_ <- data_reg %>% na.omit
+z_cols <- setdiff(colnames(data_reg), c(
+  "outcome_gain", "Resolved without sequelae"
+  )
+)
+y_var <- data_reg_[, outcome_gain] 
+x_var <- data_reg_[, .(`Resolved without sequelae`)] 
+z_var <- data_reg_[, .SD, .SDcols = z_cols] %>% data.matrix
+nonparam_res <- np.reg.test(x_var, y_var, z_var)
+```
+
+
+```{r comment="", echo=FALSE}
+mean_gain <- data_reg[, mean(outcome_gain, na.rm=TRUE)]
+
+data_reg %>% 
+  lm(formula, data=.) %>% confint -> conf_res
+
+coef_res <- coef_res[rownames(coef_res) %in% resolved_vars, ] %>% as.data.frame
+coef_res['Variable'] <- rownames(coef_res)
+
+conf_res <- conf_res[rownames(conf_res) %in% resolved_vars, ] %>% as.data.frame
+conf_res['Variable'] <- rownames(conf_res)
+
+res <- merge(coef_res, conf_res)
+res['Relative Impact'] <- res['Estimate']/mean_gain
+res['np_p-value'] <- c(nonparam_non$p.value, nonparam_res$p.value)
+res
+```

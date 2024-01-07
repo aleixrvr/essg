@@ -36,7 +36,7 @@ train_model <- function(
   if( 'boosting' %in% models ){
     results[['boosting']] <-   caret::train(
       pred_formula, data = dt, method='xgbTree', trControl = trControl, tuneLength = tuneLength, 
-      verbose = FALSE, metric = metric
+      verbose = FALSE, metric = metric, verbosity = 0
     )
     if( verbose == TRUE ) log_info('Boosting -> Done \n')
   }
@@ -46,7 +46,7 @@ train_model <- function(
   if( 'elastic' %in% models ){
     results[['elastic_net']] <- caret::train(
       pred_formula, data=dt, method='glmnet', trControl = trControl, standardize = FALSE, 
-      tuneLength = tuneLength, metric = metric
+      tuneLength = tuneLength, metric = metric, verbosity = 0
     )
     if( verbose == TRUE ) log_info('Elastic Net -> Done \n ')
   }
@@ -56,7 +56,7 @@ train_model <- function(
     tuneGrid <- data.frame(alpha = 1, lambda = 10^seq(-4, -1, length = tuneLength))
     results[['elastic_net']] <- caret::train(
       pred_formula, data=dt, method='glmnet', trControl = trControl, standardize = FALSE, 
-      metric = metric, tuneGrid = tuneGrid
+      metric = metric, tuneGrid = tuneGrid, verbosity = 0
     )
     if( verbose == TRUE ) log_info('Elastic Net -> Done \n ')
   }

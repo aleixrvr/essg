@@ -116,13 +116,23 @@ data_set %<>%
       !is.na(`5 YEAR VISIT - Date of visit`) | 
       !is.na(`6 YEAR VISIT - Date of visit`)] 
 
+followup_2y_all <- data_set %>% 
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2019-6-1')] %>% 
+  .[, `Code of the patient` %>% uniqueN] 
+
 followup_2y <- data_set %>% 
   .[followup_2y==TRUE] %>% 
-  .[, `Code of the patient` %>% uniqueN]
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2019-6-1')] %>% 
+  .[, `Code of the patient` %>% uniqueN] 
+
+followup_5y_all <- data_set %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')] %>% 
+  .[, `Code of the patient` %>% uniqueN] 
 
 followup_5y <- data_set %>% 
   .[followup_5y==TRUE] %>% 
-  .[, `Code of the patient` %>% uniqueN]
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')] %>% 
+  .[, `Code of the patient` %>% uniqueN] 
 
 total <- data_set[, .N]
 total_with_followup_2y <- data_set[followup_2y==TRUE, .N]
@@ -132,20 +142,23 @@ perc_followup_5y_with_2y <- round(followup_5y/total_with_followup_2y, 3)
 ```
 
 - Patients with at least 5 year from intervention (total variable): `r total`
-- Patients with 2y number (followup_2y variable): `r followup_2y`
-- Patients with 2y % (perc_followup_2y variable): `r perc_followup_2y*100`
-- Patients with 5y number (followup_5y variable): `r followup_5y`
-- Patients with 5y % (perc_followup_5y variable): `r perc_followup_5y*100`
-- Patients (among 2y FU) with 5y % (perc_followup_5y_with_2y variable): `r perc_followup_5y_with_2y*100`
+- Patients with 1st stage date before '2019-1-1': `r followup_2y_all`
+- Patients with 1st stage date before '2019-1-1' and 2YFU: `r followup_2y`
+- Patients with 2yFU %: `r round(followup_2y/followup_2y_all, 3)*100`
+
+- Patients with 1st stage date before '2016-1-1': `r followup_5y_all`
+- Patients with 1st stage date before '2016-1-1' and 5YFU: `r followup_5y`
+- Patients with 5yFU %: `r round(followup_5y/followup_5y_all, 3)*100`
+
 
 
 ### Filters
 ```{r warning=FALSE }
 # discarded_patients <- readLines('five_years/discarded_patients')
-
-data_set %<>%
-  .[followup_2y==TRUE] %>%
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+# 
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
 ```
 
 Total patients: `r data_set[, .N]`

@@ -18,8 +18,8 @@ knitr::opts_knit$set(
 ```
 
 ```{r echo=TRUE}
-# xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v7.xlsx'
-xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
+xls_path <- '../../data/ESSG Extraction_DEC_OP_ NON DePuy v8.xlsx'
+# xls_path <- '../../data/Dataset 4th report 5Y - ONLY DPS.xlsx'
 ```
 
 ```{r warning=FALSE, echo=FALSE, include=FALSE}
@@ -147,9 +147,9 @@ data_set %<>%
 ```
 
 ```{r echo=TRUE}
-data_set %<>%
-  .[followup_2y==TRUE] %>%
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
+# data_set %<>%
+#   .[followup_2y==TRUE] %>%
+#   .[`st1. Date of Stage` %>% as.Date() < as.Date('2016-6-1')]
 ```
 
 Total Patients for the analysis: `r data_set[, .N]`
@@ -266,12 +266,16 @@ complications_all <- read_excel(xls_path, sheet='Complications') %>%
 ### Major Complications Stats
 ```{r echo=FALSE}
 
+patient_2yFU <- data_set[followup_2y=='has_followup', `Code of the patient` %>% unique]
+patient_2y_5yFU <- data_set[followup_2y=='has_followup' & followup_5y=='has_followup', `Code of the patient` %>% unique]
+
 complications_all %>%
   .[`Complication Impact` == 'Major Complication'] %>% 
   .[`Days since surgery` < 365*2 ] ->
   comps_2y
 
-patients_2y <- comps_2y[, `Code of the patient` %>% unique]
+patients_2y <- intersect(patient_2yFU, comps_2y[, `Code of the patient` %>% unique])
+patients_2y_noc <- setdiff(patient_2yFU, patients_2y)
 
 complications_all %>%
   .[`Complication Impact` == 'Major Complication'] %>% 
@@ -279,7 +283,8 @@ complications_all %>%
   .[`Days since surgery` < 365*5 ] ->
   comps_2y_5y
 
-patients_2y_5y <- comps_2y_5y[, `Code of the patient` %>% unique]
+patients_2y_5y <- intersect(patient_2y_5yFU, comps_2y_5y[, `Code of the patient` %>% unique])
+patients_2y_5y_noc <- setdiff(patient_2y_5yFU, patients_2y_5y)
 
 patients_n <- len(patients_all)
 patients_2y_n <- len(patients_2y)
@@ -288,13 +293,26 @@ p_val <- prop.test(c(patients_2y_n, patients_2y_5y_n), c(patients_n, patients_n)
 ```
 
 - Total patients: `r patients_n`
+- Total patients with 2YFU: `r patient_2yFU %>% uniqueN`
+- Total patients with 2Y and 5YFU: `r patient_2y_5yFU %>% uniqueN`
+
+- Patients with complications before 2y: `r patients_2y %>% uniqueN`
+- Patients without complications before 2y: `r patients_2y_noc %>% uniqueN`
+
+- Patients with complications between 2y-5y: `r patients_2y_5y %>% uniqueN`
+- Patients without complications between 2y-5y: `r patients_2y_5y_noc %>% uniqueN`
+
+- Patients with 2y complications and 2y-5y complications: `r intersect(patients_2y, patients_2y_5y) %>% uniqueN`
+- Patients with 2y complications and without 2y-5y complications: `r intersect(patients_2y, patients_2y_5y_noc) %>% uniqueN`
+
+- Patients without 2y complications and 2y-5y complications: `r intersect(patients_2y_noc, patients_2y_5y) %>% uniqueN`
+- Patients without 2y complications and without 2y-5y complications: `r intersect(patients_2y_noc, patients_2y_5y_noc) %>% uniqueN`
+
 
 - Complications before 2 years: `r comps_2y[, .N]`
-- Patients with complications before 2 years: `r patients_2y_n`
 - Proportion of patients with complications before 2 years: `r patients_2y_n / patients_n`
 
 - Complications between 2y and 5y: `r comps_2y_5y[, .N]`
-- Patients with complications before 5 years: `r patients_2y_5y_n`
 - Proportion of patients with complications between 2y and 5y: `r patients_2y_5y_n / patients_n`
 
 - p-value testing equality between proportions of complications: `r p_val`

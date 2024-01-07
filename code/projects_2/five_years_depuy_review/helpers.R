@@ -1,3 +1,5 @@
+library(ggplot2)
+
 clean_data <- function(dt){
   
   for(name in colnames(dt)){
@@ -89,20 +91,18 @@ stats_fun <- function(dt, variable){
       proportion_nondepuy = prop.table(res_table_nondepuy)
     )
     
-    if( length(res_table_depuy) < 5){
+    if( length(res_table_depuy) < 20){
       for(p_val_cat in dt[, unique(get(variable))]){
         p_val_name <- "p_val_{p_val_cat}" %>% f
         
-        if(dt[, uniqueN(get(variable) %>% na.omit)] == 2){
-          n_depuy <- dt[type=="depuy", .N]
-          n_depuy_var <- dt[type=="depuy", sum(get(variable) == p_val_cat, na.rm = TRUE)]
-          n_nondepuy <- dt[type=="non-depuy", .N]
-          n_nondepuy_var <- dt[type=="non-depuy", sum(get(variable) == p_val_cat, na.rm = TRUE)]
-          res[[p_val_name]] <- prop.test(
-            c(n_depuy_var, n_nondepuy_var),
-            c(n_depuy, n_nondepuy)
-          )$p.val
-        }
+        n_depuy <- dt[type=="depuy", .N]
+        n_depuy_var <- dt[type=="depuy", sum(get(variable) == p_val_cat, na.rm = TRUE)]
+        n_nondepuy <- dt[type=="non-depuy", .N]
+        n_nondepuy_var <- dt[type=="non-depuy", sum(get(variable) == p_val_cat, na.rm = TRUE)]
+        res[[p_val_name]] <- prop.test(
+          c(n_depuy_var, n_nondepuy_var),
+          c(n_depuy, n_nondepuy)
+        )$p.val
       }
       
     }
@@ -110,4 +110,49 @@ stats_fun <- function(dt, variable){
     return(res)
   }
 }
+
+plot_time <- function(dt, vars_years, middle_point = 6/52){
+  res <- dt[, 
+            lapply(.SD, function(x) mean(x, na.rm=TRUE)), 
+            .SDcols = vars_years, 
+            by=c('type')] %>% 
+    melt(id.vars = "type") %>% 
+    dcast(variable~type) 
+  setorder(res, "variable")
+  
+  p_vals <- c()
+  for(var_ in vars_years){
+    depuy <- dt[type=='depuy', get(var_)] %>% na.omit()
+    nondepuy <- dt[type=='non-depuy', get(var_)] %>% na.omit()
+    p_vals <- c(p_vals, t.test(depuy, nondepuy)$p.val)
+  }
+  
+  res[, p_vals := p_vals]
+  res[, year:= c(0, middle_point, 2, 5)]
+  res[, variable := NULL]
+  res %>% melt(id.vars = 'year') ->
+    res
+  res_type <- res[variable != 'p_vals']
+  setnames(res_type, "variable", "type")
+  res_p_val <- res[variable=='p_vals']
+  setnames(res_p_val, 'value', 'p_val')
+  res_p_val[, variable:=NULL]
+  res_p_val <- merge(res[variable == 'depuy'], res_p_val, by='year')
+  
+  ggplot(res_type) +
+    geom_line(aes(year, value, color=type)) +
+    geom_point(aes(year, value, color=type)) + 
+    ggtitle(vars_years[1]) +
+    xlim(c(-0.5, 5.5)) +
+    expand_limits(y = 0) +
+    geom_text(data = res_p_val, 
+              aes(year, value, label=round(p_val, 2)),
+              vjust = 0, nudge_y = 2) ->
+    res_plot
+  return(res_plot)
+}
+
+
+
+
 

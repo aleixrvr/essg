@@ -1,0 +1,302 @@
+---
+title: "Descriptive Stats"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_knit$set(
+  echo = FALSE, 
+  root.dir=normalizePath('../'),
+  warning=FALSE, 
+  comment="",
+  message=FALSE
+)
+```
+
+```{r echo=FALSE, warning=FALSE, include=FALSE}
+library(readxl)
+library(data.table)
+library(magrittr)
+library(yaml)
+library(glue)
+f <- glue
+
+
+xls_path <- '../../data/ESSG extraction December 2020 - DEF.xlsx'
+
+clinical_data <- read_excel(xls_path, .name_repair='minimal') %>% 
+  as.data.table()
+
+setnames(
+  clinical_data, 
+  'SRS22 -SI_First Visit', 
+  'SRS22 - Self image / Appearance_First Visit'
+)
+setnames(
+  clinical_data, 
+  'SRS22 - MH_First Visit', 
+  'SRS22 - Mental health_First Visit'
+)
+setnames(
+  clinical_data, 
+  'SRS22 - Function_First Visit', 
+  'SRS22 - Function / Activity_First Visit'
+)
+
+clinical_data[, 
+  `Pelvic Fixation` := grepl(
+    'Iliac', 
+    `Posterior Instrumented Fusion: Upper / Lower Levels`, 
+    fixed=TRUE
+  )] %>% 
+  .[, `Pelvic Fixation` := ifelse(`Pelvic Fixation` == TRUE, 'Yes', 'No')] 
+
+clinical_data[, `ASA classification` := as.factor(`ASA classification`)]
+
+uiv_ <- c('T10', 'T11', 'T12', 'L1')
+clinical_data %>% 
+  .[, upper:= substr(`Posterior Instrumented Fusion: Upper / Lower Levels`, 1, 2)] %>% 
+  .[, uiv_t10_12_l1 := ifelse(upper %in% uiv_, 'Yes', 'No')]
+
+clinical_data[, diagnosis := ifelse(
+  grepl("Idiopathic", `ESSG Diagnosis`, fixed=TRUE),
+  "Idiopathic", "others"
+)]
+clinical_data[, diagnosis := ifelse(
+  grepl("Degenerative", `ESSG Diagnosis`, fixed=TRUE),
+  "Degenerative", diagnosis
+)]
+
+vars <- read_yaml('descriptive.yml')
+vars$surgery <- c(vars$surgery, 'uiv_t10_12_l1')
+
+clinical_data[, `ASA classification` := as.character(`ASA classification`)]
+```
+
+
+```{r echo=FALSE}
+stats_fun <- function(variable){
+  if( class(variable) == 'numeric' ){
+    return( list(
+      mean = mean(variable, na.rm=TRUE),
+      sd = sd(variable, na.rm = TRUE),
+      median = median(variable, na.rm = TRUE),
+      IQR = IQR(variable, na.rm = TRUE)
+    ))
+  }else{
+    res_table <- table(variable)
+    return(list(
+      table = res_table, 
+      proportion = prop.table(res_table)
+    ))
+  }
+}
+
+stats_fun_vs <- function(dt, variable){
+  idiopathic = dt[diagnosis=='Idiopathic', get(variable)] %>% na.omit()
+  degenerative = dt[diagnosis=='Degenerative', get(variable)] %>% na.omit()
+  if( class(dt[, get(variable)]) == 'numeric' ){
+    return( list(
+      stats = dt[, .(
+        mean=mean(get(variable), na.rm=TRUE),
+        sd = sd(get(variable), na.rm = TRUE),
+        median = median(get(variable), na.rm = TRUE),
+        IQR = IQR(get(variable), na.rm = TRUE),
+        N = .N
+      ),
+      diagnosis],
+      p_val_idio_vs_dege = t.test(idiopathic, degenerative)$p.val)
+    )
+  }else{
+    res_table_idio <- table(dt[diagnosis=='Idiopathic', get(variable)])
+    res_table_dege <- table(dt[diagnosis=='Degenerative', get(variable)])
+    
+    res <- list(
+      table_idiopathic = res_table_idio, 
+      proportion_idiopathic = prop.table(res_table_idio),
+      table_degenerative = res_table_dege, 
+      proportion_degenerative = prop.table(res_table_dege)
+    )
+    
+    if( length(res_table_idio) < 20){
+      for(p_val_cat in dt[, unique(get(variable))]){
+        p_val_name <- "p_val_{p_val_cat}" %>% f
+        
+        n_idio <- dt[diagnosis=='Idiopathic', .N]
+        n_idio_var <- dt[diagnosis=='Idiopathic', sum(get(variable) == p_val_cat, na.rm = TRUE)]
+        n_dege <- dt[diagnosis=='Degenerative', .N]
+        n_dege_var <- dt[diagnosis=='Degenerative', sum(get(variable) == p_val_cat, na.rm = TRUE)]
+        res[[p_val_name]] <- prop.test(
+          c(n_idio_var, n_dege_var),
+          c(n_idio, n_dege)
+        )$p.val
+        
+      }
+    }
+    
+    return(res)
+  }
+}
+
+
+```
+
+### Filters
+```{r warning=FALSE }
+discarded_patients <- readLines('five_years/discarded_patients')
+
+clinical_data %<>% 
+  .[, followup_2y := 
+      !is.na(`2 YEAR VISIT - Date of visit`) | 
+      !is.na(`3 YEAR VISIT - Date of visit`)] %>% 
+  .[, followup_5y := 
+      !is.na(`5 YEAR VISIT - Date of visit`) | 
+      !is.na(`6 YEAR VISIT - Date of visit`)]
+
+clinical_data %<>% 
+  .[Site != 'ANK Op'] %>% 
+  .[`Vital status` == 'Alive'] %>% 
+  .[!(`Code of the patient` %in% discarded_patients)] %>% 
+  .[`st1. Date of Stage 1` %>% as.Date() < as.Date('2015-3-15')]
+
+total <- clinical_data[, `Code of the patient` %>% uniqueN]
+patients_2y <- clinical_data[followup_2y==TRUE, `Code of the patient` %>% uniqueN]
+patients_5y <- clinical_data[followup_5y==TRUE, `Code of the patient` %>% uniqueN]
+```
+
+
+- Number of Patients with 'st1. Date of Stage 1' < '2015-3-15': `r total`
+- Number of patients with visit in 2 years: `r patients_2y`
+- Number of patients with visit in 5 years: `r patients_5y`
+
+<!-- We finally stick to those with 2y FU -->
+<!-- ```{r} -->
+<!-- clinical_data %<>%  -->
+<!--   .[followup_2y==TRUE] -->
+<!-- ``` -->
+
+```{r}
+clinical_data %<>% .[followup_2y==TRUE]
+```
+
+Total patients for the stats `r clinical_data[, .N]`
+
+
+### Demographics
+```{r echo=FALSE, comment="", warning=FALSE}
+for(var_ in vars$demographics ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(clinical_data[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  
+  cat('\n')
+  res <- stats_fun_vs(clinical_data, var_)
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```
+
+
+### Radiology
+```{r echo=FALSE, comment=""}
+for(var_ in vars$radiology ){
+  var_6w <- "6W. {var_}" %>% f
+  var_2y <- "2Y. {var_}" %>% f
+  var_5y <- "5Y. {var_}" %>% f
+  vars_years <- c(var_, var_6w, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(clinical_data[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    
+    cat('\n')
+    res <- stats_fun_vs(clinical_data, var_y)
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+
+    
+  cat('{var_} tests\n' %>% f)
+  rad_6w <- clinical_data[[var_6w]]
+  rad_2y <- clinical_data[[var_2y]]
+  rad_5y <- clinical_data[[var_5y]]
+  cat('\n6w vs 2y p-value\n')
+  cat(t.test(rad_6w, rad_2y)$p.val)
+  cat('\n')
+  cat('2y vs 5y p-value\n')
+  cat(t.test(rad_2y, rad_5y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Quality of Life
+```{r echo=FALSE, comment=""}
+for(var_0 in vars$quality ){
+  var_ <- "{var_0}_First Visit" %>% f
+  var_2y <- "2Y. {var_0}" %>% f
+  var_5y <- "5Y. {var_0}" %>% f
+  vars_years <- c(var_, var_2y, var_5y)
+  for(var_y in vars_years){
+    cat(var_y)
+    cat('\n')
+    res <- stats_fun(clinical_data[[var_y]])
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n')
+    res <- stats_fun_vs(clinical_data, var_y)
+    for( res_name in names(res) ){
+      print(res_name)
+      print(res[[res_name]])
+    }
+    cat('\n\n')
+  }
+  
+   cat('{var_} tests\n' %>% f)
+  rad_2y <- clinical_data[[var_2y]]
+  rad_5y <- clinical_data[[var_5y]]
+  cat('2y vs 5y p-value\n')
+  cat(t.test(rad_2y, rad_5y)$p.val)
+  cat('\n\n')
+}
+```
+
+
+### Surgery
+```{r echo=FALSE, comment=""}
+for(var_ in vars$surgery ){
+  cat(var_)
+  cat('\n')
+  res <- stats_fun(clinical_data[[var_]])
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  
+  cat('\n')
+  res <- stats_fun_vs(clinical_data, var_)
+  for( res_name in names(res) ){
+    print(res_name)
+    print(res[[res_name]])
+  }
+  cat('\n\n')
+}
+```

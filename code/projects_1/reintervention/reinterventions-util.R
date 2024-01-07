@@ -5,6 +5,7 @@ library(stringr)
 library(yaml)
 library(ggplot2)
 library(Hmisc)
+library(nptest)
 
 
 get_data <- function(){
@@ -13,11 +14,11 @@ get_data <- function(){
   
   vars_ <- read_yaml('reintervention/treatment_vars.yml')
   
-  rev_patient_data <- read_excel(xls_path, sheet = "Revision surgeries") %>% 
+  rev_patient_data <- read_excel(xls_path, sheet = "Revision surgeries", .name_repair='minimal') %>% 
     data.table 
-  clinical_data <- read_excel(xls_path) %>% 
+  clinical_data <- read_excel(xls_path, .name_repair='minimal') %>% 
     data.table() 
-  complications <- read_excel(xls_path, sheet = "Complications") %>% 
+  complications <- read_excel(xls_path, sheet = "Complications", .name_repair='minimal') %>% 
     data.table 
   
   setnames(clinical_data, 'ideal LL\r\n\r\n', 'ideal LL')
@@ -309,7 +310,10 @@ estimate_dilution <- function(res_, outcome, controlling_vars_, sel_years=1:3){
   return(stat_res)
 }
 
-estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_years=1:5){
+estimate_impacts <- function(
+    res_, outcome, impact_var, controlling_vars_, sel_years=1:5,
+    non_parametric=FALSE
+){
   
   reg_formula <- "{outcome} ~ ." %>% f %>% formula
   
@@ -336,8 +340,23 @@ estimate_impacts <- function(res_, outcome, impact_var, controlling_vars_, sel_y
     stat_res <- data.frame(lm_res)[ind, c(1, 2, 4)] 
     ind <- which(row.names(lm_ci) == impact_var)
     stat_res <- cbind(stat_res, lm_ci[ind, , drop=FALSE])
+    
+    if(non_parametric==TRUE){
+      z_cols <- setdiff(colnames(res_cols), c(outcome, impact_var))
+      y_var <- res_cols[, get(outcome)]
+      x_var <- res_cols[, get(impact_var)]
+      z_var <- res_cols[, .SD, .SDcols = z_cols]
+      nonparam <- np.reg.test(x_var, y_var, data.matrix(z_var), R=1000)
+      stat_res[['non_param_p.value']] <- nonparam$p.value
+    }
     if(nrow(stat_res) > 0 ){
-      colnames(stat_res) <- c('Estimate', 'StdError', 'p_value', '2.5 %', '97.5 %')
+      if(non_parametric==TRUE){
+        colnames(stat_res) <- c(
+          'Estimate', 'StdError', 'p_value', '2.5 %', '97.5 %', 'np_p.val'
+        )  
+      }else{
+        colnames(stat_res) <- c('Estimate', 'StdError', 'p_value', '2.5 %', '97.5 %')  
+      }
       row.names(stat_res) <- NULL
     }else{
       stat_res <- data.frame(

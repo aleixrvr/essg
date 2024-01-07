@@ -9,7 +9,7 @@ source('basic.R')
 
 xls_path <- '../../data/ESSG extraction July 2021 DEF_v3.xlsx'
 
-get_data_base <- function(){
+get_data_base <- function(xls_path=xls_path){
   
   discarded_patients <- readLines('discarded_patients.txt')
   discarded_patients <- c(discarded_patients)
@@ -54,8 +54,8 @@ get_data_base <- function(){
   return(clinical_data)
 }
 
-get_data <- function(followup_2y_opts = TRUE){
-  clinical_data <- get_data_base()
+get_data <- function(followup_2y_opts = TRUE, xls_path=xls_path){
+  clinical_data <- get_data_base(xls_path)
   
   analysis_vars <- read_yaml('descriptive.yml')
   
