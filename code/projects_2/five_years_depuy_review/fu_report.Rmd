@@ -23,7 +23,7 @@ library(magrittr)
 library(data.table)
 
 # xls_path <- '../../data/June 2023 All.xlsx'
-xls_path <- '../../data/Dataset- FU Check.xlsx'
+xls_path <- '../../data/ESSG Registry FU template.xlsx'
 discarded_patients <- readLines('discarded_patients.txt')
 ```
 
@@ -39,7 +39,7 @@ clinical_data <- read_excel(xls_path) %>%
 clinical_data %<>%
   .[`Site Name` != 'ANK Op'] %>%
   .[`Statut vital` == 'Alive'] %>%
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2020-06-01')] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2020-12-01')] %>%
   .[!(`Code of the patient` %in% discarded_patients)] 
   # .[Study=='Op']
 ```
@@ -56,12 +56,22 @@ clinical_data %<>%
 
 clinical_data %<>%
   .[, radio_2y :=
-      !is.na(`2Y. Date`) |
-      !is.na(`3Y. Date`)] %>%
+      !is.na(`2Y. Radiographic parameters - Date`) |
+      !is.na(`3Y. Radiographic parameters - Date`)] %>%
   .[, radio_5y :=
-      !is.na(`5Y. Date`) |
-      !is.na(`6Y. Date`)]
+      !is.na(`5Y. Radiographic parameters - Date`) |
+      !is.na(`6Y. Radiographic parameters - Date`)]
 total <- clinical_data[, .N]
+```
+
+Proportion of coincidence between calculated followup_2y and "Control > 2y" variable
+```{r}
+mean(clinical_data[, followup_2y] == clinical_data[, `Control > 2y`])
+```
+
+Proportion of coincidence between calculated followup_5y and "Control > 5y" variable
+```{r}
+mean(clinical_data[, followup_5y] == clinical_data[, `Control > 5y`])
 ```
 
 
@@ -108,6 +118,16 @@ Proportion of patients with 2Y radiography per Site
 clinical_data[, .(.N, have_radio=sum(radio_2y==TRUE), sum(radio_2y==TRUE)/.N), `Site Name`]
 ```
 
+
+```{r include=FALSE}
+write(clinical_data[followup_2y & !radio_2y, `Code of the patient`], "five_years_depuy_review/patients_2YFU_no2YRadio.txt")
+```
+
+```{r include=FALSE}
+write(clinical_data[(!followup_2y), `Code of the patient`], "five_years_depuy_review/patients_eligible_no2YFU.txt")
+```
+
+
 ## 5Y FU
 
 ```{r warning=FALSE, include=FALSE}
@@ -120,7 +140,7 @@ clinical_data <- read_excel(xls_path) %>%
 clinical_data %<>%
   .[`Site Name` != 'ANK Op'] %>%
   .[`Statut vital` == 'Alive'] %>%
-  .[`st1. Date of Stage` %>% as.Date() < as.Date('2017-06-01')] %>%
+  .[`st1. Date of Stage` %>% as.Date() < as.Date('2017-12-01')] %>%
   .[!(`Code of the patient` %in% discarded_patients)] 
   # .[Study=='Op']
 ```
@@ -137,11 +157,11 @@ clinical_data %<>%
 
 clinical_data %<>%
   .[, radio_2y :=
-      !is.na(`2Y. Date`) |
-      !is.na(`3Y. Date`)] %>%
+      !is.na(`2Y. Radiographic parameters - Date`) |
+      !is.na(`3Y. Radiographic parameters - Date`)] %>%
   .[, radio_5y :=
-      !is.na(`5Y. Date`) |
-      !is.na(`6Y. Date`)]
+      !is.na(`5Y. Radiographic parameters - Date`) |
+      !is.na(`6Y. Radiographic parameters - Date`)]
 
 total <- clinical_data[, .N]
 ```
@@ -188,4 +208,10 @@ Proportion of patients with 5Y radiography per Site
 clinical_data[, .(.N, have_radio=sum(radio_5y==TRUE), sum(radio_5y==TRUE)/.N), `Site Name`]
 ```
 
+```{r include=FALSE}
+write(clinical_data[(!followup_5y), `Code of the patient`], "five_years_depuy_review/patients_eligible_no5YFU.txt")
+```
 
+```{r include=FALSE}
+write(clinical_data[followup_5y & !radio_5y, `Code of the patient`], "five_years_depuy_review/patients_5YFU_no5YRadio.txt")
+```

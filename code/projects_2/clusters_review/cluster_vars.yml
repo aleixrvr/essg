@@ -1,0 +1,31 @@
+# vars:
+#   - Number of prior surgeries     
+#   - Height (cm)_First Visit
+#   - Weight (kgs)_First Visit                 
+#   - Age                        
+#   - Sagittal Balance           
+#   - Coronal Balance (C7PL to CSVL)
+#   - Static Major curve Cobb angle     
+#   - Pelvic Tilt                
+#   - ODI - Score (%)                  
+#   - SRS22 - Function / Activity       
+#   - SRS22 - Mental health             
+#   - SRS22 - Pain           
+#   - SRS22 - Self image / Appearance             
+#   - SRS22 - SRS Subtotal score       
+#   - SF36 - MCS           
+#   - SF36 - PCS 
+vars:
+  - Weight (kgs)_First Visit                 
+  - Age                        
+  - Sagittal Balance           
+  - Coronal Balance (C7PL to CSVL)
+  - Static Major curve Cobb angle     
+  - Pelvic Tilt                
+  - ODI - Score (%)                  
+  - SRS22 - Function / Activity       
+  - SRS22 - Mental health             
+  - SRS22 - Pain           
+  - SRS22 - Self image / Appearance             
+  - SRS22 - SRS Subtotal score       
+  
